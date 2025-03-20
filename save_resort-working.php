@@ -185,14 +185,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $pageContent .= "<style>\n";
     $pageContent .= "h2 { font-size: 1.5rem; margin-bottom: 1.5rem; }\n";
     $pageContent .= ".section-spacing { margin-bottom: 2rem; }\n";
-    $pageContent .= ".banner .banner-title { z-index: 2; }\n";
-    $pageContent .= ".banner .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1; }\n";
+    $pageContent .= ".banner .banner-text { background: none; }\n";
     $pageContent .= "</style>\n";
-    // Banner Section with Overlay for Banner Title
+    // Banner Section
     $pageContent .= "<div class=\"banner position-relative section-spacing\">\n";
     $pageContent .= "  <img src=\"<?php echo \$resortFolder . '/' . (\$resort['banner_image'] ?? ''); ?>\" alt=\"<?php echo \$resort['resort_name'] ?? ''; ?>\" class=\"img-fluid w-100\">\n";
-    $pageContent .= "  <div class=\"overlay\"></div>\n";
-    $pageContent .= "  <div class=\"position-absolute top-50 start-50 translate-middle text-white banner-title\">\n";
+    $pageContent .= "  <div class=\"position-absolute top-50 start-50 translate-middle text-white\">\n";
     $pageContent .= "    <h1 class=\"display-4\"><?php echo \$resort['banner_title'] ?? ''; ?></h1>\n";
     $pageContent .= "  </div>\n";
     $pageContent .= "</div>\n";

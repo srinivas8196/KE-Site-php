@@ -1,5 +1,6 @@
 <!doctype html>
 <html class="no-js" lang="zxx">
+
 <head>
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
@@ -13,7 +14,7 @@
     <link rel="apple-touch-icon" sizes="60x60" href="assets/images/logo/K-logo.png">
     <link rel="apple-touch-icon" sizes="72x72" href="assets/images/logo/K-logo.png">
     <link rel="apple-touch-icon" sizes="76x76" href="assets/images/logo/K-logo.png">
-    <link rel="apple-touch-icon" sizes="114x114" href="assets/images/logo/K-logo.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="aassets/images/logo/K-logo.png">
     <link rel="apple-touch-icon" sizes="120x120" href="assets/images/logo/K-logo.png">
     <link rel="apple-touch-icon" sizes="144x144" href="assets/images/logo/K-logo.png">
     <link rel="apple-touch-icon" sizes="152x152" href="assets/images/logo/K-logo.png">
@@ -65,7 +66,7 @@
     // Include database connection
     include 'db.php';
 
-    // Fetch destinations and resorts for the header mega menu
+    // Fetch destinations and resorts
     $sql = "SELECT d.destination_name, r.resort_name, r.resort_slug, r.banner_image, r.resort_description 
             FROM resorts r 
             JOIN destinations d ON r.destination_id = d.id 
@@ -73,9 +74,9 @@
             ORDER BY d.destination_name, r.resort_name";
     $stmt = $pdo->query($sql);
 
-    $menuDestinations = [];
+    $destinations = [];
     while ($row = $stmt->fetch()) {
-        $menuDestinations[$row['destination_name']][] = $row;
+        $destinations[$row['destination_name']][] = $row;
     }
     ?>
     <div class="th-menu-wrapper onepage-nav block md:hidden">
@@ -92,7 +93,7 @@
                     <li class="menu-item-has-children">
                         <a href="#" class="block hover:text-blue-600">Destinations</a>
                         <ul class="submenu pl-4 space-y-2">
-                            <?php foreach ($menuDestinations as $destination_name => $resorts) { ?>
+                            <?php foreach ($destinations as $destination_name => $resorts) { ?>
                                 <li class="font-bold text-gray-900"><?php echo $destination_name; ?></li>
                                 <div class="grid grid-cols-2 gap-2">
                                     <?php foreach ($resorts as $resort) { ?>
@@ -126,7 +127,7 @@
                                                 <div class="row">
                                                     <?php
                                                     $col_count = 0;
-                                                    foreach ($menuDestinations as $destination_name => $resorts) {
+                                                    foreach ($destinations as $destination_name => $resorts) {
                                                         if ($col_count % 4 == 0 && $col_count != 0) {
                                                             echo '</div><div class="row">';
                                                         }
@@ -162,10 +163,12 @@
                             <button type="button" class="th-menu-toggle d-block d-xl-none"><i
                                     class="far fa-bars"></i></button>
                         </div>
+
                         <div class="col-auto d-none d-xl-block">
                             <div class="header-button"><a href="pay-now" class="th-btn style3 th-icon">Pay Now</a>
                             </div>
                         </div>
+
                     </div>
                 </div>
             </div>
