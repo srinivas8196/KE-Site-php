@@ -35100,3 +35100,137 @@ span.select2-selection.select2-selection--single:focus {
 }
 
 /*# sourceMappingURL=style.css.map */
+
+
+/**====my css==**/
+
+/**==about us css start==**/
+.play-btn:after, .play-btn:before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--white-color);
+  z-index: -1;
+  border-radius: 50%;
+  -webkit-transition: all ease 0.4s;
+  transition: all ease 0.4s;
+}
+
+.video-img2 a {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+.video-img2 {
+  position: relative;
+}
+.video-img2 img {
+  width: 100%;
+  height: auto;
+  border-radius: 30px;
+}
+
+.ripple-animation {
+  animation-duration: var(--ripple-ani-duration);
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  animation-name: ripple;
+}
+@keyframes ripple {
+  0% {
+      transform: scale(1);
+      opacity: 0;
+  }
+
+  30% {
+      opacity: 0.4;
+  }
+
+  100% {
+      transform: scale(1.8);
+      opacity: 0;
+  }
+}
+
+.about-item-wrap {
+  padding: 1em 0 2em 0;
+}
+
+/**==about us css end==**/
+
+/**==footer css start==**/
+
+.footer-wrapper .about-logo img {
+  width: 100%;
+  height: auto;
+}
+
+.footer-wrapper {
+  background: #0d0d0c;
+}
+.footer-wrapper .menu li a {
+  color: #fff !important;
+}
+.footer-wrapper .details p {
+  color: #fff !important;
+}
+.footer-wrapper .details p:before {
+  content: "\f105";
+  content: "\f105";
+  font-weight: 600;
+  font-family: var(--icon-font);
+  -ms-transform: translateY(0);
+  padding: 0 1em 0 0;
+}
+.footer-wrapper .details span {
+  font-weight: 800;
+  color: #fff;
+}
+.footer-card img {
+  width: 50px;
+  background: #fff;
+  padding: 0px 8px;
+  border-radius: 5px;
+}
+
+/**==footer css end==**/
+
+/**===condition page css start==**/
+
+.conditions-term ul {
+  padding: 0;
+}
+.conditions-term ul li {
+  list-style: none;
+}
+.conditions {
+  padding: 2em 0;
+}
+
+.t-overlay {
+  position: absolute;
+  background-image: linear-gradient(348deg, #000000bd, transparent);
+  top: 0;
+  width: 100%;
+  height: 100%;
+}
+.over-lay{
+  position: relative;
+}
+/**===condition page css start==**/
+
+/**===Responsive css start==**/
+
+@media(max-width: 576px){
+  .th-mobile-menu {
+    display: block !important;
+}
+.footer-wrapper .about-logo img{
+  width: 45%;
+}
+}
+/**==end my css==*/
