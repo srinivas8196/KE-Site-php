@@ -34,17 +34,19 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;family=Manrope:wght@200..800&amp;family=Montez&amp;display=swap"
         rel="stylesheet">
+    <!-- Start of included CSS files -->
     <link rel="stylesheet" href="assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="assets/css/fontawesome.min.css">
     <link rel="stylesheet" href="assets/css/magnific-popup.min.css">
     <link rel="stylesheet" href="assets/css/swiper-bundle.min.css">
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/custom.css"> <!-- Add custom CSS file -->
+    <!-- End of included CSS files -->
     <!-- <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet"> Add Tailwind CSS -->
     <style>
         /* Ensure menu items are visible on mobile devices */
         .th-mobile-menu {
-            display: none;
+            display: b;
         }
         .th-mobile-menu.active {
             display: block;
@@ -79,7 +81,7 @@
     ?>
     <div class="th-menu-wrapper onepage-nav block md:hidden">
         <div class="th-menu-area bg-white shadow-md p-4 text-center">
-            <button id="mobileMenuToggle" class="th-menu-toggle text-2xl focus:outline-none"><i class="fal fa-bars"></i></button>
+            <button id="mobileMenuToggle" class="th-menu-toggle text-2xl focus:outline-none"><i class="fal fa-times"></i></button>
             <div class="mobile-logo mt-4">
                 <a href="index.php">
                     <img src="assets/images/logo/KE-Gold.png" alt="Karma Experience" class="w-36 mx-auto">
@@ -172,6 +174,8 @@
             </div>
         </div>
     </header>
+    <!-- Start of included JS files -->
     <script src="assets/js/custom.js"></script> <!-- Include custom JS file -->
+    <!-- End of included JS files -->
 </body>
 </html>

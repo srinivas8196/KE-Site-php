@@ -181,8 +181,6 @@ include 'bheader.php';
                 <div class="col-md-6">
                   <input type="file" name="amenities[<?php echo $index; ?>][icon]" class="form-control" accept=".jpg,.jpeg,.png,.webp">
                   <small>Current: <?php echo htmlspecialchars($amenity['icon']); ?></small>
-                  <!-- Hidden field to retain existing icon -->
-                  <input type="hidden" name="amenities[<?php echo $index; ?>][existing_icon]" value="<?php echo htmlspecialchars($amenity['icon']); ?>">
                 </div>
               </div>
           <?php endforeach; else: ?>
@@ -211,8 +209,6 @@ include 'bheader.php';
                 <div class="col-md-6">
                   <input type="file" name="rooms[<?php echo $index; ?>][image]" class="form-control" accept=".jpg,.jpeg,.png,.webp">
                   <small>Current: <?php echo htmlspecialchars($room['image']); ?></small>
-                  <!-- Hidden field to retain existing image -->
-                  <input type="hidden" name="rooms[<?php echo $index; ?>][existing_image]" value="<?php echo htmlspecialchars($room['image']); ?>">
                 </div>
               </div>
           <?php endforeach; else: ?>

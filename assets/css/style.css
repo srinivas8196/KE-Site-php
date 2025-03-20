@@ -35099,4 +35099,9 @@ span.select2-selection.select2-selection--single:focus {
   z-index: 8;
 }
 
-/*# sourceMappingURL=style.css.map */
+@media(max-width: 576px){
+  .th-mobile-menu {
+    display: block !important;
+}
+
+}
