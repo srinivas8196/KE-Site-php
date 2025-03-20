@@ -20,16 +20,16 @@
                     <div class="col-md-6 col-xl-3">
                         <div class="widget footer-widget">
                             <div class="th-widget-about">
-                                <div class="about-logo"><a href="home-travel.html"><img src="assets/img/logo3.svg"
+                                <div class="about-logo"><a href="home-travel.html"><img src="assets/images/logo/KE-White.png"
                                             alt="Tourm"></a></div>
-                                <p class="about-text">Rapidiously myocardinate cross-platform intellectual capital
+                                <!-- <p class="about-text">Rapidiously myocardinate cross-platform intellectual capital
                                     model. Appropriately create interactive infrastructures</p>
                                 <div class="th-social"><a href="https://www.facebook.com/"><i
                                             class="fab fa-facebook-f"></i></a> <a href="https://www.twitter.com/"><i
                                             class="fab fa-twitter"></i></a> <a href="https://www.linkedin.com/"><i
                                             class="fab fa-linkedin-in"></i></a> <a href="https://www.whatsapp.com/"><i
                                             class="fab fa-whatsapp"></i></a> <a href="https://instagram.com/"><i
-                                            class="fab fa-instagram"></i></a></div>
+                                            class="fab fa-instagram"></i></a></div> -->
                             </div>
                         </div>
                     </div>
@@ -38,11 +38,22 @@
                             <h3 class="widget_title">Quick Links</h3>
                             <div class="menu-all-pages-container">
                                 <ul class="menu">
-                                    <li><a href="index-2.html">Home</a></li>
-                                    <li><a href="about.html">About us</a></li>
-                                    <li><a href="service.html">Our Service</a></li>
-                                    <li><a href="contact.html">Terms of Service</a></li>
-                                    <li><a href="contact.html">Tour Booking Now</a></li>
+                                    <li><a href="index.php">Home</a></li>
+                                    <li><a href="about.php">About us</a></li>
+                                    <li><a href="#">Destinations</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-xl-auto">
+                        <div class="widget widget_nav_menu footer-widget">
+                            <h3 class="widget_title">Other Links</h3>
+                            <div class="menu-all-pages-container">
+                                <ul class="menu">
+                                    <li><a href="gallery.php">Gallery</a></li>
+                                    <li><a href="terms-and-conditions.php">Terms & conditions</a></li>
+                                    <li><a href="privacy-policy.php">Privacy Policy</a></li>
+                                    <li><a href="blogs.php">Blogs</a></li>
                                 </ul>
                             </div>
                         </div>
@@ -52,31 +63,29 @@
                             <h3 class="widget_title">Address</h3>
                             <div class="th-widget-contact">
                                 <div class="info-box_text">
-                                    <div class="icon"><img src="assets/img/icon/phone.svg" alt="img"></div>
+                                    <!-- <div class="icon"><img src="assets/img/icon/phone.svg" alt="img"></div> -->
                                     <div class="details">
-                                        <p><a href="tel:+01234567890" class="info-box_link">+01 234 567 890</a></p>
-                                        <p><a href="tel:+09876543210" class="info-box_link">+09 876 543 210</a></p>
+                                        <!-- <p><a href="tel:+01234567890" class="info-box_link">+01 234 567 890</a></p>
+                                        <p><a href="tel:+09876543210" class="info-box_link">+09 876 543 210</a></p> -->
+                                        <span>Central Reservation</span>
+                                        <p>Bengaluru</p>
                                     </div>
                                 </div>
                                 <div class="info-box_text">
-                                    <div class="icon"><img src="assets/img/icon/envelope.svg" alt="img"></div>
+                                    <!-- <div class="icon"><img src="assets/img/icon/envelope.svg" alt="img"></div> -->
                                     <div class="details">
-                                        <p><a href="mailto:mailinfo00@tourm.com"
+                                        <!-- <p><a href="mailto:mailinfo00@tourm.com"
                                                 class="info-box_link">mailinfo00@tourm.com</a></p>
                                         <p><a href="mailto:support24@tourm.com"
-                                                class="info-box_link">support24@tourm.com</a></p>
-                                    </div>
-                                </div>
-                                <div class="info-box_text">
-                                    <div class="icon"><img src="assets/img/icon/location-dot.svg" alt="img"></div>
-                                    <div class="details">
-                                        <p>789 Inner Lane, Holy park, California, USA</p>
+                                                class="info-box_link">support24@tourm.com</a></p> -->
+                                        <span>Regional Offices</span>
+                                        <p>Philippines | United Kingdom | Germany | Bali | Goa</p>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-6 col-xl-auto">
+                    <!-- <div class="col-md-6 col-xl-auto">
                         <div class="widget footer-widget">
                             <h3 class="widget_title">Instagram Post</h3>
                             <div class="sidebar-gallery">
@@ -100,7 +109,7 @@
                                         class="gallery-btn"><i class="fab fa-instagram"></i></a></div>
                             </div>
                         </div>
-                    </div>
+                    </div> -->
                 </div>
             </div>
         </div>
@@ -108,12 +117,15 @@
             <div class="container">
                 <div class="row justify-content-between align-items-center">
                     <div class="col-md-6">
-                        <p class="copyright-text">Copyright 2025 <a href="home-travel.html">Tourm</a>. All Rights
-                            Reserved.</p>
+                        <p class="copyright-text">© 2025 - PRESTIGE HOLIDAY RESORTS LLP - ALL RIGHTS RESERVED</p>
                     </div>
                     <div class="col-md-6 text-end d-none d-md-block">
-                        <div class="footer-card"><span class="title">We Accept</span> <img
-                                src="assets/img/shape/cards.png" alt=""></div>
+                        <div class="footer-card"><span class="title">We Accept:</span>
+                         <!-- <img src="assets/img/shape/cards.png" alt=""> -->
+                          <img src="assets/img/icon/visa.webp" alt="visa">
+                          <img src="assets/img/icon/master-card.webp" alt="visa">
+                          <img src="assets/img/icon/razorpay.png" alt="visa">
+                        </div>
                     </div>
                 </div>
             </div>
