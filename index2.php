@@ -1,5 +1,5 @@
 <?php
-include_once('kheader-new.php');
+include_once('kheader-new1.php');
 ?>
 
 <div class="th-hero-wrapper hero-1" id="hero">
@@ -503,15 +503,6 @@ include_once('kheader-new.php');
         <img src="assets/img/shape/shape_7.png" alt="shape">
     </div>
 </section>
-
-
-
-
-
-
-
-
-
 
 <?php
 include_once('kfooter.php');

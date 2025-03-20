@@ -1,0 +1,146 @@
+/* Basic utility & layout */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', sans-serif;
+}
+.container {
+    max-width: 1140px;
+    margin: 0 auto;
+    padding: 0 15px;
+}
+.row {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0 -15px;
+}
+.col-auto {
+    flex: 0 0 auto;
+    padding: 0 15px;
+}
+.d-flex { display: flex !important; }
+.align-items-center { align-items: center !important; }
+.justify-content-between { justify-content: space-between !important; }
+.d-none { display: none !important; }
+.d-block { display: block !important; }
+.d-inline-block { display: inline-block !important; }
+.d-xl-block {}
+@media (min-width: 1200px) {
+  .d-xl-block { display: block !important; }
+  .d-xl-none { display: none !important; }
+}
+.ms-3 { margin-left: 1rem !important; }
+
+/* Desktop Header & Mega Menu */
+.header-logo img {
+    width: 150px;
+}
+.header-button a {
+    text-decoration: none;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: #fff;
+    border-radius: 5px;
+}
+.mega-menu {
+    position: absolute;
+    left: 0;
+    top: 100%;
+    width: 100%;
+    background: #fff;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    padding: 20px 0;
+    display: none;
+    z-index: 999;
+}
+.mega-menu .container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+.mega-menu .col-md-3 { width: 23%; }
+.mega-menu ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.mega-menu ul li {
+    margin-bottom: 10px;
+}
+.mega-menu ul li a {
+    color: #333;
+    text-decoration: none;
+    font-weight: 500;
+}
+.mega-menu ul li a:hover {
+    color: #007bff;
+}
+.menu-item-has-children:hover .mega-menu,
+.menu-item-has-children:focus-within .mega-menu {
+    display: block;
+}
+.truncate {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+@media (max-width: 768px) {
+    .mega-menu .col-md-3 { width: 100%; }
+}
+
+/* Mobile Menu */
+.th-menu-wrapper {
+    /* visible on screens below 1200px, hidden on desktop */
+    display: block;
+}
+@media (min-width: 1200px) {
+    .th-menu-wrapper {
+        display: none !important;
+    }
+}
+.th-menu-area {
+    background: #fff;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    text-align: center;
+}
+.th-menu-toggle {
+    cursor: pointer;
+    border: none;
+    background: none;
+    font-size: 1.5rem;
+    color: #333;
+}
+.th-mobile-menu {
+    display: none;
+    margin-top: 1rem;
+}
+.th-mobile-menu.active {
+    display: block;
+}
+.th-mobile-menu ul {
+    list-style: none;
+    margin: 0; 
+    padding: 0;
+}
+.th-mobile-menu ul li {
+    margin-bottom: 10px;
+}
+.th-mobile-menu ul li a {
+    color: #333;
+    text-decoration: none;
+    font-weight: 500;
+}
+.th-mobile-menu ul li a:hover {
+    color: #007bff;
+}
+/* Submenu for mobile */
+.submenu { display: none; }
+.menu-item-has-children.active .submenu {
+    display: block;
+}
+
+/* Additional Layout Tweaks */
+.header-layout3.header-absolute .menu-area {
+    position: relative;
+}

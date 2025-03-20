@@ -6,7 +6,6 @@ if (!isset($_SESSION['user'])) {
 }
 $user = $_SESSION['user'];
 require 'db.php';
-
 $stmt = $pdo->query("SELECT r.*, d.destination_name FROM resorts r JOIN destinations d ON r.destination_id = d.id ORDER BY d.destination_name, r.resort_name");
 $resorts = $stmt->fetchAll();
 ?>
@@ -145,9 +144,9 @@ $resorts = $stmt->fetchAll();
               <td class="py-2 px-4 border-b">
                 <a href="create_or_edit_resort.php?destination_id=<?php echo $resort['destination_id']; ?>&resort_id=<?php echo $resort['id']; ?>" class="bg-yellow-500 text-white px-2 py-1 rounded">Edit</a>
                 <?php if ($resort['is_active'] == 1): ?>
-                  <a id="viewLink_<?php echo $resort['id']; ?>" href="<?php echo htmlspecialchars($resort['file_path']); ?>" class="bg-blue-500 text-white px-2 py-1 rounded">View</a>
+                    <a href="<?php echo htmlspecialchars($resort['resort_slug']); ?>" class="bg-blue-500 text-white px-2 py-1 rounded">View</a>
                 <?php else: ?>
-                  <a id="viewLink_<?php echo $resort['id']; ?>" href="404.php" class="bg-blue-500 text-white px-2 py-1 rounded">View</a>
+                    <a href="404.php" class="bg-blue-500 text-white px-2 py-1 rounded">View</a>
                 <?php endif; ?>
                 <a href="delete_resort.php?id=<?php echo $resort['id']; ?>" class="bg-red-500 text-white px-2 py-1 rounded" onclick="return confirm('Are you sure you want to delete this resort?');">Delete</a>
               </td>
@@ -169,7 +168,7 @@ $resorts = $stmt->fetchAll();
       sidebar.classList.toggle('sidebar-collapsed');
     });
 
-    // Listen for changes on the active toggle switches and update the "View" link automatically
+    // Listen for changes on the active toggle switches
     document.querySelectorAll('.toggle-active').forEach(function(checkbox) {
       checkbox.addEventListener('change', function() {
         var resortId = this.getAttribute('data-resort-id');
@@ -183,13 +182,7 @@ $resorts = $stmt->fetchAll();
         .then(response => response.json())
         .then(data => {
           if(data.success){
-            // Update the view link's href automatically using the response's file_path
-            var viewLink = document.getElementById('viewLink_' + resortId);
-            if(newStatus == 1){
-              viewLink.href = data.file_path; // Expected file_path from the response
-            } else {
-              viewLink.href = "404.php";
-            }
+            // Optionally show a toast or update UI further
           } else {
             alert('Failed to update status.');
           }

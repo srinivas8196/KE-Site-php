@@ -4,6 +4,7 @@ $stmt = $pdo->prepare("SELECT * FROM resorts WHERE resort_slug = ?");
 $stmt->execute(['karma-royal-villagio']);
 $resort = $stmt->fetch();
 if (!$resort) { echo 'Resort not found.'; exit(); }
+if ($resort['is_active'] != 1) { header('Location: 404.php'); exit(); }
 $destStmt = $pdo->prepare("SELECT * FROM destinations WHERE id = ?");
 $destStmt->execute([$resort['destination_id']]);
 $destination = $destStmt->fetch();
@@ -13,7 +14,7 @@ $gallery = json_decode($resort['gallery'] ?? '', true);
 $testimonials = json_decode($resort['testimonials'] ?? '', true);
 $resortFolder = 'assets/' . ($resort['resort_slug'] ?? '');
 ?>
-<?php include 'kheader.php'; ?>
+<?php include 'kheader.php'; ?> 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.css" />
 <style>
 h2 { font-size: 1.5rem; margin-bottom: 1.5rem; }
@@ -22,13 +23,17 @@ h2 { font-size: 1.5rem; margin-bottom: 1.5rem; }
 </style>
 <div class="banner position-relative section-spacing">
   <img src="<?php echo $resortFolder . '/' . ($resort['banner_image'] ?? ''); ?>" alt="<?php echo $resort['resort_name'] ?? ''; ?>" class="img-fluid w-100">
+  <img src="<?php echo $resortFolder . '/' . ($resort['banner_image'] ?? ''); ?>" alt="<?php echo $resort['resort_name'] ?? ''; ?>" class="img-fluid w-100">
   <div class="position-absolute top-50 start-50 translate-middle text-white">
+    <h1 class="display-4"><?php echo $resort['banner_title'] ?? ''; ?></h1>
     <h1 class="display-4"><?php echo $resort['banner_title'] ?? ''; ?></h1>
   </div>
 </div>
 <div class="container section-spacing">
   <div class="row">
     <div class="col-md-8">
+      <h2><?php echo $resort['resort_name'] ?? ''; ?></h2>
+      <p><?php echo $resort['resort_description'] ?? ''; ?></p>
       <h2><?php echo $resort['resort_name'] ?? ''; ?></h2>
       <p><?php echo $resort['resort_description'] ?? ''; ?></p>
       <hr class="my-4">
@@ -38,6 +43,8 @@ h2 { font-size: 1.5rem; margin-bottom: 1.5rem; }
          <div class="col-6 col-md-3 text-center mb-2">
             <img src="<?php echo $resortFolder . '/' . ($a['icon'] ?? ''); ?>" alt="<?php echo $a['name'] ?? ''; ?>" class="img-thumbnail" style="max-width:50px;">
             <p style="font-size:0.9rem;"><?php echo $a['name'] ?? ''; ?></p>
+            <img src="<?php echo $resortFolder . '/' . ($a['icon'] ?? ''); ?>" alt="<?php echo $a['name'] ?? ''; ?>" class="img-thumbnail" style="max-width:50px;">
+            <p style="font-size:0.9rem;"><?php echo $a['name'] ?? ''; ?></p>
          </div>
       <?php endforeach; endif; ?>
       </div>
@@ -45,6 +52,8 @@ h2 { font-size: 1.5rem; margin-bottom: 1.5rem; }
       <div class="row section-spacing">
       <?php if(is_array($room_details)): foreach($room_details as $r): ?>
          <div class="col-6 col-md-4 text-center mb-2">
+            <img src="<?php echo $resortFolder . '/' . ($r['image'] ?? ''); ?>" alt="<?php echo $r['name'] ?? ''; ?>" class="img-fluid rounded" style="max-width:200px;">
+            <p><?php echo $r['name'] ?? ''; ?></p>
             <img src="<?php echo $resortFolder . '/' . ($r['image'] ?? ''); ?>" alt="<?php echo $r['name'] ?? ''; ?>" class="img-fluid rounded" style="max-width:200px;">
             <p><?php echo $r['name'] ?? ''; ?></p>
          </div>
@@ -69,7 +78,9 @@ h2 { font-size: 1.5rem; margin-bottom: 1.5rem; }
                 <div class="d-flex flex-column align-items-center justify-content-center" style="min-height:180px; padding:1rem;">
                   <blockquote class="blockquote text-center">
                     <p class="mb-0" style="font-size:1rem;">"<?php echo $t['content'] ?? ''; ?>"</p>
+                    <p class="mb-0" style="font-size:1rem;">"<?php echo $t['content'] ?? ''; ?>"</p>
                     <footer class="blockquote-footer mt-2" style="font-size:0.8rem;">
+                      <?php echo $t['name'] ?? ''; ?>, <cite><?php echo $t['from'] ?? ''; ?></cite>
                       <?php echo $t['name'] ?? ''; ?>, <cite><?php echo $t['from'] ?? ''; ?></cite>
                     </footer>
                   </blockquote>

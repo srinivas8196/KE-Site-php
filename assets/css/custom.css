@@ -104,3 +104,41 @@
 .menu-item-has-children.active .submenu {
     display: block;
 }
+
+
+/**==footer css start==**/
+
+.footer-wrapper .about-logo img {
+    width: 100%;
+    height: auto;
+  }
+  
+  .footer-wrapper {
+    background: #0d0d0c;
+  }
+  .footer-wrapper .menu li a {
+    color: #fff !important;
+  }
+  .footer-wrapper .details p {
+    color: #fff !important;
+  }
+  .footer-wrapper .details p:before {
+    content: "\f105";
+    content: "\f105";
+    font-weight: 600;
+    font-family: var(--icon-font);
+    -ms-transform: translateY(0);
+    padding: 0 1em 0 0;
+  }
+  .footer-wrapper .details span {
+    font-weight: 800;
+    color: #fff;
+  }
+  .footer-card img {
+    width: 50px;
+    background: #fff;
+    padding: 0px 8px;
+    border-radius: 5px;
+  }
+  
+  /**==footer css end==**/

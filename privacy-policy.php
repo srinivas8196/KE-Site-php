@@ -21,6 +21,9 @@ include_once('kheader.php');
     <div class="p-policy">
         <h5>How we use and protect your personal data.</h5>
         <span>Last updated: 5 May 2018</span>
+        <ul>
+
+</ul>
     </div>
 </div>
 <!--content end-->
