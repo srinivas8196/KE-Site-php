@@ -1,14 +1,28 @@
 <?php
 session_start();
-if (!isset($_SESSION['user'])) {
-    header("Location: login.php");
-    exit();
-}
-$user = $_SESSION['user'];
-require 'db_mongo.php';
+require_once __DIR__ . '/vendor/autoload.php';
+use Database\SupabaseConnection;
 
-$stmt = $pdo->query("SELECT r.*, d.destination_name FROM resorts r JOIN destinations d ON r.destination_id = d.id ORDER BY d.destination_name, r.resort_name");
-$resorts = $stmt->fetchAll();
+$supabase = SupabaseConnection::getClient();
+
+// Get resorts with destinations
+$resortsResponse = $supabase
+    ->from('resorts')
+    ->select('*, destinations(destination_name)')
+    ->order('resort_name')
+    ->execute();
+
+$resorts = $resortsResponse->data;
+
+// Add storage URLs to images
+foreach ($resorts as &$resort) {
+    if ($resort['banner_image']) {
+        $resort['banner_url'] = $supabase
+            ->storage()
+            ->from('resort-assets')
+            ->getPublicUrl($resort['banner_image']);
+    }
+}
 ?>
 <?php include 'bheader.php'; ?>
 <!DOCTYPE html>

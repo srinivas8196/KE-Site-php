@@ -1,13 +1,18 @@
 <?php
 session_start();
-if (!isset($_SESSION['user'])) {
-    header("Location: login.php");
-    exit();
-}
-$user = $_SESSION['user'];
-require 'db_mongo.php';
-$stmt = $pdo->query("SELECT * FROM destinations ORDER BY destination_name");
-$destinations = $stmt->fetchAll();
+require_once __DIR__ . '/vendor/autoload.php';
+use Database\SupabaseConnection;
+
+$supabase = SupabaseConnection::getClient();
+
+// Get destinations with resort counts
+$destinationsResponse = $supabase
+    ->from('destinations')
+    ->select('*, resorts(count)')
+    ->order('destination_name')
+    ->execute();
+
+$destinations = $destinationsResponse->data;
 ?>
 <?php include 'bheader.php'; ?>
 <!DOCTYPE html>

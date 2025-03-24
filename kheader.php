@@ -103,21 +103,30 @@ if (isset($_SESSION['user'])) {
 </head>
 <body>
     <?php
-    // Include database connection
-    include 'db.php';
+    require_once __DIR__ . '/vendor/autoload.php';
+    use Models\Resort;
+    use Models\Destination;
+    use Database\SupabaseConnection;
 
-    // Fetch destinations and resorts for the header mega menu.
-    // Now fetching the banner_title as well.
-    $sql = "SELECT d.destination_name, r.resort_name, r.resort_slug, r.banner_image, r.resort_description, r.banner_title 
-            FROM resorts r 
-            JOIN destinations d ON r.destination_id = d.id 
-            WHERE r.is_active = 1 
-            ORDER BY d.destination_name, r.resort_name";
-    $stmt = $pdo->query($sql);
-
-    $menuDestinations = [];
-    while ($row = $stmt->fetch()) {
-        $menuDestinations[$row['destination_name']][] = $row;
+    try {
+        $supabaseConnection = SupabaseConnection::getInstance();
+        
+        // Get active resorts grouped by destinations
+        $activedestinations = $supabaseConnection->query('destinations', [
+            'select' => '*,resorts(*)'
+        ]);
+        
+        $menuDestinations = [];
+        if ($activedestinations) {
+            foreach ($activedestinations as $dest) {
+                $menuDestinations[$dest['destination_name']] = array_filter($dest['resorts'], function($resort) {
+                    return $resort['is_active'] == true;
+                });
+            }
+        }
+    } catch (Exception $e) {
+        error_log("Supabase error: " . $e->getMessage());
+        $menuDestinations = [];
     }
     ?>
     <div class="th-menu-wrapper onepage-nav block md:hidden">
