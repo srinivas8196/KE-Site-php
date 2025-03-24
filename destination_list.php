@@ -5,7 +5,7 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 $user = $_SESSION['user'];
-require 'db.php';
+require 'db_mongo.php';
 $stmt = $pdo->query("SELECT * FROM destinations ORDER BY destination_name");
 $destinations = $stmt->fetchAll();
 ?>

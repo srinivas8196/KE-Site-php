@@ -10,10 +10,10 @@ $dotenv->load();
 // Determine which database to use (default to MySQL if not specified)
 define('USE_MONGODB', isset($_ENV['USE_MONGODB']) && $_ENV['USE_MONGODB'] === 'true');
 
+require_once 'db_mongo.php';
+
 // Include the appropriate database connection file
 if (USE_MONGODB) {
-    require_once 'db_mongo.php';
-    
     // Create compatibility layer for MySQL functions/variables
     if (!isset($pdo)) {
         // Create a PDO-like placeholder for compatibility
@@ -26,17 +26,6 @@ if (USE_MONGODB) {
         };
         $pdo->query = function($query) {
             return null; // This won't be used when MongoDB is active
-        };
-    }
-} else {
-    require_once 'db.php';
-    
-    // Create compatibility layer for MongoDB functions/variables
-    if (!isset($mongo)) {
-        // Create a class with MongoDB-like functions
-        $mongo = new stdClass();
-        $mongo->collection = function($name) {
-            return null; // This won't be used when MySQL is active
         };
     }
 }
@@ -102,24 +91,6 @@ function mongo_deleteOne($collection, $filter) {
     return $mongo->collection($collection)->deleteOne($filter);
 }
 
-/**
- * MySQL-compatible query execution
- *
- * @param string $query SQL query
- * @param array $params Parameters
- * @param bool $fetchAll Whether to fetch all results
- * @return mixed Query result
- */
-function mysql_query($query, $params = [], $fetchAll = false) {
-    global $pdo;
-    $stmt = $pdo->prepare($query);
-    $stmt->execute($params);
-    
-    if (stripos($query, 'SELECT') === 0) {
-        return $fetchAll ? $stmt->fetchAll() : $stmt->fetch();
-    }
-    return $stmt;
-}
 
 /**
  * Universal database compatibility layer
@@ -147,77 +118,6 @@ function db($operation, $collection, $params = []) {
             default:
                 throw new Exception("Unknown MongoDB operation: $operation");
         }
-    } else {
-        switch ($operation) {
-            case 'find':
-                $where = '';
-                $sqlParams = [];
-                if (!empty($params)) {
-                    $clauses = [];
-                    foreach ($params as $key => $value) {
-                        $clauses[] = "$key = ?";
-                        $sqlParams[] = $value;
-                    }
-                    $where = ' WHERE ' . implode(' AND ', $clauses);
-                }
-                return mysql_query("SELECT * FROM $collection$where", $sqlParams, true);
-            
-            case 'findOne':
-                $where = '';
-                $sqlParams = [];
-                if (!empty($params)) {
-                    $clauses = [];
-                    foreach ($params as $key => $value) {
-                        $clauses[] = "$key = ?";
-                        $sqlParams[] = $value;
-                    }
-                    $where = ' WHERE ' . implode(' AND ', $clauses);
-                }
-                return mysql_query("SELECT * FROM $collection$where LIMIT 1", $sqlParams);
-            
-            case 'insert':
-                $keys = array_keys($params);
-                $placeholders = array_fill(0, count($keys), '?');
-                $query = "INSERT INTO $collection (" . implode(', ', $keys) . ") VALUES (" . implode(', ', $placeholders) . ")";
-                $stmt = mysql_query($query, array_values($params));
-                return ['insertedId' => $pdo->lastInsertId()];
-            
-            case 'update':
-                $filter = $params[0];
-                $data = $params[1]['$set'] ?? $params[1];
-                
-                $set = [];
-                $sqlParams = [];
-                foreach ($data as $key => $value) {
-                    $set[] = "$key = ?";
-                    $sqlParams[] = $value;
-                }
-                
-                $where = [];
-                foreach ($filter as $key => $value) {
-                    $where[] = "$key = ?";
-                    $sqlParams[] = $value;
-                }
-                
-                $query = "UPDATE $collection SET " . implode(', ', $set) . " WHERE " . implode(' AND ', $where);
-                $stmt = mysql_query($query, $sqlParams);
-                return ['modifiedCount' => $stmt->rowCount()];
-            
-            case 'delete':
-                $where = [];
-                $sqlParams = [];
-                foreach ($params as $key => $value) {
-                    $where[] = "$key = ?";
-                    $sqlParams[] = $value;
-                }
-                
-                $query = "DELETE FROM $collection WHERE " . implode(' AND ', $where);
-                $stmt = mysql_query($query, $sqlParams);
-                return ['deletedCount' => $stmt->rowCount()];
-            
-            default:
-                throw new Exception("Unknown MySQL operation: $operation");
-        }
     }
 }
 
@@ -230,8 +130,6 @@ function db($operation, $collection, $params = []) {
 function db_get_id($record) {
     if (USE_MONGODB) {
         return $record['_id'] ?? null;
-    } else {
-        return $record['id'] ?? null;
     }
 }
 
@@ -244,8 +142,6 @@ function db_get_id($record) {
 function db_id_filter($id) {
     if (USE_MONGODB) {
         return ['_id' => is_numeric($id) ? (int)$id : $id];
-    } else {
-        return ['id' => $id];
     }
 }
 

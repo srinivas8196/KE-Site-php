@@ -4,7 +4,7 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['user_type'] !== 'super_admin
     header("Location: login.php");
     exit();
 }
-require 'db.php';
+require 'db_mongo.php';
 
 if (!isset($_GET['id'])) {
     echo "User ID not specified.";

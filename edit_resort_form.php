@@ -1,5 +1,5 @@
 <?php
-require 'db.php';
+require 'db_mongo.php';
 
 // Fetch existing resort details if editing
 $resort = null;

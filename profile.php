@@ -5,7 +5,7 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 
-require 'db.php';
+require 'db_mongo.php';
 
 $user_id = $_SESSION['user']['id'];
 $stmt = $pdo->prepare("SELECT username, email, phone_number FROM users WHERE id = ?");

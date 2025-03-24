@@ -1,5 +1,5 @@
 <?php
-require 'db.php';
+require 'db_mongo.php';
 
 $stmt = $pdo->query("SELECT * FROM resorts");
 $resorts = $stmt->fetchAll();

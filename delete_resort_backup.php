@@ -1,5 +1,5 @@
 <?php
-require 'db.php';
+require 'db_mongo.php';
 if (isset($_GET['id'])) {
     $stmt = $pdo->prepare("DELETE FROM resorts WHERE id = ?");
     $stmt->execute([$_GET['id']]);

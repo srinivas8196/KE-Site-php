@@ -64,7 +64,7 @@
 <body>
     <?php
     // Include database connection
-    include 'db.php';
+    require 'db_mongo.php';
 
     // Fetch destinations and resorts
     $sql = "SELECT d.destination_name, r.resort_name, r.resort_slug, r.banner_image, r.resort_description 

@@ -1,5 +1,5 @@
 <?php
-require 'db.php';
+require 'db_mongo.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $destination_id = $_POST['destination_id'] ?? null;

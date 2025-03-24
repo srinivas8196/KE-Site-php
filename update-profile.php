@@ -1,6 +1,6 @@
 <?php
 session_start();
-include 'db.php';
+require 'db_mongo.php';
 
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");

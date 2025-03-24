@@ -1,5 +1,5 @@
 <?php
-include 'db.php';
+require 'db_mongo.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $email = $_POST['email'];
