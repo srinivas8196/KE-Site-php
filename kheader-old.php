@@ -31,10 +31,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com/">
     <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;family=Manrope:wght@200..800&amp;family=Montez&amp;display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" integrity="sha512-dPXYcDub/aeb08c63jRq/k6GaKccl256JQy/AnOq7CAnEZ9FzSL9wSbcZkMp4R26vBsMLFYH4kQ67/bbV8XaCQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel/slick/slick.css"/>
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel/slick/slick-theme.css"/>
-    
     <!-- Start of included CSS files -->
     <link rel="stylesheet" href="assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="assets/css/fontawesome.min.css">
@@ -134,7 +130,7 @@
                                     <li><a class="active" href="index.php">Home</a></li>
                                     <li class="menu-item-has-children mega-menu-wrap">
                                         <a href="#">Destinations</a>
-                                        <div class="mega-menu d-mega-menu">
+                                        <div class="mega-menu">
                                             <div class="container">
                                                 <div class="row">
                                                     <?php
@@ -143,16 +139,16 @@
                                                         if ($col_count % 4 == 0 && $col_count != 0) {
                                                             echo '</div><div class="row">';
                                                         }
-                                                        echo '<ul>';
-                                                        echo '<li><strong>' . $destination_name . ':</strong></li>';
+                                                        echo '<div class="col-md-3"><ul>';
+                                                        echo '<li><strong>' . $destination_name . '</strong></li>';
                                                         foreach ($resorts as $resort) {
                                                             echo '<li class="truncate">';
                                                             echo '<a href="' . $resort['resort_slug'] . '">';
-                                                            echo $resort['resort_name'] ;
-                                                            echo '<span class="banner-title">' . $resort['banner_title'] . '</span>';
+                                                            echo $resort['resort_name'];
+                                                            echo '<br><span class="banner-title">' . $resort['banner_title'] . '</span>';
                                                             echo '</a></li>';
                                                         }
-                                                        echo '</ul>';
+                                                        echo '</ul></div>';
                                                         $col_count++;
                                                     }
                                                     ?>
