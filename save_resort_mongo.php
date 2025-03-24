@@ -1,12 +1,11 @@
 <?php
-require 'db.php';
+require 'db_mongo.php';
 
 // Fetch existing resort details if editing
 $resort = null;
 if (isset($_GET['resort_id']) && !empty($_GET['resort_id'])) {
-    $stmt = $pdo->prepare("SELECT * FROM resorts WHERE id = ?");
-    $stmt->execute([$_GET['resort_id']]);
-    $resort = $stmt->fetch();
+    // Use MongoDB findOne to get the resort by ID
+    $resort = $mongo->collection('resorts')->findOne(['_id' => (int)$_GET['resort_id']]);
 }
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -25,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 
     // Use existing slug if editing; otherwise, generate a new one from the resort name.
-    if (isset($_POST['resort_id']) && !empty($_POST['resort_id']) && !empty($resort['resort_slug'])) {
+    if (isset($_POST['resort_id']) && !empty($_POST['resort_id']) && isset($resort['resort_slug'])) {
         $resort_slug = $resort['resort_slug'];
     } else {
         $resort_slug = preg_replace('/[^a-zA-Z0-9]/', '-', strtolower($resort_name));
@@ -118,65 +117,45 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Process testimonials from POST (each with name, from, content)
     $testimonials = $_POST['testimonials'] ?? [];
 
-    // Encode arrays as JSON
-    $amenities_json    = json_encode($amenities);
-    $rooms_json        = json_encode($rooms);
-    $gallery_json      = json_encode($galleryImages);
-    $testimonials_json = json_encode($testimonials);
+    // Create a document for MongoDB
+    $resortDocument = [
+        'destination_id' => $destination_id,
+        'resort_name' => $resort_name,
+        'resort_description' => $resort_description,
+        'banner_title' => $banner_title,
+        'is_active' => $is_active,
+        'amenities' => $amenities,
+        'room_details' => $rooms,
+        'gallery' => $galleryImages,
+        'testimonials' => $testimonials,
+        'resort_slug' => $resort_slug,
+        'banner_image' => $banner_image,
+        'file_path' => $resortPage  // Save the landing page file path (e.g., "abc.php")
+    ];
 
     if (isset($_POST['resort_id']) && !empty($_POST['resort_id'])) {
-        // Update existing resort record; update file_path with the landing page file name.
-        $stmt = $pdo->prepare("UPDATE resorts SET destination_id = ?, resort_name = ?, resort_description = ?, banner_title = ?, is_active = ?, amenities = ?, room_details = ?, gallery = ?, testimonials = ?, resort_slug = ?, banner_image = ?, file_path = ? WHERE id = ?");
-        $stmt->execute([
-            $destination_id,
-            $resort_name,
-            $resort_description,
-            $banner_title,
-            $is_active,
-            $amenities_json,
-            $rooms_json,
-            $gallery_json,
-            $testimonials_json,
-            $resort_slug,
-            $banner_image,
-            $resortPage,  // Save the landing page file path (e.g., "abc.php")
-            $_POST['resort_id']
-        ]);
+        // Update existing resort record
+        $mongo->collection('resorts')->updateOne(
+            ['_id' => (int)$_POST['resort_id']],
+            ['$set' => $resortDocument]
+        );
     } else {
-        // Insert new resort record; force is_active = 1 and store the landing page file path.
-        $stmt = $pdo->prepare("INSERT INTO resorts (resort_name, resort_slug, resort_description, banner_title, is_active, amenities, room_details, gallery, testimonials, destination_id, banner_image, file_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        $stmt->execute([
-            $resort_name,
-            $resort_slug,
-            $resort_description,
-            $banner_title,
-            $is_active,
-            $amenities_json,
-            $rooms_json,
-            $gallery_json,
-            $testimonials_json,
-            $destination_id,
-            $banner_image,
-            $resortPage  // Save the landing page file path (e.g., "abc.php")
-        ]);
+        // Insert new resort record
+        $mongo->collection('resorts')->insertOne($resortDocument);
     }
 
     // Generate resort landing page file (e.g., abc.php)
     $pageContent  = "<?php\n";
-    $pageContent .= "require 'db.php';\n";
-    $pageContent .= "\$stmt = \$pdo->prepare(\"SELECT * FROM resorts WHERE resort_slug = ?\");\n";
-    $pageContent .= "\$stmt->execute(['$resort_slug']);\n";
-    $pageContent .= "\$resort = \$stmt->fetch();\n";
+    $pageContent .= "require 'db_mongo.php';\n";
+    $pageContent .= "\$resort = \$mongo->collection('resorts')->findOne(['resort_slug' => '$resort_slug']);\n";
     $pageContent .= "if (!\$resort) { echo 'Resort not found.'; exit(); }\n";
     // Redirect to 404 page if resort is not active
     $pageContent .= "if (\$resort['is_active'] != 1) { header('Location: 404.php'); exit(); }\n";
-    $pageContent .= "\$destStmt = \$pdo->prepare(\"SELECT * FROM destinations WHERE id = ?\");\n";
-    $pageContent .= "\$destStmt->execute([\$resort['destination_id']]);\n";
-    $pageContent .= "\$destination = \$destStmt->fetch();\n";
-    $pageContent .= "\$amenities = json_decode(\$resort['amenities'] ?? '', true);\n";
-    $pageContent .= "\$room_details = json_decode(\$resort['room_details'] ?? '', true);\n";
-    $pageContent .= "\$gallery = json_decode(\$resort['gallery'] ?? '', true);\n";
-    $pageContent .= "\$testimonials = json_decode(\$resort['testimonials'] ?? '', true);\n";
+    $pageContent .= "\$destination = \$mongo->collection('destinations')->findOne(['_id' => \$resort['destination_id']]);\n";
+    $pageContent .= "\$amenities = \$resort['amenities'] ?? [];\n";
+    $pageContent .= "\$room_details = \$resort['room_details'] ?? [];\n";
+    $pageContent .= "\$gallery = \$resort['gallery'] ?? [];\n";
+    $pageContent .= "\$testimonials = \$resort['testimonials'] ?? [];\n";
     // Build the assets folder path for images using the stored slug in the new structure
     $pageContent .= "\$resortFolder = 'assets/resorts/' . (\$resort['resort_slug'] ?? '');\n";
     $pageContent .= "?>\n";

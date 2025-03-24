@@ -5,16 +5,15 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 $user = $_SESSION['user'];
-require 'db.php';
+require 'db_mongo.php';
 
 // Get destination from GET (either directly or via the resort record)
 $destination_id = $_GET['destination_id'] ?? null;
 $resort = null;
 
 if (isset($_GET['resort_id'])) {
-    $stmt = $pdo->prepare("SELECT * FROM resorts WHERE id = ?");
-    $stmt->execute([$_GET['resort_id']]);
-    $resort = $stmt->fetch();
+    // Use MongoDB findOne to get the resort by ID
+    $resort = $mongo->collection('resorts')->findOne(['_id' => (int)$_GET['resort_id']]);
     if (!$destination_id && $resort) {
         $destination_id = $resort['destination_id'];
     }
@@ -22,19 +21,19 @@ if (isset($_GET['resort_id'])) {
 
 // If no destination is provided, display a selection form.
 if (!$destination_id) {
-    $stmt = $pdo->query("SELECT id, destination_name FROM destinations ORDER BY destination_name");
-    $destinations = $stmt->fetchAll();
+    // Get all destinations from MongoDB
+    $destinations = $mongo->collection('destinations')->find([]);
     include 'bheader.php';
     ?>
     <div class="container mt-5">
         <h2 class="text-xl font-bold mb-4">Select Destination for Resort</h2>
-        <form action="create_or_edit_resort.php" method="get">
+        <form action="create_or_edit_resort_mongo.php" method="get">
             <div class="mb-4">
                 <label for="destination_id" class="block text-sm font-medium text-gray-700">Destination:</label>
                 <select id="destination_id" name="destination_id" class="form-select mt-1 block w-full" required>
                     <option value="">-- Select Destination --</option>
                     <?php foreach ($destinations as $dest): ?>
-                        <option value="<?php echo $dest['id']; ?>"><?php echo htmlspecialchars($dest['destination_name']); ?></option>
+                        <option value="<?php echo $dest['_id']; ?>"><?php echo htmlspecialchars($dest['destination_name']); ?></option>
                     <?php endforeach; ?>
                 </select>
             </div>
@@ -52,18 +51,11 @@ $roomsData = [];
 $testimonialsData = [];
 $galleryData = [];
 if ($resort) {
-    if (!empty($resort['amenities'])) {
-        $amenitiesData = json_decode($resort['amenities'], true) ?? [];
-    }
-    if (!empty($resort['room_details'])) {
-        $roomsData = json_decode($resort['room_details'], true) ?? [];
-    }
-    if (!empty($resort['testimonials'])) {
-        $testimonialsData = json_decode($resort['testimonials'], true) ?? [];
-    }
-    if (!empty($resort['gallery'])) {
-        $galleryData = json_decode($resort['gallery'], true) ?? [];
-    }
+    // In MongoDB, these fields are already arrays, no need to decode
+    $amenitiesData = $resort['amenities'] ?? [];
+    $roomsData = $resort['room_details'] ?? [];
+    $testimonialsData = $resort['testimonials'] ?? [];
+    $galleryData = $resort['gallery'] ?? [];
 }
 
 include 'bheader.php';
@@ -134,9 +126,9 @@ include 'bheader.php';
         </ol>
       </nav>
       <h2 class="text-3xl font-bold mb-6"><?php echo $resort ? "Edit Resort" : "Create New Resort"; ?></h2>
-      <form action="save_resort.php" method="post" enctype="multipart/form-data">
+      <form action="save_resort_mongo.php" method="post" enctype="multipart/form-data">
         <?php if ($resort): ?>
-          <input type="hidden" name="resort_id" value="<?php echo $resort['id']; ?>">
+          <input type="hidden" name="resort_id" value="<?php echo $resort['_id']; ?>">
         <?php endif; ?>
         <input type="hidden" name="destination_id" value="<?php echo $destination_id; ?>">
         <div class="mb-3">
@@ -166,8 +158,8 @@ include 'bheader.php';
           <label for="resort_type" class="form-label">Resort Type:</label>
           <select id="resort_type" name="resort_type" class="form-select" required>
             <option value="" selected disabled>Select</option>
-            <option value="resort" <?php if ($resort && $resort['is_partner'] == 0) echo 'selected'; ?>>Resort</option>
-            <option value="partner" <?php if ($resort && $resort['is_partner'] == 1) echo 'selected'; ?>>Partner Hotel</option>
+            <option value="resort" <?php if ($resort && isset($resort['is_partner']) && $resort['is_partner'] == 0) echo 'selected'; ?>>Resort</option>
+            <option value="partner" <?php if ($resort && isset($resort['is_partner']) && $resort['is_partner'] == 1) echo 'selected'; ?>>Partner Hotel</option>
           </select>
         </div>
         <!-- Active Status -->
@@ -181,8 +173,7 @@ include 'bheader.php';
         <!-- Dynamic Amenities Section -->
         <div class="mb-3" id="amenities">
           <label class="form-label">Amenities:</label>
-          <?php if ($resort && !empty($resort['amenities'])): 
-              $amenitiesData = json_decode($resort['amenities'], true);
+          <?php if (!empty($amenitiesData)): 
               foreach ($amenitiesData as $index => $amenity): ?>
               <div class="row mb-2">
                 <div class="col-md-6">
@@ -211,8 +202,7 @@ include 'bheader.php';
         <!-- Dynamic Rooms Section -->
         <div class="mb-3" id="rooms">
           <label class="form-label">Rooms:</label>
-          <?php if ($resort && !empty($resort['room_details'])):
-              $roomsData = json_decode($resort['room_details'], true);
+          <?php if (!empty($roomsData)):
               foreach ($roomsData as $index => $room): ?>
               <div class="row mb-2">
                 <div class="col-md-6">
@@ -242,7 +232,7 @@ include 'bheader.php';
         <div class="mb-3">
           <label for="gallery" class="form-label">Gallery Images:</label>
           <input type="file" id="gallery" name="gallery[]" class="form-control" accept=".jpg,.jpeg,.png,.webp" multiple <?php echo $resort ? '' : 'required'; ?>>
-          <?php if ($resort && !empty($resort['gallery'])): ?>
+          <?php if ($resort && !empty($galleryData)): ?>
             <div class="mt-2">
               <p>Current Gallery Images:</p>
               <div class="flex flex-wrap gap-2">
@@ -257,8 +247,7 @@ include 'bheader.php';
         <!-- Dynamic Testimonials Section -->
         <div class="mb-3" id="testimonials">
           <label class="form-label">Testimonials:</label>
-          <?php if ($resort && !empty($resort['testimonials'])):
-              $testimonialsData = json_decode($resort['testimonials'], true);
+          <?php if (!empty($testimonialsData)):
               foreach ($testimonialsData as $index => $testimonial): ?>
               <div class="row mb-2">
                 <div class="col-md-4">

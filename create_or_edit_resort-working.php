@@ -50,7 +50,6 @@ if (!$destination_id) {
 $amenitiesData = [];
 $roomsData = [];
 $testimonialsData = [];
-$galleryData = [];
 if ($resort) {
     if (!empty($resort['amenities'])) {
         $amenitiesData = json_decode($resort['amenities'], true) ?? [];
@@ -60,9 +59,6 @@ if ($resort) {
     }
     if (!empty($resort['testimonials'])) {
         $testimonialsData = json_decode($resort['testimonials'], true) ?? [];
-    }
-    if (!empty($resort['gallery'])) {
-        $galleryData = json_decode($resort['gallery'], true) ?? [];
     }
 }
 
@@ -154,12 +150,6 @@ include 'bheader.php';
         <div class="mb-3">
           <label for="banner_image" class="form-label">Banner Image:</label>
           <input type="file" id="banner_image" name="banner_image" class="form-control" accept=".jpg,.jpeg,.png,.webp" <?php echo $resort ? '' : 'required'; ?>>
-          <?php if ($resort && !empty($resort['banner_image'])): ?>
-            <div class="mt-2">
-              <p>Current Banner Image:</p>
-              <img src="assets/resorts/<?php echo htmlspecialchars($resort['resort_slug']); ?>/<?php echo htmlspecialchars($resort['banner_image']); ?>" alt="Banner Image" style="max-width:200px;">
-            </div>
-          <?php endif; ?>
         </div>
         <!-- Resort Type -->
         <div class="mb-3">
@@ -242,16 +232,6 @@ include 'bheader.php';
         <div class="mb-3">
           <label for="gallery" class="form-label">Gallery Images:</label>
           <input type="file" id="gallery" name="gallery[]" class="form-control" accept=".jpg,.jpeg,.png,.webp" multiple <?php echo $resort ? '' : 'required'; ?>>
-          <?php if ($resort && !empty($resort['gallery'])): ?>
-            <div class="mt-2">
-              <p>Current Gallery Images:</p>
-              <div class="flex flex-wrap gap-2">
-                <?php foreach ($galleryData as $galleryImg): ?>
-                  <img src="assets/resorts/<?php echo htmlspecialchars($resort['resort_slug']); ?>/<?php echo htmlspecialchars($galleryImg); ?>" alt="Gallery Image" style="max-width:150px;">
-                <?php endforeach; ?>
-              </div>
-            </div>
-          <?php endif; ?>
         </div>
 
         <!-- Dynamic Testimonials Section -->

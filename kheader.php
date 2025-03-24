@@ -1,3 +1,32 @@
+<?php
+session_start();
+
+// Session timeout functionality (1 hour = 3600 seconds)
+$session_timeout = 3600; // 1 hour in seconds
+
+// Check if user is logged in
+if (isset($_SESSION['user'])) {
+    // Check if last_activity is set
+    if (isset($_SESSION['last_activity'])) {
+        // Calculate time since last activity
+        $inactive_time = time() - $_SESSION['last_activity'];
+        
+        // If inactive for more than session_timeout, destroy session and redirect to login
+        if ($inactive_time >= $session_timeout) {
+            // Perform logout actions
+            session_unset();     // Remove all session variables
+            session_destroy();   // Destroy the session
+            
+            // Redirect to login page
+            header("Location: login.php?timeout=1");
+            exit();
+        }
+    }
+    
+    // Update last activity time
+    $_SESSION['last_activity'] = time();
+}
+?>
 <!doctype html>
 <html class="no-js" lang="zxx">
 <head>
@@ -39,45 +68,191 @@
     <link rel="stylesheet" href="assets/css/magnific-popup.min.css">
     <link rel="stylesheet" href="assets/css/swiper-bundle.min.css">
     <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="assets/css/custom.css"> <!-- Add custom CSS file -->
     <!-- End of included CSS files -->
     <!-- <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet"> Add Tailwind CSS -->
     <style>
-        /* Ensure menu items are visible on mobile devices */
-        .th-mobile-menu {
-            display: b;
+        /* Enhanced Mega Menu Styles */
+        .th-menu-wrapper {
+            transition: all 0.3s ease;
         }
+        
+        .th-mobile-menu {
+            display: none;
+        }
+        
         .th-mobile-menu.active {
             display: block;
         }
+        
         .submenu {
             display: none;
             padding-left: 20px;
         }
+        
         .menu-item-has-children.active .submenu {
             display: block;
+        }
+        
+        /* Mega Menu Styling */
+        .mega-menu {
+            position: absolute;
+            left: 0;
+            right: 0;
+            background: #fff;
+            padding: 30px 0;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+            z-index: 99;
+            border-top: 2px solid #D9B77B;
+        }
+        
+        .mega-menu-wrap:hover .mega-menu {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        
+        .mega-menu .mega-menu-box {
+            padding: 0 15px;
+            margin-bottom: 20px;
+        }
+        
+        .mega-menu-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #D9B77B;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        
+        .destination-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin: 15px 0 8px;
+        }
+        
+        .mega-menu-list li {
+            margin-bottom: 8px;
+        }
+        
+        .mega-menu-list li a {
+            color: #555;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            display: block;
+            padding-left: 12px;
+            position: relative;
+        }
+        
+        .mega-menu-list li a:before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: #D9B77B;
+        }
+        
+        .mega-menu-list li a:hover {
+            color: #D9B77B;
+            padding-left: 17px;
+        }
+        
+        /* Mobile Mega Menu */
+        .mobile-mega-menu {
+            display: none;
+            padding: 0 15px;
+        }
+        
+        .mobile-mega-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #D9B77B;
+            margin: 15px 0 10px;
+        }
+        
+        .mobile-destination-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+            margin: 12px 0 5px;
+            padding-left: 5px;
+        }
+        
+        .mobile-mega-list {
+            margin-bottom: 15px;
+        }
+        
+        .mobile-mega-list li {
+            border-bottom: 1px solid #f1f1f1;
+            padding: 6px 0;
+            padding-left: 15px;
+        }
+        
+        .mobile-mega-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .menu-item-has-children.active .mobile-mega-menu {
+            display: block;
+        }
+        
+        /* Resort Card in Mega Menu */
+        .resort-card {
+            position: relative;
+            margin-top: 20px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .resort-card img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+        }
+        
+        .resort-card-content {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 10px;
+            background: rgba(0,0,0,0.7);
+            color: #fff;
+        }
+        
+        .resort-card-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin: 0;
+        }
+        
+        /* Updated button styles */
+        .th-btn.style-mega {
+            background: #D9B77B;
+            color: #fff;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 600;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+        
+        .th-btn.style-mega:hover {
+            background: #c2a069;
+            transform: translateY(-2px);
         }
     </style>
 </head>
 
 <body>
-    <?php
-    // Include database connection
-    include 'db.php';
-
-    // Fetch destinations and resorts for the header mega menu
-    $sql = "SELECT d.destination_name, r.resort_name, r.resort_slug, r.banner_image, r.resort_description 
-            FROM resorts r 
-            JOIN destinations d ON r.destination_id = d.id 
-            WHERE r.is_active = 1 
-            ORDER BY d.destination_name, r.resort_name";
-    $stmt = $pdo->query($sql);
-
-    $menuDestinations = [];
-    while ($row = $stmt->fetch()) {
-        $menuDestinations[$row['destination_name']][] = $row;
-    }
-    ?>
+    <!-- Mobile Menu -->
     <div class="th-menu-wrapper onepage-nav block md:hidden">
         <div class="th-menu-area bg-white shadow-md p-4 text-center">
             <button id="mobileMenuToggle" class="th-menu-toggle text-2xl focus:outline-none"><i class="fal fa-times"></i></button>
@@ -91,16 +266,83 @@
                     <li><a href="index.php" class="block hover:text-blue-600">Home</a></li>
                     <li class="menu-item-has-children">
                         <a href="#" class="block hover:text-blue-600">Destinations</a>
-                        <ul class="submenu pl-4 space-y-2">
-                            <?php foreach ($menuDestinations as $destination_name => $resorts) { ?>
-                                <li class="font-bold text-gray-900"><?php echo $destination_name; ?></li>
-                                <div class="grid grid-cols-2 gap-2">
-                                    <?php foreach ($resorts as $resort) { ?>
-                                        <div class="truncate"><a href="<?php echo $resort['resort_slug']; ?>" class="hover:text-blue-600"><?php echo $resort['resort_name']; ?></a></div>
-                                    <?php } ?>
-                                </div>
-                            <?php } ?>
-                        </ul>
+                        <div class="mobile-mega-menu">
+                            <!-- Column 1 -->
+                            <div class="mobile-mega-box">
+                                <h4 class="mobile-mega-title">Asia</h4>
+                                
+                                <h5 class="mobile-destination-title">India</h5>
+                                <ul class="mobile-mega-list">
+                                    <li><a href="karma-royal-palms.php">Karma Royal Palms</a></li>
+                                    <li><a href="#">Karma Royal Villagio</a></li>
+                                    <li><a href="#">Karma Golden Palms</a></li>
+                                </ul>
+                                
+                                <h5 class="mobile-destination-title">Bali</h5>
+                                <ul class="mobile-mega-list">
+                                    <li><a href="karma-kandara.php">Karma Kandara</a></li>
+                                    <li><a href="#">Karma Jimbaran</a></li>
+                                </ul>
+                                
+                                <h5 class="mobile-destination-title">Thailand</h5>
+                                <ul class="mobile-mega-list">
+                                    <li><a href="#">Karma Apsara</a></li>
+                                    <li><a href="#">Karma Sukhothai</a></li>
+                                </ul>
+                            </div>
+                            
+                            <!-- Column 2 -->
+                            <div class="mobile-mega-box">
+                                <h4 class="mobile-mega-title">Europe</h4>
+                                
+                                <h5 class="mobile-destination-title">Italy</h5>
+                                <ul class="mobile-mega-list">
+                                    <li><a href="#">Karma Borgo di Colleoli</a></li>
+                                    <li><a href="#">Karma Tuscany</a></li>
+                                </ul>
+                                
+                                <h5 class="mobile-destination-title">France</h5>
+                                <ul class="mobile-mega-list">
+                                    <li><a href="#">Karma Normandy</a></li>
+                                    <li><a href="#">Karma Résidence Normande</a></li>
+                                </ul>
+                                
+                                <h5 class="mobile-destination-title">Greece</h5>
+                                <ul class="mobile-mega-list">
+                                    <li><a href="#">Karma Minoan</a></li>
+                                </ul>
+                            </div>
+                            
+                            <!-- Column 3 -->
+                            <div class="mobile-mega-box">
+                                <h4 class="mobile-mega-title">Australia & Oceania</h4>
+                                
+                                <h5 class="mobile-destination-title">Australia</h5>
+                                <ul class="mobile-mega-list">
+                                    <li><a href="#">Karma Rottnest</a></li>
+                                </ul>
+                                
+                                <h5 class="mobile-destination-title">Indonesia</h5>
+                                <ul class="mobile-mega-list">
+                                    <li><a href="#">Karma Reef</a></li>
+                                </ul>
+                            </div>
+                            
+                            <!-- Column 4 -->
+                            <div class="mobile-mega-box">
+                                <h4 class="mobile-mega-title">Top Destinations</h4>
+                                
+                                <h5 class="mobile-destination-title">Best Sellers</h5>
+                                <ul class="mobile-mega-list">
+                                    <li><a href="karma-royal-palms.php">Karma Royal Palms, Goa</a></li>
+                                    <li><a href="karma-kandara.php">Karma Kandara, Bali</a></li>
+                                    <li><a href="#">Karma Bavaria, Germany</a></li>
+                                    <li><a href="#">Karma St. Martin's, UK</a></li>
+                                </ul>
+                                
+                                <a href="destination_list.php" class="th-btn style-mega mt-3">View All Destinations</a>
+                            </div>
+                        </div>
                     </li>
                     <li><a href="benefits.php" class="block hover:text-blue-600">Benefits</a></li>
                     <li><a href="about.php" class="block hover:text-blue-600">About Us</a></li>
@@ -111,6 +353,8 @@
             </div>
         </div>
     </div>
+
+    <!-- Desktop Header -->
     <header class="th-header header-layout3 header-absolute">
         <div class="sticky-wrapper">
             <div class="menu-area">
@@ -124,21 +368,129 @@
                                         <div class="mega-menu">
                                             <div class="container">
                                                 <div class="row">
-                                                    <?php
-                                                    $col_count = 0;
-                                                    foreach ($menuDestinations as $destination_name => $resorts) {
-                                                        if ($col_count % 4 == 0 && $col_count != 0) {
-                                                            echo '</div><div class="row">';
-                                                        }
-                                                        echo '<div class="col-md-3"><ul>';
-                                                        echo '<li><strong>' . $destination_name . '</strong></li>';
-                                                        foreach ($resorts as $resort) {
-                                                            echo '<li class="truncate"><a href="' . $resort['resort_slug'] . '">' . $resort['resort_name'] . '</a></li>';
-                                                        }
-                                                        echo '</ul></div>';
-                                                        $col_count++;
-                                                    }
-                                                    ?>
+                                                    <!-- Column 1 -->
+                                                    <div class="col-md-3">
+                                                        <div class="mega-menu-box">
+                                                            <h4 class="mega-menu-title">Asia</h4>
+                                                            
+                                                            <h5 class="destination-title">India</h5>
+                                                            <ul class="mega-menu-list">
+                                                                <li><a href="karma-royal-palms.php">Karma Royal Palms</a></li>
+                                                                <li><a href="#">Karma Royal Villagio</a></li>
+                                                                <li><a href="#">Karma Golden Palms</a></li>
+                                                            </ul>
+                                                            
+                                                            <h5 class="destination-title">Bali</h5>
+                                                            <ul class="mega-menu-list">
+                                                                <li><a href="karma-kandara.php">Karma Kandara</a></li>
+                                                                <li><a href="#">Karma Jimbaran</a></li>
+                                                            </ul>
+                                                            
+                                                            <h5 class="destination-title">Thailand</h5>
+                                                            <ul class="mega-menu-list">
+                                                                <li><a href="#">Karma Apsara</a></li>
+                                                                <li><a href="#">Karma Sukhothai</a></li>
+                                                            </ul>
+                                                            
+                                                            <div class="resort-card">
+                                                                <img src="assets/destinations/bali/destination-cover.jpg" alt="Bali">
+                                                                <div class="resort-card-content">
+                                                                    <h5 class="resort-card-title">Discover Bali</h5>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <!-- Column 2 -->
+                                                    <div class="col-md-3">
+                                                        <div class="mega-menu-box">
+                                                            <h4 class="mega-menu-title">Europe</h4>
+                                                            
+                                                            <h5 class="destination-title">Italy</h5>
+                                                            <ul class="mega-menu-list">
+                                                                <li><a href="#">Karma Borgo di Colleoli</a></li>
+                                                                <li><a href="#">Karma Tuscany</a></li>
+                                                            </ul>
+                                                            
+                                                            <h5 class="destination-title">France</h5>
+                                                            <ul class="mega-menu-list">
+                                                                <li><a href="#">Karma Normandy</a></li>
+                                                                <li><a href="#">Karma Résidence Normande</a></li>
+                                                            </ul>
+                                                            
+                                                            <h5 class="destination-title">United Kingdom</h5>
+                                                            <ul class="mega-menu-list">
+                                                                <li><a href="#">Karma St. Martin's</a></li>
+                                                            </ul>
+                                                            
+                                                            <h5 class="destination-title">Germany</h5>
+                                                            <ul class="mega-menu-list">
+                                                                <li><a href="#">Karma Bavaria</a></li>
+                                                            </ul>
+                                                            
+                                                            <div class="resort-card">
+                                                                <img src="assets/destinations/italy/destination-cover.jpg" alt="Italy">
+                                                                <div class="resort-card-content">
+                                                                    <h5 class="resort-card-title">Explore Italy</h5>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <!-- Column 3 -->
+                                                    <div class="col-md-3">
+                                                        <div class="mega-menu-box">
+                                                            <h4 class="mega-menu-title">Australia & Oceania</h4>
+                                                            
+                                                            <h5 class="destination-title">Australia</h5>
+                                                            <ul class="mega-menu-list">
+                                                                <li><a href="#">Karma Rottnest</a></li>
+                                                            </ul>
+                                                            
+                                                            <h5 class="destination-title">Indonesia</h5>
+                                                            <ul class="mega-menu-list">
+                                                                <li><a href="#">Karma Reef</a></li>
+                                                            </ul>
+                                                            
+                                                            <h4 class="mega-menu-title mt-4">Africa & Middle East</h4>
+                                                            
+                                                            <h5 class="destination-title">Egypt</h5>
+                                                            <ul class="mega-menu-list">
+                                                                <li><a href="#">Karma Golden Sands</a></li>
+                                                            </ul>
+                                                            
+                                                            <div class="resort-card">
+                                                                <img src="assets/destinations/egypt/destination-cover.jpg" alt="Egypt">
+                                                                <div class="resort-card-content">
+                                                                    <h5 class="resort-card-title">Discover Egypt</h5>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <!-- Column 4 -->
+                                                    <div class="col-md-3">
+                                                        <div class="mega-menu-box">
+                                                            <h4 class="mega-menu-title">Top Destinations</h4>
+                                                            
+                                                            <h5 class="destination-title">Best Sellers</h5>
+                                                            <ul class="mega-menu-list">
+                                                                <li><a href="karma-royal-palms.php">Karma Royal Palms, Goa</a></li>
+                                                                <li><a href="karma-kandara.php">Karma Kandara, Bali</a></li>
+                                                                <li><a href="#">Karma Bavaria, Germany</a></li>
+                                                                <li><a href="#">Karma St. Martin's, UK</a></li>
+                                                                <li><a href="#">Karma Minoan, Greece</a></li>
+                                                            </ul>
+                                                            
+                                                            <h5 class="destination-title">New Experiences</h5>
+                                                            <ul class="mega-menu-list">
+                                                                <li><a href="#">Karma Lake of Menteith, Scotland</a></li>
+                                                                <li><a href="#">Karma Seven Lakes, India</a></li>
+                                                            </ul>
+                                                            
+                                                            <a href="destination_list.php" class="th-btn style-mega mt-3">View All Destinations</a>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -171,8 +523,33 @@
             </div>
         </div>
     </header>
-    <!-- Start of included JS files -->
-    <script src="assets/js/custom.js"></script> <!-- Include custom JS file -->
-    <!-- End of included JS files -->
+
+    <!-- Mobile Menu Toggle Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Mobile Menu Toggle
+            const menuToggle = document.querySelector('.th-menu-toggle');
+            const mobileMenu = document.querySelector('.th-menu-wrapper');
+            
+            if (menuToggle) {
+                menuToggle.addEventListener('click', function() {
+                    mobileMenu.classList.toggle('active');
+                });
+            }
+            
+            // Mobile Submenu Toggle
+            const menuItemsWithChildren = document.querySelectorAll('.menu-item-has-children');
+            
+            menuItemsWithChildren.forEach(function(item) {
+                item.addEventListener('click', function(e) {
+                    if (e.target === item.querySelector('a') || e.target === item) {
+                        e.preventDefault();
+                        this.classList.toggle('active');
+                    }
+                });
+            });
+        });
+    </script>
+    
 </body>
 </html>
