@@ -1,3 +1,35 @@
+<?php
+// Check if session is already started (might be started in other included files)
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Session timeout functionality (1 hour = 3600 seconds)
+$session_timeout = 3600; // 1 hour in seconds
+
+// Check if user is logged in
+if (isset($_SESSION['user'])) {
+    // Check if last_activity is set
+    if (isset($_SESSION['last_activity'])) {
+        // Calculate time since last activity
+        $inactive_time = time() - $_SESSION['last_activity'];
+        
+        // If inactive for more than session_timeout, destroy session and redirect to login
+        if ($inactive_time >= $session_timeout) {
+            // Perform logout actions
+            session_unset();     // Remove all session variables
+            session_destroy();   // Destroy the session
+            
+            // Redirect to login page
+            header("Location: login.php?timeout=1");
+            exit();
+        }
+    }
+    
+    // Update last activity time
+    $_SESSION['last_activity'] = time();
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>

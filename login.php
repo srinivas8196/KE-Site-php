@@ -12,6 +12,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     
     if ($user && password_verify($password, $user['password'])) {
         $_SESSION['user'] = $user;
+        // Set initial last activity time for session timeout tracking
+        $_SESSION['last_activity'] = time();
         header("Location: dashboard.php");
         exit();
     } else {
@@ -24,6 +26,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
   <h2>Login</h2>
   <?php if(isset($error)): ?>
     <div class="alert alert-danger"><?php echo $error; ?></div>
+  <?php endif; ?>
+  
+  <?php if(isset($_GET['timeout']) && $_GET['timeout'] == 1): ?>
+    <div class="alert alert-warning">Your session has expired due to inactivity. Please log in again.</div>
   <?php endif; ?>
   <form method="post" action="login.php">
     <div class="mb-3">

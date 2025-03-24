@@ -1,7 +1,7 @@
 <?php
 require 'db.php';
 $stmt = $pdo->prepare("SELECT * FROM resorts WHERE resort_slug = ?");
-$stmt->execute(['karma-royal-palms']);
+$stmt->execute(['karma-kandara']);
 $resort = $stmt->fetch();
 if (!$resort) { echo 'Resort not found.'; exit(); }
 if ($resort['is_active'] != 1) { header('Location: 404.php'); exit(); }

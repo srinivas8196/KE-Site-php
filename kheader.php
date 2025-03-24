@@ -1,3 +1,32 @@
+<?php
+session_start();
+
+// Session timeout functionality (1 hour = 3600 seconds)
+$session_timeout = 3600; // 1 hour in seconds
+
+// Check if user is logged in
+if (isset($_SESSION['user'])) {
+    // Check if last_activity is set
+    if (isset($_SESSION['last_activity'])) {
+        // Calculate time since last activity
+        $inactive_time = time() - $_SESSION['last_activity'];
+        
+        // If inactive for more than session_timeout, destroy session and redirect to login
+        if ($inactive_time >= $session_timeout) {
+            // Perform logout actions
+            session_unset();     // Remove all session variables
+            session_destroy();   // Destroy the session
+            
+            // Redirect to login page
+            header("Location: login.php?timeout=1");
+            exit();
+        }
+    }
+    
+    // Update last activity time
+    $_SESSION['last_activity'] = time();
+}
+?>
 <!doctype html>
 <html class="no-js" lang="zxx">
 <head>
@@ -44,17 +73,24 @@
     <link rel="stylesheet" href="assets/css/custom.css">
     <!-- End of included CSS files -->
     <style>
-        /* Ensure menu items are visible on mobile devices */
-        .th-mobile-menu {
-            display: b;
+        /* Enhanced Mega Menu Styles */
+        .th-menu-wrapper {
+            transition: all 0.3s ease;
         }
+        
+        .th-mobile-menu {
+            display: none;
+        }
+        
         .th-mobile-menu.active {
             display: block;
         }
+        
         .submenu {
             display: none;
             padding-left: 20px;
         }
+        
         .menu-item-has-children.active .submenu {
             display: block;
         }
@@ -123,6 +159,8 @@
             </div>
         </div>
     </div>
+
+    <!-- Desktop Header -->
     <header class="th-header header-layout3 header-absolute">
         <div class="sticky-wrapper">
             <div class="menu-area">
