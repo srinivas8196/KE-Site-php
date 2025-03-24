@@ -6,7 +6,7 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['user_type'] != 'super_admin'
     exit();
 }
 $user = $_SESSION['user'];
-require 'db.php';
+require 'db_mongo.php';
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $username = trim($_POST['username']);
     $email = trim($_POST['email']);

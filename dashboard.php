@@ -5,7 +5,7 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 $user = $_SESSION['user'];
-require 'db.php';
+require 'db_mongo.php';
 
 // Fetch dashboard statistics
 $stmtDest = $pdo->query("SELECT COUNT(*) as total FROM destinations");

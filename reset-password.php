@@ -5,7 +5,7 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 
-require 'db.php';
+require 'db_mongo.php';
 
 $user_id = $_SESSION['user']['id'];
 

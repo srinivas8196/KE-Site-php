@@ -4,7 +4,7 @@ if (!isset($_SESSION['user'])) {
     echo json_encode(['success' => false, 'message' => 'Not authenticated']);
     exit();
 }
-require 'db.php';
+require 'db_mongo.php';
 
 // Get JSON input from request body
 $data = json_decode(file_get_contents('php://input'), true);

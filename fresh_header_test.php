@@ -100,7 +100,7 @@
 <body>
 <?php
   // Include database connection (ensure db.php creates a valid $pdo)
-  include 'db.php';
+  require 'db_mongo.php';
   
   // Fetch destinations and active resorts
   $sql = "SELECT d.destination_name, r.resort_name, r.resort_slug 

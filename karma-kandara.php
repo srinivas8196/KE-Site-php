@@ -1,5 +1,5 @@
 <?php
-require 'db.php';
+require 'db_mongo.php';
 $stmt = $pdo->prepare("SELECT * FROM resorts WHERE resort_slug = ?");
 $stmt->execute(['karma-kandara']);
 $resort = $stmt->fetch();

@@ -4,7 +4,7 @@ if (!isset($_SESSION['user'])) {
     header("Location: login.php");
     exit();
 }
-require 'db.php';
+require 'db_mongo.php';
 
 if (!isset($_GET['id'])) {
     echo "Template ID not specified.";

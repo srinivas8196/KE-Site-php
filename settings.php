@@ -6,7 +6,7 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 $user = $_SESSION['user'];
-require 'db.php';
+require 'db_mongo.php';
 
 // Fetch current settings from the database
 $stmt = $pdo->prepare("SELECT * FROM settings WHERE id = 1");

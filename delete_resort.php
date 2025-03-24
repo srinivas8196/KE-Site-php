@@ -1,5 +1,5 @@
 <?php
-require 'db.php';
+require 'db_mongo.php';
 
 // Function to recursively delete a directory and its contents
 function deleteDirectory($dir) {
