@@ -1,33 +1,29 @@
 <?php
 session_start();
-require_once __DIR__ . '/vendor/autoload.php';
-use Database\SupabaseConnection;
-
-$supabase = SupabaseConnection::getClient();
+require_once 'db.php'; // Include your db.php file to establish the database connection
+require_once 'bheader.php'; // Include bheader.php to handle session management
 
 // Get dashboard statistics
-$stats = $supabase->rpc('get_dashboard_stats')->execute();
-$dashboardStats = $stats->data;
-
-// Get recent activities
-$activities = $supabase
-    ->from('activities')
-    ->select('*')
-    ->order('created_at', ['ascending' => false])
-    ->limit(10)
-    ->execute();
-
-$recentActivities = $activities->data;
+$statsQuery = $pdo->query("
+    SELECT 
+        (SELECT COUNT(*) FROM destinations) AS total_destinations,
+        (SELECT COUNT(*) FROM resorts) AS total_resorts,
+        (SELECT COUNT(*) FROM campaigns WHERE status = 'active') AS active_campaigns
+");
+$dashboardStats = $statsQuery->fetch(PDO::FETCH_OBJ);
 
 if (!isset($_SESSION['user'])) {
     header("Location: login.php");
     exit();
 }
 $user = $_SESSION['user'];
-require 'db.php';
+
+// Ensure user_type is set
+if (!isset($user['user_type'])) {
+    $user['user_type'] = 'user'; // Default to 'user' if not set
+}
 
 ?>
-<?php include 'bheader.php'; ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -111,18 +107,6 @@ require 'db.php';
           <h3 class="text-lg font-semibold mb-2">Active Campaigns</h3>
           <p class="text-3xl font-bold"><?php echo $dashboardStats->active_campaigns; ?></p>
         </div>
-      </div>
-      <!-- Recent Activities -->
-      <div class="mt-8">
-        <h3 class="text-2xl font-bold mb-4">Recent Activities</h3>
-        <ul class="bg-white p-6 rounded-lg shadow">
-          <?php foreach ($recentActivities as $activity): ?>
-            <li class="mb-2">
-              <span class="text-gray-600"><?php echo htmlspecialchars($activity->created_at); ?>:</span>
-              <span><?php echo htmlspecialchars($activity->description); ?></span>
-            </li>
-          <?php endforeach; ?>
-        </ul>
       </div>
     </main>
   </div>

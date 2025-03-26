@@ -1,58 +1,31 @@
 <?php
-require_once __DIR__ . '/vendor/autoload.php';
-use Database\SupabaseConnection;
-
-$supabase = SupabaseConnection::getClient();
-
-// Check admin session
-if (!isset($_SESSION['user'])) {
-    header('Location: login.php');
-    exit();
+if (session_status() == PHP_SESSION_NONE) { // Check if a session is NOT already started
+    session_start(); // Start the session only if not already started
 }
 
-// Get user data from Supabase
-$user = $supabase
-    ->from('users')
-    ->select('*')
-    ->eq('id', $_SESSION['user']['id'])
-    ->single()
-    ->execute();
-
-if (!$user->data) {
+// Set session timeout (e.g., 1 hour)
+$timeout = 3600; // 1 hour in seconds
+if (isset($_SESSION['LAST_ACTIVITY']) && (time() - $_SESSION['LAST_ACTIVITY'] > $timeout)) {
+    // Last activity was more than 1 hour ago, destroy the session
+    session_unset();
     session_destroy();
-    header('Location: login.php');
+    header("Location: login.php?timeout=1"); // Added timeout parameter for login page
     exit();
 }
+$_SESSION['LAST_ACTIVITY'] = time(); // Update last activity time
 
-// Check if session is already started (might be started in other included files)
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+// Regenerate session ID periodically to prevent session fixation attacks
+if (!isset($_SESSION['CREATED'])) {
+    $_SESSION['CREATED'] = time();
+} elseif (time() - $_SESSION['CREATED'] > 1800) { // Regenerate every 30 minutes
+    session_regenerate_id(true);
+    $_SESSION['CREATED'] = time();
 }
 
-// Session timeout functionality (1 hour = 3600 seconds)
-$session_timeout = 3600; // 1 hour in seconds
-
-// Check if user is logged in
-if (isset($_SESSION['user'])) {
-    // Check if last_activity is set
-    if (isset($_SESSION['last_activity'])) {
-        // Calculate time since last activity
-        $inactive_time = time() - $_SESSION['last_activity'];
-        
-        // If inactive for more than session_timeout, destroy session and redirect to login
-        if ($inactive_time >= $session_timeout) {
-            // Perform logout actions
-            session_unset();     // Remove all session variables
-            session_destroy();   // Destroy the session
-            
-            // Redirect to login page
-            header("Location: login.php?timeout=1");
-            exit();
-        }
-    }
-    
-    // Update last activity time
-    $_SESSION['last_activity'] = time();
+// Check if user is logged in (moved to the end for clarity)
+if (!isset($_SESSION['user'])) {
+    header("Location: login.php");
+    exit();
 }
 ?>
 <!DOCTYPE html>
@@ -91,9 +64,9 @@ if (isset($_SESSION['user'])) {
     <!-- Profile Dropdown -->
     <div class="relative">
         <button id="profileBtn" class="flex items-center space-x-2 bg-gray-800 px-4 py-2 rounded focus:outline-none">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"> 
-                <path d="M20 21a8 8 0 0 0-16 0"></path> 
-                <circle cx="12" cy="7" r="4"></circle> 
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21a8 8 0 0 0-16 0"></path>
+                <circle cx="12" cy="7" r="4"></circle>
             </svg>
             <span>Admin</span>
         </button>

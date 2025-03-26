@@ -6,10 +6,10 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['user_type'] != 'super_admin'
 }
 $user = $_SESSION['user'];
 require 'db.php';
+require_once 'bheader.php';
 $stmt = $pdo->query("SELECT * FROM users ORDER BY username");
 $users = $stmt->fetchAll();
 ?>
-<?php include 'bheader.php'; ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>

@@ -1,37 +1,13 @@
 <?php
 session_start();
-<<<<<<< HEAD
 if (!isset($_SESSION['user'])) {
     header("Location: login.php");
     exit();
 }
 $user = $_SESSION['user'];
 require 'db.php';
-=======
-require_once __DIR__ . '/vendor/autoload.php';
-use Database\SupabaseConnection;
->>>>>>> 4a5601790339d4600a7b11e571b96a5533d4d839
-
-$supabase = SupabaseConnection::getClient();
-
-// Get resorts with destinations
-$resortsResponse = $supabase
-    ->from('resorts')
-    ->select('*, destinations(destination_name)')
-    ->order('resort_name')
-    ->execute();
-
-$resorts = $resortsResponse->data;
-
-// Add storage URLs to images
-foreach ($resorts as &$resort) {
-    if ($resort['banner_image']) {
-        $resort['banner_url'] = $supabase
-            ->storage()
-            ->from('resort-assets')
-            ->getPublicUrl($resort['banner_image']);
-    }
-}
+$stmt = $pdo->query("SELECT r.*, d.destination_name FROM resorts r JOIN destinations d ON r.destination_id = d.id ORDER BY d.destination_name, r.resort_name");
+$resorts = $stmt->fetchAll();
 ?>
 <?php include 'bheader.php'; ?>
 <!DOCTYPE html>
@@ -168,9 +144,9 @@ foreach ($resorts as &$resort) {
               <td class="py-2 px-4 border-b">
                 <a href="create_or_edit_resort.php?destination_id=<?php echo $resort['destination_id']; ?>&resort_id=<?php echo $resort['id']; ?>" class="bg-yellow-500 text-white px-2 py-1 rounded">Edit</a>
                 <?php if ($resort['is_active'] == 1): ?>
-                  <a id="viewLink_<?php echo $resort['id']; ?>" href="<?php echo htmlspecialchars($resort['file_path']); ?>" class="bg-blue-500 text-white px-2 py-1 rounded">View</a>
+                    <a href="<?php echo htmlspecialchars($resort['resort_slug']); ?>" class="bg-blue-500 text-white px-2 py-1 rounded">View</a>
                 <?php else: ?>
-                  <a id="viewLink_<?php echo $resort['id']; ?>" href="404.php" class="bg-blue-500 text-white px-2 py-1 rounded">View</a>
+                    <a href="404.php" class="bg-blue-500 text-white px-2 py-1 rounded">View</a>
                 <?php endif; ?>
                 <a href="delete_resort.php?id=<?php echo $resort['id']; ?>" class="bg-red-500 text-white px-2 py-1 rounded" onclick="return confirm('Are you sure you want to delete this resort?');">Delete</a>
               </td>
@@ -192,7 +168,7 @@ foreach ($resorts as &$resort) {
       sidebar.classList.toggle('sidebar-collapsed');
     });
 
-    // Listen for changes on the active toggle switches and update the "View" link automatically
+    // Listen for changes on the active toggle switches
     document.querySelectorAll('.toggle-active').forEach(function(checkbox) {
       checkbox.addEventListener('change', function() {
         var resortId = this.getAttribute('data-resort-id');
@@ -206,13 +182,7 @@ foreach ($resorts as &$resort) {
         .then(response => response.json())
         .then(data => {
           if(data.success){
-            // Update the view link's href automatically using the response's file_path
-            var viewLink = document.getElementById('viewLink_' + resortId);
-            if(newStatus == 1){
-              viewLink.href = data.file_path; // Expected file_path from the response
-            } else {
-              viewLink.href = "404.php";
-            }
+            // Optionally show a toast or update UI further
           } else {
             alert('Failed to update status.');
           }
