@@ -1,5 +1,15 @@
 {
     "require": {
+<<<<<<< HEAD
         "vlucas/phpdotenv": "^5.3"
+=======
+        "vlucas/phpdotenv": "^5.5",
+        "supabase/supabase-php": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Database\\": "Database/"
+        }
+>>>>>>> 4a5601790339d4600a7b11e571b96a5533d4d839
     }
 }

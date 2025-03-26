@@ -1,24 +1,30 @@
 <?php
 session_start();
+require_once __DIR__ . '/vendor/autoload.php';
+use Database\SupabaseConnection;
+
+$supabase = SupabaseConnection::getClient();
+
+// Get dashboard statistics
+$stats = $supabase->rpc('get_dashboard_stats')->execute();
+$dashboardStats = $stats->data;
+
+// Get recent activities
+$activities = $supabase
+    ->from('activities')
+    ->select('*')
+    ->order('created_at', ['ascending' => false])
+    ->limit(10)
+    ->execute();
+
+$recentActivities = $activities->data;
+
 if (!isset($_SESSION['user'])) {
     header("Location: login.php");
     exit();
 }
 $user = $_SESSION['user'];
 require 'db.php';
-
-// Fetch dashboard statistics
-$stmtDest = $pdo->query("SELECT COUNT(*) as total FROM destinations");
-$rowDest = $stmtDest->fetch();
-$totalDest = $rowDest['total'];
-
-$stmtResorts = $pdo->query("SELECT COUNT(*) as total FROM resorts");
-$rowResorts = $stmtResorts->fetch();
-$totalResorts = $rowResorts['total'];
-
-$stmtCampaigns = $pdo->query("SELECT COUNT(*) as total FROM campaigns WHERE status = 'active'");
-$rowCampaigns = $stmtCampaigns->fetch();
-$totalCampaigns = $rowCampaigns['total'];
 
 ?>
 <?php include 'bheader.php'; ?>
@@ -95,16 +101,28 @@ $totalCampaigns = $rowCampaigns['total'];
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div class="bg-white p-6 rounded-lg shadow">
           <h3 class="text-lg font-semibold mb-2">Total Destinations</h3>
-          <p class="text-3xl font-bold"><?php echo $totalDest; ?></p>
+          <p class="text-3xl font-bold"><?php echo $dashboardStats->total_destinations; ?></p>
         </div>
         <div class="bg-white p-6 rounded-lg shadow">
           <h3 class="text-lg font-semibold mb-2">Total Resorts</h3>
-          <p class="text-3xl font-bold"><?php echo $totalResorts; ?></p>
+          <p class="text-3xl font-bold"><?php echo $dashboardStats->total_resorts; ?></p>
         </div>
         <div class="bg-white p-6 rounded-lg shadow">
           <h3 class="text-lg font-semibold mb-2">Active Campaigns</h3>
-          <p class="text-3xl font-bold"><?php echo $totalCampaigns; ?></p>
+          <p class="text-3xl font-bold"><?php echo $dashboardStats->active_campaigns; ?></p>
         </div>
+      </div>
+      <!-- Recent Activities -->
+      <div class="mt-8">
+        <h3 class="text-2xl font-bold mb-4">Recent Activities</h3>
+        <ul class="bg-white p-6 rounded-lg shadow">
+          <?php foreach ($recentActivities as $activity): ?>
+            <li class="mb-2">
+              <span class="text-gray-600"><?php echo htmlspecialchars($activity->created_at); ?>:</span>
+              <span><?php echo htmlspecialchars($activity->description); ?></span>
+            </li>
+          <?php endforeach; ?>
+        </ul>
       </div>
     </main>
   </div>

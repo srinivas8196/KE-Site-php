@@ -1,29 +1,52 @@
 <?php
 session_start();
+<<<<<<< HEAD
 if (!isset($_SESSION['user'])) {
     header('Location: login.php');
     exit();
 }
 $user = $_SESSION['user'];
 require 'db.php';
+=======
+require_once __DIR__ . '/vendor/autoload.php';
+use Database\SupabaseConnection;
 
-// Get destination from GET (either directly or via the resort record)
+$supabase = SupabaseConnection::getClient();
+>>>>>>> 4a5601790339d4600a7b11e571b96a5533d4d839
+
 $destination_id = $_GET['destination_id'] ?? null;
 $resort = null;
 
 if (isset($_GET['resort_id'])) {
-    $stmt = $pdo->prepare("SELECT * FROM resorts WHERE id = ?");
-    $stmt->execute([$_GET['resort_id']]);
-    $resort = $stmt->fetch();
-    if (!$destination_id && $resort) {
-        $destination_id = $resort['destination_id'];
+    $resortResponse = $supabase
+        ->from('resorts')
+        ->select('*')
+        ->eq('id', $_GET['resort_id'])
+        ->single()
+        ->execute();
+    
+    $resort = $resortResponse->data;
+
+    // Get storage URLs for images
+    if ($resort['banner_image']) {
+        $resort['banner_url'] = $supabase
+            ->storage()
+            ->from('resort-assets')
+            ->getPublicUrl($resort['banner_image']);
     }
 }
 
+// Get destinations for dropdown
+$destinationsResponse = $supabase
+    ->from('destinations')
+    ->select('id, destination_name')
+    ->order('destination_name')
+    ->execute();
+
+$destinations = $destinationsResponse->data;
+
 // If no destination is provided, display a selection form.
 if (!$destination_id) {
-    $stmt = $pdo->query("SELECT id, destination_name FROM destinations ORDER BY destination_name");
-    $destinations = $stmt->fetchAll();
     include 'bheader.php';
     ?>
     <div class="container mt-5">
@@ -47,24 +70,10 @@ if (!$destination_id) {
 }
 
 // Decode dynamic JSON fields if editing
-$amenitiesData = [];
-$roomsData = [];
-$testimonialsData = [];
-$galleryData = [];
-if ($resort) {
-    if (!empty($resort['amenities'])) {
-        $amenitiesData = json_decode($resort['amenities'], true) ?? [];
-    }
-    if (!empty($resort['room_details'])) {
-        $roomsData = json_decode($resort['room_details'], true) ?? [];
-    }
-    if (!empty($resort['testimonials'])) {
-        $testimonialsData = json_decode($resort['testimonials'], true) ?? [];
-    }
-    if (!empty($resort['gallery'])) {
-        $galleryData = json_decode($resort['gallery'], true) ?? [];
-    }
-}
+$amenitiesData = $resort['amenities'] ? json_decode($resort['amenities'], true) : [];
+$roomsData = $resort['room_details'] ? json_decode($resort['room_details'], true) : [];
+$testimonialsData = $resort['testimonials'] ? json_decode($resort['testimonials'], true) : [];
+$galleryData = $resort['gallery'] ? json_decode($resort['gallery'], true) : [];
 
 include 'bheader.php';
 ?>

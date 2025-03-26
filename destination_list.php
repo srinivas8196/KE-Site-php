@@ -1,5 +1,6 @@
 <?php
 session_start();
+<<<<<<< HEAD
 if (!isset($_SESSION['user'])) {
     header("Location: login.php");
     exit();
@@ -8,6 +9,21 @@ $user = $_SESSION['user'];
 require 'db.php';
 $stmt = $pdo->query("SELECT * FROM destinations ORDER BY destination_name");
 $destinations = $stmt->fetchAll();
+=======
+require_once __DIR__ . '/vendor/autoload.php';
+use Database\SupabaseConnection;
+
+$supabase = SupabaseConnection::getClient();
+
+// Get destinations with resort counts
+$destinationsResponse = $supabase
+    ->from('destinations')
+    ->select('*, resorts(count)')
+    ->order('destination_name')
+    ->execute();
+
+$destinations = $destinationsResponse->data;
+>>>>>>> 4a5601790339d4600a7b11e571b96a5533d4d839
 ?>
 <?php include 'bheader.php'; ?>
 <!DOCTYPE html>

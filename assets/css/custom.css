@@ -142,3 +142,29 @@
   }
   
   /**==footer css end==**/
+
+
+/**header css start==**/
+  .truncate {
+    white-space: normal !important;
+    overflow: auto !important;
+    text-overflow: clip;
+}
+.d-mega-menu ul {
+    border-bottom: 1px solid #ececec;
+    list-style: circle;
+}
+.d-mega-menu ul li {
+    margin: 0 !important;
+    display: flex;
+    align-items: center;
+}
+.truncate .banner-title {
+    display: none;
+}
+.display-4 {
+    color: #fff;
+    font-weight: 500;
+}
+
+/**header css end==**/

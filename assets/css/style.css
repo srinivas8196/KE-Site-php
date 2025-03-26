@@ -35223,6 +35223,80 @@ span.select2-selection.select2-selection--single:focus {
 }
 /**===condition page css start==**/
 
+/**===privacy policy start===**/
+.p-policy .p-ul {
+  padding: 0;
+}
+
+.p-policy ul li {
+  list-style: none;
+}
+.p-ul h6 {
+  padding-top: 10px;
+}
+.sub-ul {
+  padding-bottom: 1em;
+}
+.p-policy {
+  padding: 2em 0;
+}
+/**===privacy policy end===**/
+
+/***===enquiry page css start===**/
+
+.form-body{
+  padding: 2em 0;
+}
+.ofc-details {
+  background-color: #fff;
+  box-shadow: 0px 20px 20px rgb(240 221 191 / 52%);
+  border-radius: 16px;
+  border-radius: 16px;
+  padding: 40px;
+  margin-bottom: 3em;
+  /* border-right: 2px dashed #f1ddbd; */
+}
+.en-form .form-container {
+  background-color: transparent;
+}
+
+.icon-lg {
+  width: 3.5rem;
+  height: 3.5rem;
+  line-height: 3.5rem;
+  text-align: center;
+  font-size: 1.2rem;
+    background-color: #8b734b !important;
+}
+.rounded-circle {
+  border-radius: 50% !important;
+}
+.bg-opacity-10 {
+  --bs-bg-opacity: 0.1;
+}
+
+.bg-orange {
+  --bs-bg-opacity: 1;
+  background-color: #8b734b !important;
+}
+.ofc-details .icon-lg i {
+  color: #fff;
+}
+.ofc-details .card {
+  border: none;
+}
+
+.en-form .form-container button {
+  background-color: #8b734b;
+}
+.en-form {
+  margin: 3em 0;
+  position: relative;
+  z-index: 1;
+}
+
+/***=== enquiry page css end===**/
+
 /**===Responsive css start==**/
 
 @media(max-width: 576px){
@@ -35232,6 +35306,110 @@ span.select2-selection.select2-selection--single:focus {
 .footer-wrapper .about-logo img{
   width: 45%;
 }
+.en-space i {
+  color: #8b734b;
+  font-size: 20px;
+  background: #ffffffcc;
+  border-radius: 100%;
+  margin-bottom: 10px;
+  width: 60px !important;
+  height: 40px;
+  text-align: center;
+  margin-right: 10px;
 }
+.footer-wrapper .about-logo img {
+  width: 60% !important;
+}
+}
+
+
+
+
+
+.mega-menu .container {
+  display: block !important;
+}
+.mega-menu ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  background: #8b734bab;
+  border-radius: 10px;
+  color: #fff;
+  padding: 5px 1em !important;
+  margin-bottom: 10px;
+}
+.mega-menu ul li a {
+  color: #fff !important;
+}
+.mega-menu ul li a::before {
+  content: "\f105";
+  content: "\f105";
+  font-weight: 600;
+  font-family: var(--icon-font);
+  -ms-transform: translateY(0);
+  padding: 0 1em 0 0;
+}
+
+
+.en-form .form-container form {
+  box-shadow: none !important;
+}
+.en-form .form-group input, .en-form .form-group select, .en-form .form-group textarea {
+  padding: 6px;
+  border: none !important;
+  border-radius: 4px;
+  font-size: 13px;
+  width: 100%;
+  box-sizing: border-box;
+  background: aliceblue;
+}
+.en-form label {
+  font-size: 15px !important;
+}
+.en-form .form-container button {
+  font-size: 18px;
+  font-weight: 500;
+}
+
+
+
+
+
+.en-space {
+  padding: 0 2em;
+  color: #fff;
+}
+.en-space h3{
+  color: #fff;
+}
+.en-cta p {
+  color: #fff;
+}
+.en-cta h5 {
+  color: #fff;
+}
+.en-space span {
+  font-size: 14px;
+}
+.en-space i {
+  color: #8b734b;
+  font-size: 20px;
+  background: #ffffffcc;
+  border-radius: 100%;
+  margin-bottom: 10px;
+  width: 40px;
+  height: 40px;
+  text-align: center;
+  margin-right: 10px;
+}
+.en-space {
+  padding: 3em 2em;
+  color: #fff;
+}
+.en-cta {
+  padding: 0 3em;
+}
+
 /**==end my css==*/
 

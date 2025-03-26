@@ -1,4 +1,29 @@
 <?php
+require_once __DIR__ . '/vendor/autoload.php';
+use Database\SupabaseConnection;
+
+$supabase = SupabaseConnection::getClient();
+
+// Check admin session
+if (!isset($_SESSION['user'])) {
+    header('Location: login.php');
+    exit();
+}
+
+// Get user data from Supabase
+$user = $supabase
+    ->from('users')
+    ->select('*')
+    ->eq('id', $_SESSION['user']['id'])
+    ->single()
+    ->execute();
+
+if (!$user->data) {
+    session_destroy();
+    header('Location: login.php');
+    exit();
+}
+
 // Check if session is already started (might be started in other included files)
 if (session_status() === PHP_SESSION_NONE) {
     session_start();

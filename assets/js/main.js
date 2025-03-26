@@ -1828,13 +1828,13 @@
 
 
 
-    // /*----------- 00. Right Click Disable ----------*/ 
+    /*----------- 00. Right Click Disable ----------*/ 
       window.addEventListener('contextmenu', function (e) {
         // do something here...
         e.preventDefault();  
       }, false);   
 
-    // /*----------- 00. Inspect Element Disable ----------*/   
+    /*----------- 00. Inspect Element Disable ----------*/   
       document.onkeydown = function (e) {   
         if (event.keyCode == 123) {  
           return false;

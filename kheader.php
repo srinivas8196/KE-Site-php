@@ -77,7 +77,9 @@
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <title>Karma Experience India | Delivering unmatched holiday experiences at unbeatable prices</title>
+    <title>Karma Experience India | Delivering unmatched holiday experiences at unbeatable prices</title>
     <meta name="author" content="Karma Experience">
+    <meta name="description" content="Karma Experience - Delivering unmatched holiday experiences at unbeatable prices">
     <meta name="description" content="Karma Experience - Delivering unmatched holiday experiences at unbeatable prices">
     <meta name="keywords" content="Karma Experience - Delivering unmatched holiday experiences at unbeatable prices">
     <meta name="robots" content="INDEX,FOLLOW">
