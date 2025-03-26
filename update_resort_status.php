@@ -17,20 +17,25 @@ if (!isset($data['resort_id']) || !isset($data['is_active'])) {
 $resortId = $data['resort_id'];
 $isActive = $data['is_active'];
 
-// Update the resort's active status in the database
-$stmt = $pdo->prepare("UPDATE resorts SET is_active = ? WHERE id = ?");
-if ($stmt->execute([$isActive, $resortId])) {
-    // Fetch the landing page file path from the updated record
-    $stmt = $pdo->prepare("SELECT file_path FROM resorts WHERE id = ?");
+try {
+    // Update the resort's active status in the database
+    $stmt = $pdo->prepare("UPDATE resorts SET is_active = ? WHERE id = ?");
+    $stmt->execute([$isActive, $resortId]);
+
+    // Fetch the updated resort data
+    $stmt = $pdo->prepare("SELECT resort_slug FROM resorts WHERE id = ?");
     $stmt->execute([$resortId]);
-    $file_path = $stmt->fetchColumn();
-    
+    $resort = $stmt->fetch(PDO::FETCH_ASSOC);
+
     echo json_encode([
         'success' => true,
-        'file_path' => $file_path,
+        'resort_slug' => $resort['resort_slug'],
         'is_active' => $isActive
     ]);
-} else {
-    echo json_encode(['success' => false, 'message' => 'Database update failed']);
+} catch (PDOException $e) {
+    echo json_encode([
+        'success' => false,
+        'message' => 'Database error: ' . $e->getMessage()
+    ]);
 }
 ?>

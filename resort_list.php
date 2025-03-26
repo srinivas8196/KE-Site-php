@@ -20,6 +20,7 @@ $resorts = $stmt->fetchAll();
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Font Awesome for Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
     .sidebar-collapsed {
       width: 64px;
@@ -70,6 +71,31 @@ $resorts = $stmt->fetchAll();
     input:checked + .slider:before {
       transform: translateX(26px);
     }
+    .loading-spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255,255,255,.3);
+      border-radius: 50%;
+      border-top-color: #fff;
+      animation: spin 1s ease-in-out infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    #resorts-table th {
+      position: relative;
+    }
+    #resorts-table th.asc::after {
+      content: '↑';
+      position: absolute;
+      right: 8px;
+    }
+    #resorts-table th.desc::after {
+      content: '↓';
+      position: absolute;
+      right: 8px;
+    }
   </style>
 </head>
 <body class="bg-gray-100">
@@ -119,8 +145,25 @@ $resorts = $stmt->fetchAll();
         </ol>
       </nav>
       <h2 class="text-3xl font-bold mb-6">Resorts List</h2>
+      <div class="mb-4 flex items-center space-x-4">
+        <input type="text" id="search" placeholder="Search resorts..." class="border rounded p-2 flex-grow">
+        <select id="filter-status" class="border rounded p-2">
+          <option value="">All Statuses</option>
+          <option value="1">Active</option>
+          <option value="0">Inactive</option>
+        </select>
+      </div>
+      <div class="mb-4 flex items-center space-x-4">
+        <select id="bulk-action" class="border rounded p-2">
+          <option value="">Bulk Actions</option>
+          <option value="activate">Activate</option>
+          <option value="deactivate">Deactivate</option>
+          <option value="delete">Delete</option>
+        </select>
+        <button id="apply-bulk-action" class="bg-blue-500 text-white px-4 py-2 rounded">Apply</button>
+      </div>
       <?php if(count($resorts) > 0): ?>
-        <table class="min-w-full bg-white border border-gray-200">
+        <table id="resorts-table" class="min-w-full bg-white border border-gray-200">
           <thead>
             <tr>
               <th class="py-2 px-4 border-b">Resort Name</th>
@@ -131,8 +174,11 @@ $resorts = $stmt->fetchAll();
           </thead>
           <tbody>
             <?php foreach($resorts as $resort): ?>
-            <tr>
-              <td class="py-2 px-4 border-b"><?php echo htmlspecialchars($resort['resort_name']); ?></td>
+            <tr id="resort-row-<?php echo $resort['id']; ?>">
+              <td class="py-2 px-4 border-b">
+                <input type="checkbox" class="resort-checkbox" value="<?php echo $resort['id']; ?>">
+                <?php echo htmlspecialchars($resort['resort_name']); ?>
+              </td>
               <td class="py-2 px-4 border-b"><?php echo htmlspecialchars($resort['destination_name']); ?></td>
               <td class="py-2 px-4 border-b text-center">
                 <!-- Toggle switch for active status -->
@@ -144,9 +190,9 @@ $resorts = $stmt->fetchAll();
               <td class="py-2 px-4 border-b">
                 <a href="create_or_edit_resort.php?destination_id=<?php echo $resort['destination_id']; ?>&resort_id=<?php echo $resort['id']; ?>" class="bg-yellow-500 text-white px-2 py-1 rounded">Edit</a>
                 <?php if ($resort['is_active'] == 1): ?>
-                    <a href="<?php echo htmlspecialchars($resort['resort_slug']); ?>" class="bg-blue-500 text-white px-2 py-1 rounded">View</a>
+                    <a href="<?php echo htmlspecialchars($resort['resort_slug']); ?>" class="bg-blue-500 text-white px-2 py-1 rounded view-button">View</a>
                 <?php else: ?>
-                    <a href="404.php" class="bg-blue-500 text-white px-2 py-1 rounded">View</a>
+                    <a href="404.php" class="bg-gray-400 text-white px-2 py-1 rounded view-button">View</a>
                 <?php endif; ?>
                 <a href="delete_resort.php?id=<?php echo $resort['id']; ?>" class="bg-red-500 text-white px-2 py-1 rounded" onclick="return confirm('Are you sure you want to delete this resort?');">Delete</a>
               </td>
@@ -168,29 +214,141 @@ $resorts = $stmt->fetchAll();
       sidebar.classList.toggle('sidebar-collapsed');
     });
 
-    // Listen for changes on the active toggle switches
-    document.querySelectorAll('.toggle-active').forEach(function(checkbox) {
-      checkbox.addEventListener('change', function() {
-        var resortId = this.getAttribute('data-resort-id');
-        var newStatus = this.checked ? 1 : 0;
-        // Send AJAX request to update the resort's active status
-        fetch('update_resort_status.php', {
+    async function updateResortStatus(checkbox) {
+      const resortId = checkbox.getAttribute('data-resort-id');
+      const newStatus = checkbox.checked ? 1 : 0;
+      const row = document.getElementById('resort-row-' + resortId);
+      const viewButton = row.querySelector('.view-button');
+      const switchContainer = checkbox.parentElement;
+
+      // Show loading spinner
+      const spinner = document.createElement('div');
+      spinner.className = 'loading-spinner';
+      switchContainer.style.position = 'relative';
+      switchContainer.appendChild(spinner);
+
+      try {
+        const response = await fetch('update_resort_status.php', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ resort_id: resortId, is_active: newStatus })
-        })
-        .then(response => response.json())
-        .then(data => {
-          if(data.success){
-            // Optionally show a toast or update UI further
-          } else {
-            alert('Failed to update status.');
-          }
-        })
-        .catch(error => {
-          console.error('Error:', error);
-          alert('Error updating status.');
         });
+
+        if (!response.ok) throw new Error('Network response was not ok');
+        const data = await response.json();
+
+        if (!data.success) throw new Error(data.message || 'Failed to update status');
+
+        // Update view button
+        if (newStatus === 1) {
+          viewButton.href = data.resort_slug;
+          viewButton.classList.remove('bg-gray-400');
+          viewButton.classList.add('bg-blue-500');
+        } else {
+          viewButton.href = '404.php';
+          viewButton.classList.remove('bg-blue-500');
+          viewButton.classList.add('bg-gray-400');
+        }
+
+        // Show success notification
+        Swal.fire({
+          icon: 'success',
+          title: 'Success!',
+          text: 'Resort status updated successfully',
+          toast: true,
+          position: 'top-end',
+          showConfirmButton: false,
+          timer: 3000
+        });
+      } catch (error) {
+        console.error('Error:', error);
+        checkbox.checked = !checkbox.checked;
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: error.message,
+          toast: true,
+          position: 'top-end',
+          showConfirmButton: false,
+          timer: 3000
+        });
+      } finally {
+        // Remove loading spinner
+        switchContainer.removeChild(spinner);
+      }
+    }
+
+    document.querySelectorAll('.toggle-active').forEach(function(checkbox) {
+      checkbox.addEventListener('change', function() {
+        updateResortStatus(this);
+      });
+    });
+
+    document.getElementById('apply-bulk-action').addEventListener('click', async function() {
+      const selectedResorts = Array.from(document.querySelectorAll('.resort-checkbox:checked'))
+        .map(checkbox => checkbox.value);
+      const action = document.getElementById('bulk-action').value;
+
+      if (!action || selectedResorts.length === 0) {
+        Swal.fire('Error', 'Please select an action and at least one resort', 'error');
+        return;
+      }
+
+      try {
+        const response = await fetch('bulk_action.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ resorts: selectedResorts, action })
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          Swal.fire('Success', 'Bulk action completed successfully', 'success');
+          location.reload(); // Refresh to show changes
+        } else {
+          throw new Error(data.message);
+        }
+      } catch (error) {
+        Swal.fire('Error', error.message, 'error');
+      }
+    });
+
+    function filterTable() {
+      const search = document.getElementById('search').value.toLowerCase();
+      const status = document.getElementById('filter-status').value;
+
+      document.querySelectorAll('#resorts-table tbody tr').forEach(row => {
+        const name = row.querySelector('td:first-child').textContent.toLowerCase();
+        const rowStatus = row.querySelector('.toggle-active').checked ? '1' : '0';
+        const matchesSearch = name.includes(search);
+        const matchesStatus = status === '' || rowStatus === status;
+        row.style.display = matchesSearch && matchesStatus ? '' : 'none';
+      });
+    }
+
+    document.getElementById('search').addEventListener('input', filterTable);
+    document.getElementById('filter-status').addEventListener('change', filterTable);
+
+    function sortTable(columnIndex, isAsc) {
+      const table = document.getElementById('resorts-table');
+      const tbody = table.querySelector('tbody');
+      const rows = Array.from(tbody.querySelectorAll('tr'));
+
+      rows.sort((a, b) => {
+        const aText = a.querySelectorAll('td')[columnIndex].textContent.trim();
+        const bText = b.querySelectorAll('td')[columnIndex].textContent.trim();
+        return isAsc ? aText.localeCompare(bText) : bText.localeCompare(aText);
+      });
+
+      while (tbody.firstChild) tbody.removeChild(tbody.firstChild);
+      rows.forEach(row => tbody.appendChild(row));
+    }
+
+    document.querySelectorAll('#resorts-table th').forEach((th, index) => {
+      th.style.cursor = 'pointer';
+      th.addEventListener('click', () => {
+        const isAsc = th.classList.toggle('asc');
+        sortTable(index, isAsc);
       });
     });
   </script>

@@ -1,6 +1,16 @@
 <?php
 include_once('kheader.php');
 ?>
+<style>
+.breadcumb-wrapper {
+    position: relative;
+    z-index: 1;
+}
+.form-body {
+    position: relative;
+    z-index: 0;
+}
+</style>
 <!--banner section start-->
 <div class="breadcumb-wrapper" data-bg-src="assets/img/bg/about-bg.webp">
         <div class="container">

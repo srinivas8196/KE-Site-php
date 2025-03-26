@@ -262,11 +262,9 @@
             color: #555;
             text-decoration: none;
             font-size: 0.95rem;
-            padding: 10px 40px 10px 15px;
+            padding: 10px 15px;
             display: block;
             transition: all 0.3s ease;
-            border-radius: 8px;
-            background: transparent;
             position: relative;
             overflow: hidden;
             font-weight: 500;
@@ -274,28 +272,13 @@
         }
 
         .mega-menu .resort-link::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(180, 151, 90, 0.08);
-            transform: scaleX(0);
-            transform-origin: right;
-            transition: transform 0.3s ease;
-            z-index: -1;
-            border-radius: 8px;
+            display: none; /* Remove background effect */
         }
 
         .mega-menu .resort-link:hover {
             color: #B4975A;
             transform: translateX(5px);
-        }
-
-        .mega-menu .resort-link:hover::before {
-            transform: scaleX(1);
-            transform-origin: left;
+            background: transparent;
         }
 
         .mega-menu .resort-link::after {
@@ -530,14 +513,13 @@
             text-decoration: none;
             font-size: 0.95rem;
             font-weight: 500;
-            border-radius: 6px;
             transition: all 0.3s ease;
             position: relative;
         }
 
         .mobile-submenu .resort-link:hover {
             color: #B4975A;
-            background: rgba(180, 151, 90, 0.08);
+            background: transparent;
             padding-left: 1.5rem;
         }
 
@@ -570,7 +552,7 @@
         }
 
         .th-header.scrolled {
-            background: rgba(0, 0, 0, 0.8);  /* Changed to dark background */
+            background: rgba(220, 218, 218, 0.2);  /* Changed to dark background */
             backdrop-filter: blur(10px);
             box-shadow: 0 2px 20px rgba(0,0,0,0.2);
         }

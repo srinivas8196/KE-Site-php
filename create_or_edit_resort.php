@@ -1,18 +1,11 @@
 <?php
 session_start();
-<<<<<<< HEAD
 if (!isset($_SESSION['user'])) {
     header('Location: login.php');
     exit();
 }
 $user = $_SESSION['user'];
 require 'db.php';
-=======
-require_once __DIR__ . '/vendor/autoload.php';
-use Database\SupabaseConnection;
-
-$supabase = SupabaseConnection::getClient();
->>>>>>> 4a5601790339d4600a7b11e571b96a5533d4d839
 
 $destination_id = $_GET['destination_id'] ?? null;
 $resort = null;
