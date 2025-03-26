@@ -1,5 +1,5 @@
 <?php
-require 'db_mongo.php';
+require 'db.php';
 
 // Fetch existing resort details if editing
 $resort = null;
@@ -99,7 +99,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Generate resort landing page file (e.g., abc.php)
     $resortPage = "$resort_slug.php";
     $pageContent  = "<?php\n";
-    $pageContent .= "require 'db_mongo.php';\n";
+    $pageContent .= "require 'db.php';\n";
     $pageContent .= "\$stmt = \$pdo->prepare(\"SELECT * FROM resorts WHERE resort_slug = ?\");\n";
     $pageContent .= "\$stmt->execute(['$resort_slug']);\n";
     $pageContent .= "\$resort = \$stmt->fetch();\n";

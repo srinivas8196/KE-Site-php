@@ -1,5 +1,5 @@
 <?php
-require 'db_mongo.php';
+require 'db.php';
 
 $resort_id = $_GET['resort_id'] ?? null;
 

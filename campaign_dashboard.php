@@ -5,7 +5,7 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 $user = $_SESSION['user'];
-require 'db_mongo.php';
+require 'db.php';
 
 // For campaign_manager, show only their campaigns; for others, show all
 if ($user['user_type'] == 'campaign_manager') {

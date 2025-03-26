@@ -1,5 +1,5 @@
 <?php
-require 'db_mongo.php';
+require 'db.php';
 if($_SERVER['REQUEST_METHOD'] == 'POST'){
     // Basic text fields
     $template_name = trim($_POST['template_name']);
@@ -106,7 +106,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
     
     // Generate a live page with a unique layout. (This is an example layout for marketing.)
     $pageContent  = "<?php\n";
-    $pageContent .= "require 'db_mongo.php';\n";
+    $pageContent .= "require 'db.php';\n";
     $pageContent .= "\$stmt = \$pdo->prepare(\"SELECT * FROM marketing_templates WHERE id = ?\");\n";
     $pageContent .= "\$stmt->execute([\$pdo->lastInsertId()]);\n"; // Simplified retrieval
     $pageContent .= "\$templateData = \$stmt->fetch();\n";

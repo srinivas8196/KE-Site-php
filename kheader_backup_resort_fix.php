@@ -14,12 +14,11 @@
         global $pdo;
         
         $sql = "SELECT d.id as dest_id, d.destination_name, 
-                       r.id as resort_id, r.resort_name, r.resort_slug, r.is_active
-                FROM destinations d
-                LEFT JOIN resorts r ON d.id = r.destination_id
-                WHERE r.id IS NOT NULL
-                AND r.is_active = 1
-                ORDER BY d.destination_name, r.resort_name";
+                      r.id as resort_id, r.resort_name, r.resort_slug 
+               FROM destinations d
+               LEFT JOIN resorts r ON d.id = r.destination_id
+               WHERE r.id IS NOT NULL
+               ORDER BY d.destination_name, r.resort_name";
         
         try {
             $stmt = $pdo->query($sql);
@@ -736,7 +735,7 @@
                     ?>
                         <div class="destination-section">
                             <h3 class="destination-title">
-                               
+                                <i class="fas fa-map-marker-alt"></i> 
                                 <?php echo htmlspecialchars($destination['name']); ?>
                             </h3>
                             <ul class="resort-list">
@@ -748,7 +747,7 @@
                                            class="resort-link <?php echo $isActive ? 'active' : ''; ?>">
                                             <?php echo htmlspecialchars($resort['name']); ?>
                                         </a>
-                    </li>
+                                    </li>
                                 <?php endforeach; ?>
                 </ul>
             </div>
@@ -775,8 +774,7 @@
                                     <li class="menu-item-has-children">
                                         <a href="#">Destinations</a>
                                         <div class="mega-menu">
-                                            <div class="container">
-                                                <div class="row">
+                                            <div class="mega-menu-grid">
                                                     <?php
                                                 // Calculate optimal column distribution
                                                 $totalDestinations = count($menuDestinations);
@@ -786,7 +784,8 @@
                                                 foreach ($menuDestinations as $index => $destination): 
                                                 ?>
                                                     <div class="destination-section">
-                                                        <h3 class="destination-title">  
+                                                        <h3 class="destination-title">
+                                                            <i class="fas fa-map-marker-alt"></i> 
                                                             <?php echo htmlspecialchars($destination['name']); ?>
                                                         </h3>
                                                         <ul class="resort-list">
@@ -802,9 +801,8 @@
                                                                 </li>
                                                             <?php endforeach; ?>
                                                         </ul>
-                                                    </div>
-                                                <?php endforeach; ?>
                                                 </div>
+                                                <?php endforeach; ?>
                                             </div>
                                         </div>
                                     </li>
@@ -850,7 +848,7 @@
             const mobileMenuClose = document.querySelector('.mobile-menu-close');
             const overlay = document.querySelector('.mobile-menu-overlay');
             const submenuToggles = document.querySelectorAll('.mobile-menu-toggle');
-            
+
             window.addEventListener('scroll', function() {
                 if (window.scrollY > 50) {
                     header.classList.add('scrolled');

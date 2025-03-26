@@ -1,6 +1,6 @@
 <?php
 session_start();
-require 'db_mongo.php';
+require 'db.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $username = trim($_POST['username']);

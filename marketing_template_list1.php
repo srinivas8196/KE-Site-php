@@ -1,5 +1,5 @@
 <?php
-require 'db_mongo.php';
+require 'db.php';
 
 // Query marketing templates along with a comma-separated list of campaign names using each template
 $query = "SELECT m.*, 

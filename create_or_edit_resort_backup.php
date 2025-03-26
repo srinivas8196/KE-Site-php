@@ -5,7 +5,7 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-require 'db_mongo.php';
+require 'db.php';
 
 $destination_id = $_GET['destination_id'] ?? null;
 $resort = null;

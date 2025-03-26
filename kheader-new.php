@@ -34,7 +34,7 @@
 <body>
     <?php
     // Include database connection and fetch destinations/resorts for the mega menu
-    require 'db_mongo.php';
+    require 'db.php';
     $sql = "SELECT d.destination_name, r.resort_name, r.resort_slug 
             FROM resorts r 
             JOIN destinations d ON r.destination_id = d.id 

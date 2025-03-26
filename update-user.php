@@ -1,6 +1,6 @@
 <?php
 session_start();
-require 'db_mongo.php'; // Include your database connection
+require 'db.php'; // Include your database connection
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $user_id = $_POST['user_id'];

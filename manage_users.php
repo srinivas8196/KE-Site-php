@@ -5,7 +5,7 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['user_type'] != 'super_admin'
     exit();
 }
 $user = $_SESSION['user'];
-require 'db_mongo.php';
+require 'db.php';
 $stmt = $pdo->query("SELECT * FROM users ORDER BY username");
 $users = $stmt->fetchAll();
 ?>

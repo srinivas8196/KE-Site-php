@@ -5,7 +5,7 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['user_type'] !== 'super_admin
     exit();
 }
 
-require 'db_mongo.php';
+require 'db.php';
 
 // Fetch all users
 $stmt = $pdo->query("SELECT id, username, email, user_type FROM users");

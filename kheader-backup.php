@@ -1,79 +1,6 @@
 <!doctype html>
 <html class="no-js" lang="zxx">
 <head>
-    <?php
-    // Enable error reporting
-    error_reporting(E_ALL);
-    ini_set('display_errors', 1);
-
-    // Include database connection
-    include_once 'db.php';
-
-    // Function to get all destinations with their active resorts - ONLY for mega menu display
-    function getDestinationsForMenu() {
-        global $pdo;
-        
-        $sql = "SELECT d.id as dest_id, d.destination_name, 
-                       r.id as resort_id, r.resort_name, r.resort_slug, r.is_active
-                FROM destinations d
-                LEFT JOIN resorts r ON d.id = r.destination_id
-                WHERE r.id IS NOT NULL
-                AND r.is_active = 1
-                ORDER BY d.destination_name, r.resort_name";
-        
-        try {
-            $stmt = $pdo->query($sql);
-            $menuDestinations = [];
-            
-            while($row = $stmt->fetch()) {
-                $destId = $row['dest_id'];
-                
-                if (!isset($menuDestinations[$destId])) {
-                    $menuDestinations[$destId] = [
-                        'id' => $destId,
-                        'name' => $row['destination_name'],
-                        'resorts' => []
-                    ];
-                }
-                
-                $menuDestinations[$destId]['resorts'][] = [
-                    'id' => $row['resort_id'],
-                    'name' => $row['resort_name'],
-                    'slug' => $row['resort_slug']
-                ];
-            }
-            
-            return array_values($menuDestinations);
-        } catch (PDOException $e) {
-            error_log("Database query failed: " . $e->getMessage());
-            return [];
-        }
-    }
-
-    // Get current page URL to identify active resorts
-    function getCurrentMenuSlug() {
-        $uri = $_SERVER['REQUEST_URI'];
-        $path = parse_url($uri, PHP_URL_PATH);
-        $segments = explode('/', trim($path, '/'));
-        $lastSegment = end($segments);
-        
-        // Handle both /resorts/slug and resorts.php?slug=value formats
-        if ($lastSegment === 'resorts.php' && isset($_GET['slug'])) {
-            return $_GET['slug'];
-        }
-        
-        // Get resort slug from filename (e.g., karma-royal-palms.php)
-        if (preg_match('/^([a-z0-9-]+)\.php$/', $lastSegment, $matches)) {
-            return $matches[1];
-        }
-        
-        return $lastSegment;
-    }
-
-    // Initialize variables ONLY for the mega menu - with unique names to avoid conflicts
-    $menuCurrentSlug = getCurrentMenuSlug();
-    $menuDestinations = getDestinationsForMenu();
-    ?>
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <title>Karma Experience India | Delivering unmatched holiday experiences at unbeatable prices</title>
@@ -718,42 +645,91 @@
     <!-- Mobile Menu -->
     <div class="th-mobile-menu">
         <div class="mobile-menu-header">
-                <a href="index.php">
+            <a href="index.php">
                 <img src="assets/images/logo/KE-Gold.png" alt="Karma Experience" style="height: 40px;">
-                </a>
+            </a>
             <button class="mobile-menu-close">
                 <i class="fas fa-times"></i>
             </button>
-            </div>
+        </div>
         <ul class="mobile-menu-nav">
             <li><a href="index.php">Home</a></li>
-                    <li class="menu-item-has-children">
+            <li class="menu-item-has-children">
                 <a href="#" class="mobile-menu-toggle">Destinations</a>
                 <div class="mobile-submenu">
-                    <?php
-                    // Reuse the same data for mobile menu
-                    foreach ($menuDestinations as $destination): 
-                    ?>
-                        <div class="destination-section">
-                            <h3 class="destination-title">
-                               
-                                <?php echo htmlspecialchars($destination['name']); ?>
-                            </h3>
-                            <ul class="resort-list">
-                                <?php foreach ($destination['resorts'] as $resort): 
-                                    $isActive = ($resort['slug'] === $menuCurrentSlug);
-                                ?>
-                                    <li class="resort-item">
-                                        <a href="<?php echo $resort['slug']; ?>.php" 
-                                           class="resort-link <?php echo $isActive ? 'active' : ''; ?>">
-                                            <?php echo htmlspecialchars($resort['name']); ?>
-                                        </a>
-                    </li>
-                                <?php endforeach; ?>
-                </ul>
-            </div>
-                    <?php endforeach; ?>
-        </div>
+                    <!-- India Section -->
+                    <div class="destination-section">
+                        <h3 class="destination-title">India</h3>
+                        <ul class="resort-list">
+                            <li class="resort-item">
+                                <a href="#" class="resort-link">Karma Royal Palms</a>
+                            </li>
+                            <li class="resort-item">
+                                <a href="#" class="resort-link">Karma Villagio</a>
+                            </li>
+                            <li class="resort-item">
+                                <a href="#" class="resort-link">Karma City</a>
+                            </li>
+                            <li class="resort-item">
+                                <a href="#" class="resort-link">Karma Royal Haathi Mahal</a>
+                            </li>
+                        </ul>
+                    </div>
+                    <!-- Indonesia Section -->
+                    <div class="destination-section">
+                        <h3 class="destination-title">Indonesia</h3>
+                        <ul class="resort-list">
+                            <li class="resort-item">
+                                <a href="#" class="resort-link">Karma Kandara</a>
+                            </li>
+                            <li class="resort-item">
+                                <a href="#" class="resort-link">Karma Jimbaran</a>
+                            </li>
+                            <li class="resort-item">
+                                <a href="#" class="resort-link">Royal Jimbaran</a>
+                            </li>
+                            <li class="resort-item">
+                                <a href="#" class="resort-link">Karma Reef</a>
+                            </li>
+                        </ul>
+                    </div>
+                    <!-- Thailand Section -->
+                    <div class="destination-section">
+                        <h3 class="destination-title">Thailand</h3>
+                        <ul class="resort-list">
+                            <li class="resort-item">
+                                <a href="#" class="resort-link">Karma Royal Phuket</a>
+                            </li>
+                            <li class="resort-item">
+                                <a href="#" class="resort-link">Karma Apsara</a>
+                            </li>
+                            <li class="resort-item">
+                                <a href="#" class="resort-link">Royal Bella Vista</a>
+                            </li>
+                            <li class="resort-item">
+                                <a href="#" class="resort-link">Karma Samui</a>
+                            </li>
+                        </ul>
+                    </div>
+                    <!-- Europe Section -->
+                    <div class="destination-section">
+                        <h3 class="destination-title">Europe</h3>
+                        <ul class="resort-list">
+                            <li class="resort-item">
+                                <a href="#" class="resort-link">Karma Bavaria</a>
+                            </li>
+                            <li class="resort-item">
+                                <a href="#" class="resort-link">Karma Minoan</a>
+                            </li>
+                            <li class="resort-item">
+                                <a href="#" class="resort-link">Karma Borgo</a>
+                            </li>
+                            <li class="resort-item">
+                                <a href="#" class="resort-link">Karma St. Martin's</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
             </li>
             <li><a href="about.php">About Us</a></li>
             <li><a href="redeem-voucher.php">Redeem Voucher</a></li>
@@ -777,33 +753,78 @@
                                         <div class="mega-menu">
                                             <div class="container">
                                                 <div class="row">
-                                                    <?php
-                                                // Calculate optimal column distribution
-                                                $totalDestinations = count($menuDestinations);
-                                                $destinationsPerColumn = ceil($totalDestinations / 4);
-                                                
-                                                // Loop through destinations and create the menu structure
-                                                foreach ($menuDestinations as $index => $destination): 
-                                                ?>
+                                                    <!-- India Section -->
                                                     <div class="destination-section">
-                                                        <h3 class="destination-title">  
-                                                            <?php echo htmlspecialchars($destination['name']); ?>
-                                                        </h3>
+                                                        <h3 class="destination-title">India</h3>
                                                         <ul class="resort-list">
-                                                            <?php foreach ($destination['resorts'] as $resort): 
-                                                                // Check if this resort is active based on URL
-                                                                $isActive = ($resort['slug'] === $menuCurrentSlug);
-                                                            ?>
-                                                                <li class="resort-item">
-                                                                    <a href="<?php echo $resort['slug']; ?>.php" 
-                                                                       class="resort-link <?php echo $isActive ? 'active' : ''; ?>">
-                                                                        <?php echo htmlspecialchars($resort['name']); ?>
-                                                                    </a>
-                                                                </li>
-                                                            <?php endforeach; ?>
+                                                            <li class="resort-item">
+                                                                <a href="#" class="resort-link">Karma Royal Palms</a>
+                                                            </li>
+                                                            <li class="resort-item">
+                                                                <a href="#" class="resort-link">Karma Villagio</a>
+                                                            </li>
+                                                            <li class="resort-item">
+                                                                <a href="#" class="resort-link">Karma City</a>
+                                                            </li>
+                                                            <li class="resort-item">
+                                                                <a href="#" class="resort-link">Karma Royal Haathi Mahal</a>
+                                                            </li>
                                                         </ul>
                                                     </div>
-                                                <?php endforeach; ?>
+                                                    <!-- Indonesia Section -->
+                                                    <div class="destination-section">
+                                                        <h3 class="destination-title">Indonesia</h3>
+                                                        <ul class="resort-list">
+                                                            <li class="resort-item">
+                                                                <a href="#" class="resort-link">Karma Kandara</a>
+                                                            </li>
+                                                            <li class="resort-item">
+                                                                <a href="#" class="resort-link">Karma Jimbaran</a>
+                                                            </li>
+                                                            <li class="resort-item">
+                                                                <a href="#" class="resort-link">Royal Jimbaran</a>
+                                                            </li>
+                                                            <li class="resort-item">
+                                                                <a href="#" class="resort-link">Karma Reef</a>
+                                                            </li>
+                                                        </ul>
+                                                    </div>
+                                                    <!-- Thailand Section -->
+                                                    <div class="destination-section">
+                                                        <h3 class="destination-title">Thailand</h3>
+                                                        <ul class="resort-list">
+                                                            <li class="resort-item">
+                                                                <a href="#" class="resort-link">Karma Royal Phuket</a>
+                                                            </li>
+                                                            <li class="resort-item">
+                                                                <a href="#" class="resort-link">Karma Apsara</a>
+                                                            </li>
+                                                            <li class="resort-item">
+                                                                <a href="#" class="resort-link">Royal Bella Vista</a>
+                                                            </li>
+                                                            <li class="resort-item">
+                                                                <a href="#" class="resort-link">Karma Samui</a>
+                                                            </li>
+                                                        </ul>
+                                                    </div>
+                                                    <!-- Europe Section -->
+                                                    <div class="destination-section">
+                                                        <h3 class="destination-title">Europe</h3>
+                                                        <ul class="resort-list">
+                                                            <li class="resort-item">
+                                                                <a href="#" class="resort-link">Karma Bavaria</a>
+                                                            </li>
+                                                            <li class="resort-item">
+                                                                <a href="#" class="resort-link">Karma Minoan</a>
+                                                            </li>
+                                                            <li class="resort-item">
+                                                                <a href="#" class="resort-link">Karma Borgo</a>
+                                                            </li>
+                                                            <li class="resort-item">
+                                                                <a href="#" class="resort-link">Karma St. Martin's</a>
+                                                            </li>
+                                                        </ul>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -850,7 +871,7 @@
             const mobileMenuClose = document.querySelector('.mobile-menu-close');
             const overlay = document.querySelector('.mobile-menu-overlay');
             const submenuToggles = document.querySelectorAll('.mobile-menu-toggle');
-            
+
             window.addEventListener('scroll', function() {
                 if (window.scrollY > 50) {
                     header.classList.add('scrolled');

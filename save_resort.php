@@ -1,5 +1,5 @@
 <?php
-require 'db_mongo.php';
+require 'db.php';
 
 // Fetch existing resort details if editing
 $resort = null;
@@ -163,7 +163,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     // Generate resort landing page file (e.g., abc.php)
     $pageContent  = "<?php\n";
-    $pageContent .= "require 'db_mongo.php';\n";
+    $pageContent .= "require 'db.php';\n";
     $pageContent .= "\$stmt = \$pdo->prepare(\"SELECT * FROM resorts WHERE resort_slug = ?\");\n";
     $pageContent .= "\$stmt->execute(['$resort_slug']);\n";
     $pageContent .= "\$resort = \$stmt->fetch();\n";
@@ -180,7 +180,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Build the assets folder path for images using the stored slug in the new structure
     $pageContent .= "\$resortFolder = 'assets/resorts/' . (\$resort['resort_slug'] ?? '');\n";
     $pageContent .= "?>\n";
-    $pageContent .= "<?php include 'kheader.php'; ?>\n";
+    $pageContent .= "<?php include 'kresort_header.php'; ?>\n";
     $pageContent .= "<link rel=\"stylesheet\" href=\"https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.css\" />\n";
     $pageContent .= "<style>\n";
     $pageContent .= "h2 { font-size: 1.5rem; margin-bottom: 1.5rem; }\n";

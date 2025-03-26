@@ -5,7 +5,7 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 $user = $_SESSION['user'];
-require 'db_mongo.php';
+require 'db.php';
 $stmt = $pdo->query("SELECT * FROM marketing_templates ORDER BY template_name");
 $templates = $stmt->fetchAll();
 ?>

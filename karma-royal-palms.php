@@ -1,5 +1,5 @@
 <?php
-require 'db_mongo.php';
+require 'db.php';
 $stmt = $pdo->prepare("SELECT * FROM resorts WHERE resort_slug = ?");
 $stmt->execute(['karma-royal-palms']);
 $resort = $stmt->fetch();
@@ -14,12 +14,12 @@ $gallery = json_decode($resort['gallery'] ?? '', true);
 $testimonials = json_decode($resort['testimonials'] ?? '', true);
 $resortFolder = 'assets/resorts/' . ($resort['resort_slug'] ?? '');
 ?>
-<?php include 'kheader.php'; ?>
+<?php include 'kresort_header.php'; ?>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.css" />
 <style>
 h2 { font-size: 1.5rem; margin-bottom: 1.5rem; }
 .section-spacing { margin-bottom: 2rem; }
-.banner .banner-title { z-index: 2; }
+.banner .banner-title { z-index: 2; color: white; font-weight: bold; }
 .banner .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1; }
 </style>
 <div class="banner position-relative section-spacing">

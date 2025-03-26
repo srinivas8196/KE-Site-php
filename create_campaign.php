@@ -5,7 +5,7 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 $user = $_SESSION['user'];
-require 'db_mongo.php';
+require 'db.php';
 // Fetch destinations and resorts for dropdowns
 $stmtDest = $pdo->query("SELECT id, destination_name FROM destinations ORDER BY destination_name");
 $destinations = $stmtDest->fetchAll();

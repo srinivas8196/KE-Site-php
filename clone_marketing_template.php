@@ -1,5 +1,5 @@
 <?php
-require 'db_mongo.php';
+require 'db.php';
 
 if (!isset($_GET['id'])) {
     echo "Template ID not specified.";

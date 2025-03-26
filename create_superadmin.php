@@ -1,5 +1,5 @@
 <?php
-require 'db_mongo.php'; // Ensure your db.php is correctly set up
+require 'db.php'; // Ensure your db.php is correctly set up
 
 $username = "sriadmin";
 $password = "Karma@321";

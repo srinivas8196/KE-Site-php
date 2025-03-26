@@ -1,5 +1,5 @@
 <?php
-require 'db_mongo.php';
+require 'db.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $destinationId = $_POST['id'];

@@ -5,7 +5,7 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 $user = $_SESSION['user'];
-require 'db_mongo.php';
+require 'db.php';
 
 // Get destination from GET (either directly or via the resort record)
 $destination_id = $_GET['destination_id'] ?? null;
