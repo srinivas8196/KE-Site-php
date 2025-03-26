@@ -1,5 +1,18 @@
 <?php
 include_once('kheader.php');
+require 'db.php';
+
+// Fetch active resorts from the database
+$sql = "SELECT resort_name FROM resorts WHERE is_active = 1";
+$result = $conn->query($sql);
+
+$resorts = [];
+if ($result->num_rows > 0) {
+    while($row = $result->fetch_assoc()) {
+        $resorts[] = $row["resort_name"];
+    }
+}
+
 ?>
 <style>
 .breadcumb-wrapper {
@@ -27,7 +40,7 @@ include_once('kheader.php');
 <!--form section start-->
 <div class="form-body">
 <div class="container">
-    <div class="row"> 
+    <div class="row">
                 <div class="en-form">
                     <div class="row">
                         
@@ -37,9 +50,33 @@ include_once('kheader.php');
                             </div>
                         </div>
                         <div class="col-lg-6">
-                        <?php
-                            include_once('destination-form.php');
-                            ?>
+                        <form id="destinationForm" action="process_form.php" method="POST" onsubmit="return validateForm()" novalidate>
+                            <div class="form-group">
+                                <label for="destination">Destination:</label>
+                                <select class="form-control" id="destination" name="destination" required>
+                                    <option value="">Select Destination</option>
+                                    <!-- Add destination options here -->
+                                    <option value="Cambodia">Cambodia</option>
+                                    <option value="Vietnam">Vietnam</option>
+                                    <option value="Maldives">Maldives</option>
+                                    <option value="Phuket">Phuket</option>
+                                    <option value="Bali">Bali</option>
+                                    <option value="Koh Samui">Koh Samui</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="resort">Resort:</label>
+                                <select class="form-control" id="resort" name="resort" required>
+                                    <option value="">Select Resort</option>
+                                    <?php
+                                    foreach ($resorts as $resort) {
+                                        echo "<option value='" . htmlspecialchars($resort) . "'>" . htmlspecialchars($resort) . "</option>";
+                                    }
+                                    ?>
+                                </select>
+                            </div>
+                            
+                        </form>
                         </div>
                     </div>
                 </div>
@@ -104,7 +141,7 @@ include_once('kheader.php');
                             <p>Already booked: <strong>yourholiday@karmaexperience.com</strong></p>
                             <p>New Bookings: <strong>res@karmaexperience.com</strong></p>
                         </div>
-                        <div class="cta-shape">    
+                        <div class="cta-shape">
                         </div>
                     </div>
                 </div>

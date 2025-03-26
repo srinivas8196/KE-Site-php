@@ -129,20 +129,28 @@
         alert("Phone number must be between 7 and 11 digits.");
         return false;
       }
+      
+      // Format phone number for LeadSquared
+      var phoneInput = document.getElementById("phone-number");
+      var phoneFormatLsq = document.getElementById("PhoneFormatLsq");
+      phoneFormatLsq.value = iti.getNumber();
+      
       return true;
     }
   </script>
 </head>
 <body>
   <div class="form-container">
-    <form id="destinationForm" onsubmit="return validateForm()" novalidate>
+    <form id="destinationForm" action="process_form.php" method="POST" onsubmit="return validateForm()" novalidate>
+      <input type="hidden" id="resort" name="resort" value="<?php echo isset($resort['resort_name']) ? htmlspecialchars($resort['resort_name']) : (isset($_GET['resort']) ? htmlspecialchars($_GET['resort']) : ''); ?>">
+      <input type="hidden" id="PhoneFormatLsq" name="PhoneFormatLsq" value="">
       <div class="form-group">
-        <label for="first-name">First Name</label>
-        <input type="text" id="first-name" name="first-name" required>
+        <label for="firstName">First Name</label>
+        <input type="text" id="firstName" name="firstName" required>
       </div>
       <div class="form-group">
-        <label for="last-name">Last Name</label>
-        <input type="text" id="last-name" name="last-name" required>
+        <label for="lastName">Last Name</label>
+        <input type="text" id="lastName" name="lastName" required>
       </div>
       <div class="form-group">
         <label for="email">E-Mail</label>
@@ -150,7 +158,7 @@
       </div>
       <div class="form-group">
         <label for="phone-number">Phone Number</label>
-        <input type="tel" id="phone-number" name="phone-number" required>
+        <input type="tel" id="phone-number" name="phoneNumber" required>
       </div>
       <div class="form-group">
         <label for="dob">Date of Birth</label>
@@ -165,8 +173,8 @@
         </select>
       </div>
       <div class="form-group">
-        <label for="nationality">Nationality</label>
-        <select id="nationality" name="nationality" required>
+        <label for="nationality">Country</label>
+        <select id="nationality" name="country" required>
           <option value="" selected disabled>Select</option>
           <option value="India">India</option>
           <option value="Australia">Australia</option>
@@ -178,22 +186,45 @@
           <option value="Others">Others</option>
         </select>
       </div>
+      <?php
+      // Check if we're on a resort page
+      $is_resort_page = isset($resort) && !empty($resort);
+      
+      // If we're not on a resort page, show destination and resort selection
+      if (!$is_resort_page):
+      ?>
       <div class="form-group">
         <label for="holiday-destination">Preferred Destinations</label>
         <select id="holiday-destination" name="holiday-destination" onchange="updateResorts()" required>
           <option value="" selected disabled>Select</option>
-          <option value="Cambodia">Cambodia</option>
-          <option value="Egypt">Egypt</option>
-          <option value="Germany">Germany</option>
-          <option value="Greece">Greece</option>
-          <option value="Italy">Italy</option>
-          <option value="Indonesia">Indonesia</option>
-          <option value="India">India</option>
-          <option value="Maldives">Maldives</option>
-          <option value="Spain">Spain</option>
-          <option value="Thailand">Thailand</option>
-          <option value="United Kingdom">United Kingdom</option>
-          <option value="Vietnam">Vietnam</option>
+          <?php
+          // If we have access to the database, fetch active destinations
+          if (isset($pdo)) {
+            try {
+              $stmt = $pdo->query("SELECT DISTINCT d.id, d.destination_name
+                                  FROM destinations d
+                                  JOIN resorts r ON d.id = r.destination_id
+                                  WHERE r.is_active = 1
+                                  ORDER BY d.destination_name");
+              $destinations = $stmt->fetchAll();
+              foreach ($destinations as $dest) {
+                echo '<option value="' . htmlspecialchars($dest['destination_name']) . '">' . htmlspecialchars($dest['destination_name']) . '</option>';
+              }
+            } catch (PDOException $e) {
+              // If there's an error, fall back to the static list
+              $static_destinations = ["Cambodia", "Egypt", "Germany", "Greece", "Italy", "Indonesia", "India", "Maldives", "Spain", "Thailand", "United Kingdom", "Vietnam"];
+              foreach ($static_destinations as $dest) {
+                echo '<option value="' . htmlspecialchars($dest) . '">' . htmlspecialchars($dest) . '</option>';
+              }
+            }
+          } else {
+            // If $pdo is not available, use static list
+            $static_destinations = ["Cambodia", "Egypt", "Germany", "Greece", "Italy", "Indonesia", "India", "Maldives", "Spain", "Thailand", "United Kingdom", "Vietnam"];
+            foreach ($static_destinations as $dest) {
+              echo '<option value="' . htmlspecialchars($dest) . '">' . htmlspecialchars($dest) . '</option>';
+            }
+          }
+          ?>
         </select>
       </div>
       <div class="form-group full-width" id="resortSelectDiv" style="display: none;">
@@ -202,6 +233,7 @@
           <!-- Options populated based on selected destination -->
         </select>
       </div>
+      <?php endif; ?>
       <div class="form-group full-width">
         <input type="checkbox" id="terms1" name="terms1" required>
         <label for="terms1" style="font-size: 12px;">Allow Karma Experience/Karma Group related brands to communicate with me via SMS/email/call during and after your submission on this promotional offer.</label>
