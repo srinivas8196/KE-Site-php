@@ -14,15 +14,15 @@ $options = [
 ];
 
 try {
-    $pdo = new PDO($dsn, $username, $password, $options);
+    $conn = new PDO($dsn, $username, $password, $options);
 
     // Check if the file_path column exists
-    $result = $pdo->query("SHOW COLUMNS FROM resorts LIKE 'file_path'");
+    $result = $conn->query("SHOW COLUMNS FROM resorts LIKE 'file_path'");
     $exists = $result->fetch();
 
     // Add file_path column to resorts table if it doesn't exist
     if (!$exists) {
-        $pdo->exec("ALTER TABLE resorts ADD COLUMN file_path VARCHAR(255)");
+        $conn->exec("ALTER TABLE resorts ADD COLUMN file_path VARCHAR(255)");
     }
 } catch (PDOException $e) {
     die("Database connection failed: " . $e->getMessage());
