@@ -7,36 +7,42 @@ if (!isset($_SESSION['user'])) {
 $user = $_SESSION['user'];
 require 'db.php';
 
+if (!isset($conn)) {
+    die("Database connection not established. Please check your db.php file.");
+}
+
 $destination_id = $_GET['destination_id'] ?? null;
 $resort = null;
 
 if (isset($_GET['resort_id'])) {
-    $resortResponse = $supabase
-        ->from('resorts')
-        ->select('*')
-        ->eq('id', $_GET['resort_id'])
-        ->single()
-        ->execute();
-    
-    $resort = $resortResponse->data;
+    // Replace MySQLi with PDO
+    $stmt = $conn->prepare("SELECT * FROM resorts WHERE id = ?");
+    $stmt->execute([$_GET['resort_id']]);
+    $resort = $stmt->fetch(PDO::FETCH_ASSOC);
 
     // Get storage URLs for images
-    if ($resort['banner_image']) {
-        $resort['banner_url'] = $supabase
-            ->storage()
-            ->from('resort-assets')
-            ->getPublicUrl($resort['banner_image']);
+    if ($resort && $resort['banner_image']) {
+        $resort['banner_url'] = 'assets/resorts/' . $resort['resort_slug'] . '/' . $resort['banner_image'];
     }
 }
 
 // Get destinations for dropdown
-$destinationsResponse = $supabase
-    ->from('destinations')
-    ->select('id, destination_name')
-    ->order('destination_name')
-    ->execute();
+$destinations = [];
+$stmt = $conn->query("SELECT id, destination_name FROM destinations ORDER BY destination_name");
+while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+    $destinations[] = $row;
+}
 
-$destinations = $destinationsResponse->data;
+// Get current destination name
+$current_destination_name = '';
+if ($destination_id) {
+    $stmt = $conn->prepare("SELECT destination_name FROM destinations WHERE id = ?");
+    $stmt->execute([$destination_id]);
+    $dest_result = $stmt->fetch(PDO::FETCH_ASSOC);
+    if ($dest_result) {
+        $current_destination_name = htmlspecialchars($dest_result['destination_name']);
+    }
+}
 
 // If no destination is provided, display a selection form.
 if (!$destination_id) {
@@ -63,10 +69,17 @@ if (!$destination_id) {
 }
 
 // Decode dynamic JSON fields if editing
-$amenitiesData = $resort['amenities'] ? json_decode($resort['amenities'], true) : [];
-$roomsData = $resort['room_details'] ? json_decode($resort['room_details'], true) : [];
-$testimonialsData = $resort['testimonials'] ? json_decode($resort['testimonials'], true) : [];
-$galleryData = $resort['gallery'] ? json_decode($resort['gallery'], true) : [];
+if ($resort) {
+    $amenitiesData = $resort['amenities'] ? json_decode($resort['amenities'], true) : [];
+    $roomsData = $resort['room_details'] ? json_decode($resort['room_details'], true) : [];
+    $testimonialsData = $resort['testimonials'] ? json_decode($resort['testimonials'], true) : [];
+    $galleryData = $resort['gallery'] ? json_decode($resort['gallery'], true) : [];
+} else {
+    $amenitiesData = [];
+    $roomsData = [];
+    $testimonialsData = [];
+    $galleryData = [];
+}
 
 include 'bheader.php';
 ?>
@@ -136,6 +149,12 @@ include 'bheader.php';
         </ol>
       </nav>
       <h2 class="text-3xl font-bold mb-6"><?php echo $resort ? "Edit Resort" : "Create New Resort"; ?></h2>
+
+      <div class="mb-4">
+          <p>Adding resort to destination: <strong><?php echo $current_destination_name; ?></strong>
+          <a href="create_or_edit_resort.php" class="ml-2 text-blue-500 hover:underline">(Change Destination)</a></p>
+      </div>
+
       <form action="save_resort.php" method="post" enctype="multipart/form-data">
         <?php if ($resort): ?>
           <input type="hidden" name="resort_id" value="<?php echo $resort['id']; ?>">
@@ -183,18 +202,24 @@ include 'bheader.php';
         <!-- Dynamic Amenities Section -->
         <div class="mb-3" id="amenities">
           <label class="form-label">Amenities:</label>
-          <?php if ($resort && !empty($resort['amenities'])): 
+          <?php if ($resort && !empty($resort['amenities'])):
               $amenitiesData = json_decode($resort['amenities'], true);
+              $amenitiesCount = count($amenitiesData); // Count amenities
               foreach ($amenitiesData as $index => $amenity): ?>
               <div class="row mb-2">
                 <div class="col-md-6">
                   <input type="text" name="amenities[<?php echo $index; ?>][name]" class="form-control" placeholder="Amenity Name" required value="<?php echo htmlspecialchars($amenity['name']); ?>">
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-4">
                   <input type="file" name="amenities[<?php echo $index; ?>][icon]" class="form-control" accept=".jpg,.jpeg,.png,.webp">
                   <small>Current: <?php echo htmlspecialchars($amenity['icon']); ?></small>
                   <!-- Hidden field to retain existing icon -->
                   <input type="hidden" name="amenities[<?php echo $index; ?>][existing_icon]" value="<?php echo htmlspecialchars($amenity['icon']); ?>">
+                </div>
+                <div class="col-md-2">
+                  <?php if ($amenitiesCount > 1): // Conditionally show delete button ?>
+                    <button type="button" class="btn btn-danger btn-sm" onclick="removeElement(this)">Delete</button>
+                  <?php endif; ?>
                 </div>
               </div>
           <?php endforeach; else: ?>
@@ -202,8 +227,11 @@ include 'bheader.php';
                 <div class="col-md-6">
                   <input type="text" name="amenities[0][name]" class="form-control" placeholder="Amenity Name" required>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-4">
                   <input type="file" name="amenities[0][icon]" class="form-control" accept=".jpg,.jpeg,.png,.webp" required>
+                </div>
+                <div class="col-md-2">
+                    <!-- Delete button not shown when adding first amenity -->
                 </div>
               </div>
           <?php endif; ?>
@@ -215,16 +243,22 @@ include 'bheader.php';
           <label class="form-label">Rooms:</label>
           <?php if ($resort && !empty($resort['room_details'])):
               $roomsData = json_decode($resort['room_details'], true);
+              $roomsCount = count($roomsData); // Count rooms
               foreach ($roomsData as $index => $room): ?>
               <div class="row mb-2">
                 <div class="col-md-6">
                   <input type="text" name="rooms[<?php echo $index; ?>][name]" class="form-control" placeholder="Room Name" required value="<?php echo htmlspecialchars($room['name']); ?>">
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-4">
                   <input type="file" name="rooms[<?php echo $index; ?>][image]" class="form-control" accept=".jpg,.jpeg,.png,.webp">
                   <small>Current: <?php echo htmlspecialchars($room['image']); ?></small>
                   <!-- Hidden field to retain existing image -->
                   <input type="hidden" name="rooms[<?php echo $index; ?>][existing_image]" value="<?php echo htmlspecialchars($room['image']); ?>">
+                </div>
+                <div class="col-md-2">
+                  <?php if ($roomsCount > 1): // Conditionally show delete button ?>
+                    <button type="button" class="btn btn-danger btn-sm" onclick="removeElement(this)">Delete</button>
+                  <?php endif; ?>
                 </div>
               </div>
           <?php endforeach; else: ?>
@@ -232,8 +266,11 @@ include 'bheader.php';
                 <div class="col-md-6">
                   <input type="text" name="rooms[0][name]" class="form-control" placeholder="Room Name" required>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-4">
                   <input type="file" name="rooms[0][image]" class="form-control" accept=".jpg,.jpeg,.png,.webp" required>
+                </div>
+                <div class="col-md-2">
+                    <!-- Delete button not shown when adding first room -->
                 </div>
               </div>
           <?php endif; ?>
@@ -261,6 +298,7 @@ include 'bheader.php';
           <label class="form-label">Testimonials:</label>
           <?php if ($resort && !empty($resort['testimonials'])):
               $testimonialsData = json_decode($resort['testimonials'], true);
+              $testimonialsCount = count($testimonialsData); // Count testimonials
               foreach ($testimonialsData as $index => $testimonial): ?>
               <div class="row mb-2">
                 <div class="col-md-4">
@@ -269,8 +307,13 @@ include 'bheader.php';
                 <div class="col-md-4">
                   <input type="text" name="testimonials[<?php echo $index; ?>][from]" class="form-control" placeholder="Source" required value="<?php echo htmlspecialchars($testimonial['from']); ?>">
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                   <textarea name="testimonials[<?php echo $index; ?>][content]" class="form-control" placeholder="Testimonial" required><?php echo htmlspecialchars($testimonial['content']); ?></textarea>
+                </div>
+                <div class="col-md-1">
+                  <?php if ($testimonialsCount > 1): // Conditionally show delete button ?>
+                    <button type="button" class="btn btn-danger btn-sm" onclick="removeElement(this)">Delete</button>
+                  <?php endif; ?>
                 </div>
               </div>
           <?php endforeach; else: ?>
@@ -281,8 +324,11 @@ include 'bheader.php';
                 <div class="col-md-4">
                   <input type="text" name="testimonials[0][from]" class="form-control" placeholder="Source" required>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                   <textarea name="testimonials[0][content]" class="form-control" placeholder="Testimonial" required></textarea>
+                </div>
+                <div class="col-md-1">
+                    <!-- Delete button not shown when adding first testimonial -->
                 </div>
               </div>
           <?php endif; ?>
@@ -302,8 +348,11 @@ include 'bheader.php';
       div.innerHTML = `<div class="col-md-6">
                           <input type="text" name="amenities[${index}][name]" class="form-control" placeholder="Amenity Name" required>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                           <input type="file" name="amenities[${index}][icon]" class="form-control" accept=".jpg,.jpeg,.png,.webp" required>
+                        </div>
+                        <div class="col-md-2">
+                          <button type="button" class="btn btn-danger btn-sm" onclick="removeElement(this)">Delete</button>
                         </div>`;
       container.appendChild(div);
     }
@@ -315,8 +364,11 @@ include 'bheader.php';
       div.innerHTML = `<div class="col-md-6">
                           <input type="text" name="rooms[${index}][name]" class="form-control" placeholder="Room Name" required>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                           <input type="file" name="rooms[${index}][image]" class="form-control" accept=".jpg,.jpeg,.png,.webp" required>
+                        </div>
+                        <div class="col-md-2">
+                          <button type="button" class="btn btn-danger btn-sm" onclick="removeElement(this)">Delete</button>
                         </div>`;
       container.appendChild(div);
     }
@@ -331,10 +383,16 @@ include 'bheader.php';
                         <div class="col-md-4">
                           <input type="text" name="testimonials[${index}][from]" class="form-control" placeholder="Source" required>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                           <textarea name="testimonials[${index}][content]" class="form-control" placeholder="Testimonial" required></textarea>
+                        </div>
+                        <div class="col-md-1">
+                          <button type="button" class="btn btn-danger btn-sm" onclick="removeElement(this)">Delete</button>
                         </div>`;
       container.appendChild(div);
+    }
+    function removeElement(button) {
+      button.closest('.row').remove();
     }
     document.getElementById('toggleSidebar').addEventListener('click', function() {
       var sidebar = document.getElementById('sidebar');
