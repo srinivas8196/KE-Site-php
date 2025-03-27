@@ -15,6 +15,7 @@ $options = [
 
 try {
     $conn = new PDO($dsn, $username, $password, $options);
+    $pdo = $conn; // Create alias for compatibility
 
     // Check if the file_path column exists
     $result = $conn->query("SHOW COLUMNS FROM resorts LIKE 'file_path'");

@@ -1,4 +1,10 @@
 <!doctype html>
+<?php
+// Ensure database connection is available
+if (!isset($pdo)) {
+    require_once 'db.php';
+}
+?>
 <html class="no-js" lang="zxx">
 <head>
     <meta charset="utf-8">
@@ -333,7 +339,7 @@
     .mega-menu .destination-section {
         position: relative;
         padding: 25px;
-        background: rgba(255, 255, 255, 0.7);
+        background: none;
         border-radius: 16px;
         transition: all 0.3s ease;
         overflow: hidden;
@@ -368,7 +374,7 @@
         font-family: "Font Awesome 5 Pro", "Font Awesome 5 Free";
         font-weight: 900;
         font-size: 16px;
-        color: #B4975A;
+       
     }
 
     .mega-menu .resort-list {
@@ -385,46 +391,25 @@
         transform: translateX(0);
         transition: transform 0.3s ease;
         width: 100%;
+            background: none !important;
     }
 
     .mega-menu .resort-link {
         color: #555;
         text-decoration: none;
         font-size: 0.95rem;
-        padding: 10px 40px 10px 15px;
-        display: block;
-        transition: all 0.3s ease;
-        border-radius: 8px;
-        background: transparent;
-        position: relative;
-        overflow: hidden;
+        padding: 0; /* Remove padding */
+        display: inline-block; /* Ensure it appears as normal text */
         font-weight: 500;
+            background: transparent !important;
         white-space: nowrap;
+        border: none; /* Remove any border */
+        box-shadow: none !important; /* Remove any shadow */
     }
 
     .mega-menu .resort-link:hover {
         color: #B4975A;
-        transform: translateX(5px);
-    }
-
-    .mega-menu .resort-link::after {
-        content: '\f054';
-        font-family: "Font Awesome 5 Pro", "Font Awesome 5 Free";
-        font-weight: 900;
-        position: absolute;
-        right: 15px;
-        top: 50%;
-        transform: translateY(-50%);
-        opacity: 0;
-        transition: all 0.3s ease;
-        font-size: 12px;
-        color: #B4975A;
-        background: transparent;
-    }
-
-    .mega-menu .resort-link:hover::after {
-        opacity: 1;
-        right: 12px;
+        background: none !important; /* Ensure no background on hover */
     }
 
     /* Mobile Menu Styles */
@@ -524,7 +509,91 @@
     .mobile-submenu.active {
         display: block;
     }
-</style>
+
+    /* Destination Form Styles */
+    .destination-form-container {
+        max-width: 42rem;
+        margin: 3rem auto;
+        padding: 1rem;
+    }
+
+    .destination-form {
+        background: white;
+        padding: 2rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+
+    .destination-form-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    @media (min-width: 768px) {
+        .destination-form-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    .destination-form-field {
+        margin-bottom: 1rem;
+    }
+
+    .destination-form-field.full-width {
+        grid-column: 1 / -1;
+    }
+
+    .destination-form label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #374151;
+        margin-bottom: 0.25rem;
+    }
+
+    .destination-form input,
+    .destination-form select {
+        width: 100%;
+        padding: 0.5rem 0.75rem;
+        border: 1px solid #D1D5DB;
+        border-radius: 0.375rem;
+        background-color: white;
+        font-size: 0.875rem;
+    }
+
+    .destination-form input:focus,
+    .destination-form select:focus {
+        outline: none;
+        border-color: #3B82F6;
+        box-shadow: 0 0 5px rgba(59, 130, 246, 0.1);
+    }
+
+    .destination-form-submit {
+        margin-top: 2rem;
+    }
+
+    .destination-form-button {
+        width: 100%;
+        background-color: #3B82F6;
+        color: white;
+        padding: 0.75rem 1rem;
+        border: none;
+        border-radius: 0.375rem;
+        font-weight: 500;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: background-color 0.15s ease-in-out;
+    }
+
+    .destination-form-button:hover {
+        background-color: #2563EB;
+    }
+
+    .destination-form-space {
+        margin-bottom: 1.5rem;
+    }
+    </style>
 </head>
 <body>
     <?php

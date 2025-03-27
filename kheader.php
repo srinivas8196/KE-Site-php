@@ -11,7 +11,7 @@
 
     // Function to get all destinations with their active resorts - ONLY for mega menu display
     function getDestinationsForMenu() {
-        global $pdo;
+        global $conn;  // Changed from $pdo to $conn to match db.php
         
         $sql = "SELECT d.id as dest_id, d.destination_name, 
                        r.id as resort_id, r.resort_name, r.resort_slug, r.is_active
@@ -22,7 +22,7 @@
                 ORDER BY d.destination_name, r.resort_name";
         
         try {
-            $stmt = $pdo->query($sql);
+            $stmt = $conn->query($sql);  // Changed from $pdo to $conn
             $menuDestinations = [];
             
             while($row = $stmt->fetch()) {
@@ -262,43 +262,18 @@
             color: #555;
             text-decoration: none;
             font-size: 0.95rem;
-            padding: 10px 15px;
-            display: block;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
+            padding: 0; /* Remove padding */
+            display: inline; /* Ensure it appears as normal text */
             font-weight: 500;
             white-space: nowrap;
-        }
-
-        .mega-menu .resort-link::before {
-            display: none; /* Remove background effect */
+            background: none !important; /* Remove background */
+            border: none; /* Remove any border */
+            box-shadow: none !important; /* Remove any shadow */
         }
 
         .mega-menu .resort-link:hover {
             color: #B4975A;
-            transform: translateX(5px);
-            background: transparent;
-        }
-
-        .mega-menu .resort-link::after {
-            content: '\f054';  /* Chevron right */
-            font-family: "Font Awesome 5 Pro", "Font Awesome 5 Free";
-            font-weight: 900;
-            position: absolute;
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            opacity: 0;
-            transition: all 0.3s ease;
-            font-size: 12px;
-            color: #B4975A;
-            background: transparent;
-        }
-
-        .mega-menu .resort-link:hover::after {
-            opacity: 1;
-            right: 12px;
+            background: none !important; /* Ensure no background on hover */
         }
 
         /* Add subtle animation for resort items */

@@ -1,5 +1,11 @@
 <?php
-require 'db.php';
+require_once 'db.php';
+
+// Ensure database connection exists
+if (!isset($pdo) || !$pdo) {
+    die("Database connection failed. Please check your configuration.");
+}
+
 $stmt = $pdo->prepare("SELECT * FROM resorts WHERE resort_slug = ?");
 $stmt->execute(['karma-kandara']);
 $resort = $stmt->fetch();

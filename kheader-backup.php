@@ -205,7 +205,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(180, 151, 90, 0.08);
+            background: transparent;
             transform: scaleX(0);
             transform-origin: right;
             transition: transform 0.3s ease;
