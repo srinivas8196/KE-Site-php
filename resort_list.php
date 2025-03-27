@@ -190,9 +190,9 @@ $resorts = $stmt->fetchAll();
               <td class="py-2 px-4 border-b">
                 <a href="create_or_edit_resort.php?destination_id=<?php echo $resort['destination_id']; ?>&resort_id=<?php echo $resort['id']; ?>" class="bg-yellow-500 text-white px-2 py-1 rounded">Edit</a>
                 <?php if ($resort['is_active'] == 1): ?>
-                    <a href="<?php echo htmlspecialchars($resort['resort_slug']); ?>" class="bg-blue-500 text-white px-2 py-1 rounded view-button">View</a>
+                    <a href="<?php echo htmlspecialchars($resort['resort_slug']); ?>" target="_blank" class="bg-blue-500 text-white px-2 py-1 rounded view-button">View</a>
                 <?php else: ?>
-                    <a href="404.php" class="bg-gray-400 text-white px-2 py-1 rounded view-button">View</a>
+                    <a href="404.php" target="_blank" class="bg-gray-400 text-white px-2 py-1 rounded view-button">View</a>
                 <?php endif; ?>
                 <a href="delete_resort.php?id=<?php echo $resort['id']; ?>" class="bg-red-500 text-white px-2 py-1 rounded" onclick="return confirm('Are you sure you want to delete this resort?');">Delete</a>
               </td>

@@ -1,81 +1,49 @@
-<?php
-include_once('kheader.php');
-?>
-<style>
-.thank-you-container {
-    text-align: center;
-    padding: 80px 20px;
-    max-width: 800px;
-    margin: 0 auto;
-}
-
-.thank-you-icon {
-    font-size: 80px;
-    color: #28a745;
-    margin-bottom: 30px;
-}
-
-.thank-you-title {
-    font-size: 36px;
-    margin-bottom: 20px;
-    color: #333;
-}
-
-.thank-you-message {
-    font-size: 18px;
-    margin-bottom: 40px;
-    color: #666;
-    line-height: 1.6;
-}
-
-.btn-home {
-    display: inline-block;
-    padding: 12px 30px;
-    background-color: #3498db;
-    color: white;
-    border-radius: 30px;
-    text-decoration: none;
-    transition: background-color 0.3s;
-    font-weight: 500;
-    margin-top: 20px;
-}
-
-.btn-home:hover {
-    background-color: #2980b9;
-    color: white;
-    text-decoration: none;
-}
-</style>
-
-<!--banner section start-->
-<div class="breadcumb-wrapper" data-bg-src="assets/img/bg/about-bg.webp">
+<?php require 'kheader.php'; ?>
+<div class="thank-you-container">
     <div class="container">
-        <div class="breadcumb-content">
-            <h1 class="breadcumb-title">Thank You</h1>
-            <ul class="breadcumb-menu">
-                <li><a href="index.php">Home</a></li>
-                <li>Thank You</li>
-            </ul>
+        <div class="row justify-content-center">
+            <div class="col-md-8 text-center">
+                <div class="thank-you-content">
+                    <i class="fas fa-check-circle success-icon"></i>
+                    <h1>Thank You!</h1>
+                    <p>Your enquiry has been submitted successfully. Our team will contact you shortly.</p>
+                    <a href="/" class="btn btn-primary">Back to Home</a>
+                </div>
+            </div>
         </div>
     </div>
 </div>
-<!--banner section end-->
 
-<div class="thank-you-container">
-    <div class="thank-you-icon">
-        <i class="fa fa-check-circle"></i>
-    </div>
-    <h1 class="thank-you-title">Thank You for Your Submission!</h1>
-    <p class="thank-you-message">
-        We have received your inquiry and our team will get back to you shortly. 
-        Your interest in Karma Experience is greatly appreciated.
-    </p>
-    <p class="thank-you-message">
-        If you have any urgent questions, please feel free to contact us directly.
-    </p>
-    <a href="index.php" class="btn-home">Return to Home</a>
-</div>
+<style>
+.thank-you-container {
+    padding: 80px 0;
+    min-height: 60vh;
+    display: flex;
+    align-items: center;
+}
 
-<?php
-include_once('kfooter.php');
-?>
+.thank-you-content {
+    background: white;
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.success-icon {
+    color: #28a745;
+    font-size: 4rem;
+    margin-bottom: 20px;
+}
+
+.thank-you-content h1 {
+    color: #2c3e50;
+    margin-bottom: 20px;
+}
+
+.thank-you-content p {
+    color: #666;
+    margin-bottom: 30px;
+    font-size: 1.1rem;
+}
+</style>
+<?php require 'kfooter.php'; ?>

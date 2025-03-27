@@ -1,26 +1,24 @@
 <?php
+session_start();
 require 'db.php';
 
-// Function to get resort information based on the current page
-function get_resort_info($page_name) {
-    global $pdo;
-    
-    // Convert page name to resort slug by removing .php extension
-    $resort_slug = str_replace('.php', '', $page_name);
-    error_log("Looking up resort with slug: " . $resort_slug);
-    
-    $sql = "SELECT d.destination_name AS destination_name, r.resort_name AS resort_name
-            FROM resorts r
-            JOIN destinations d ON r.destination_id = d.id
-            WHERE r.resort_slug = ?";
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([$resort_slug]);
-    return $stmt->fetch();
+// Add CSRF protection
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 
-// Check if the form is included in a resort page
+// Get resort information based on the current page
 $current_page = basename($_SERVER['PHP_SELF']);
-$resort_info = get_resort_info($current_page);
+$resort_info = null;
+
+// Convert page name to resort slug by removing .php extension
+$resort_slug = str_replace('.php', '', $current_page);
+$stmt = $pdo->prepare("SELECT d.destination_name, r.resort_name
+                       FROM resorts r
+                       JOIN destinations d ON r.destination_id = d.id
+                       WHERE r.resort_slug = ?");
+$stmt->execute([$resort_slug]);
+$resort_info = $stmt->fetch();
 
 // Fetch destinations from the database
 $destinations = [];
@@ -47,15 +45,17 @@ foreach ($destinations as $destination_id => $destination_name) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Destination Form</title>
     <link rel="stylesheet" href="css/destination-form.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/css/intlTelInput.css">
 </head>
 <body>
     <div class="destination-form-container">
-        <form action="process_form.php" method="post" class="destination-form">
+        <form id="enquiryForm" method="POST" action="process_form.php" class="destination-form">
+            <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+            
             <?php if ($resort_info): ?>
-                <input type="hidden" name="destination" value="<?php echo $resort_info['destination_name']; ?>">
-                <input type="hidden" name="resort" value="<?php echo $resort_info['resort_name']; ?>">
+                <input type="hidden" name="destination" value="<?php echo htmlspecialchars($resort_info['destination_name']); ?>">
+                <input type="hidden" name="resort" value="<?php echo htmlspecialchars($resort_info['resort_name']); ?>">
             <?php else: ?>
                 <div class="destination-form-space">
                     <div class="destination-form-field">
@@ -79,43 +79,50 @@ foreach ($destinations as $destination_id => $destination_name) {
 
             <div class="destination-form-grid">
                 <div class="destination-form-field">
-                    <label for="firstName">First Name</label>
-                    <input type="text" name="firstName" id="firstName" required>
+                    <label for="firstName">First Name *</label>
+                    <input type="text" id="firstName" name="firstName" required>
                 </div>
 
                 <div class="destination-form-field">
-                    <label for="lastName">Last Name</label>
-                    <input type="text" name="lastName" id="lastName" required>
+                    <label for="lastName">Last Name *</label>
+                    <input type="text" id="lastName" name="lastName" required>
                 </div>
 
                 <div class="destination-form-field">
-                    <label for="email">Email</label>
-                    <input type="email" name="email" id="email" required>
+                    <label for="email">Email *</label>
+                    <input type="email" id="email" name="email" required>
                 </div>
 
                 <div class="destination-form-field">
-                    <label for="phoneNumber">Phone Number</label>
-                    <input type="text" name="phoneNumber" id="phoneNumber" required>
+                    <label for="phone">Phone Number *</label>
+                    <input type="tel" id="phone" name="phone" required>
                 </div>
 
                 <div class="destination-form-field">
                     <label for="dob">Date of Birth</label>
-                    <input type="date" name="dob" id="dob" required>
+                    <input type="date" id="dob" name="dob">
                 </div>
 
                 <div class="destination-form-field">
                     <label for="country">Country</label>
-                    <input type="text" name="country" id="country" required>
+                    <input type="text" id="country" name="country">
                 </div>
 
                 <div class="destination-form-field full-width">
-                    <label for="passport">Passport Number</label>
-                    <input type="text" name="passport" id="passport">
+                    <label>Do you have a passport? *</label>
+                    <div class="custom-control"></div>
+                        <input type="radio" id="passportYes" name="hasPassport" value="yes" required>
+                        <label for="passportYes">Yes</label>
+                    </div>
+                    <div class="custom-control">
+                        <input type="radio" id="passportNo" name="hasPassport" value="no">
+                        <label for="passportNo">No</label>
+                    </div>
                 </div>
             </div>
 
             <div class="destination-form-submit">
-                <button type="submit" class="destination-form-button">Submit</button>
+                <button type="submit" class="btn btn-primary">Submit Enquiry</button>
             </div>
         </form>
     </div>
@@ -144,5 +151,7 @@ foreach ($destinations as $destination_id => $destination_name) {
             }
         </script>
     <?php endif; ?>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/intlTelInput.min.js"></script>
+    <script src="js/form-handler.js"></script>
 </body>
 </html>

@@ -280,13 +280,27 @@ include 'bheader.php';
         <!-- Gallery Images -->
         <div class="mb-3">
           <label for="gallery" class="form-label">Gallery Images:</label>
-          <input type="file" id="gallery" name="gallery[]" class="form-control" accept=".jpg,.jpeg,.png,.webp" multiple <?php echo $resort ? '' : 'required'; ?>>
+          <input type="file" id="gallery" name="gallery[]" class="form-control" accept=".jpg,.jpeg,.png,.webp" multiple <?php echo $resort ? '' : 'required'; ?> onchange="previewImages(this)">
+          
+          <!-- Preview for newly added images -->
+          <div id="imagePreviewContainer" class="mt-2 flex flex-wrap gap-2"></div>
+
           <?php if ($resort && !empty($resort['gallery'])): ?>
             <div class="mt-2">
               <p>Current Gallery Images:</p>
               <div class="flex flex-wrap gap-2">
-                <?php foreach ($galleryData as $galleryImg): ?>
-                  <img src="assets/resorts/<?php echo htmlspecialchars($resort['resort_slug']); ?>/<?php echo htmlspecialchars($galleryImg); ?>" alt="Gallery Image" style="max-width:150px;">
+                <?php foreach ($galleryData as $index => $galleryImg): ?>
+                  <div class="relative" id="gallery-item-<?php echo $index; ?>">
+                    <img src="assets/resorts/<?php echo htmlspecialchars($resort['resort_slug']); ?>/<?php echo htmlspecialchars($galleryImg); ?>" 
+                         alt="Gallery Image" style="max-width:150px;">
+                    <input type="hidden" name="existing_gallery[]" value="<?php echo htmlspecialchars($galleryImg); ?>">
+                    <button type="button" 
+                            onclick="removeGalleryImage(<?php echo $index; ?>)" 
+                            class="absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center"
+                            title="Delete image">
+                      ×
+                    </button>
+                  </div>
                 <?php endforeach; ?>
               </div>
             </div>
@@ -398,6 +412,55 @@ include 'bheader.php';
       var sidebar = document.getElementById('sidebar');
       sidebar.classList.toggle('sidebar-collapsed');
     });
+
+    function previewImages(input) {
+      const container = document.getElementById('imagePreviewContainer');
+      container.innerHTML = ''; // Clear previous previews
+
+      if (input.files && input.files.length > 0) {
+        Array.from(input.files).forEach((file, index) => {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            const previewWrapper = document.createElement('div');
+            previewWrapper.className = 'relative';
+            previewWrapper.innerHTML = `
+              <img src="${e.target.result}" alt="Preview" style="max-width:150px;">
+              <button type="button" 
+                      onclick="removeNewImage(this, ${index})" 
+                      class="absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center"
+                      title="Remove image">
+                ×
+              </button>
+            `;
+            container.appendChild(previewWrapper);
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+    }
+
+    function removeNewImage(button, index) {
+      const input = document.getElementById('gallery');
+      const container = document.getElementById('imagePreviewContainer');
+      
+      // Create a new FileList without the removed image
+      const dt = new DataTransfer();
+      Array.from(input.files)
+        .filter((file, i) => i !== index)
+        .forEach(file => dt.items.add(file));
+      
+      input.files = dt.files;
+      button.closest('.relative').remove();
+
+      // Refresh previews
+      previewImages(input);
+    }
+
+    function removeGalleryImage(index) {
+      if (confirm('Are you sure you want to delete this image?')) {
+        document.getElementById(`gallery-item-${index}`).remove();
+      }
+    }
   </script>
 </body>
 </html>
