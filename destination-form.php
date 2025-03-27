@@ -3,19 +3,14 @@ require 'db.php';
 
 // Function to get resort information based on the current page
 function get_resort_info($page_name) {
-    global $conn;
+    global $pdo;
     $sql = "SELECT d.name AS destination_name, r.name AS resort_name
             FROM resorts r
             JOIN destinations d ON r.destination_id = d.id
             WHERE r.page_name = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("s", $page_name);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    if ($result->num_rows > 0) {
-        return $result->fetch_assoc();
-    }
-    return null;
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([$page_name]);
+    return $stmt->fetch();
 }
 
 // Check if the form is included in a resort page
@@ -25,22 +20,19 @@ $resort_info = get_resort_info($current_page);
 // Fetch destinations from the database
 $destinations = [];
 $sql = "SELECT id, name FROM destinations";
-$result = $conn->query($sql);
-if ($result->num_rows > 0) {
-    while($row = $result->fetch_assoc()) {
-        $destinations[$row['id']] = $row['name'];
-    }
+$result = $pdo->query($sql);
+while($row = $result->fetch()) {
+    $destinations[$row['id']] = $row['name'];
 }
 
 // Fetch active resorts for each destination
 $active_resorts = [];
 foreach ($destinations as $destination_id => $destination_name) {
-    $sql = "SELECT id, name FROM resorts WHERE destination_id = $destination_id AND is_active = 1";
-    $result = $conn->query($sql);
-    if ($result->num_rows > 0) {
-        while($row = $result->fetch_assoc()) {
-            $active_resorts[$destination_id][] = $row['name'];
-        }
+    $sql = "SELECT id, name FROM resorts WHERE destination_id = ? AND is_active = 1";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([$destination_id]);
+    while($row = $stmt->fetch()) {
+        $active_resorts[$destination_id][] = $row['name'];
     }
 }
 ?>
