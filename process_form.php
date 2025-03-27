@@ -26,7 +26,24 @@ $PhoneFormatLsq = $_POST['PhoneFormatLsq'] ?? '';
 $dob = $_POST['dob'] ?? '';
 $passport = $_POST['passport'] ?? '';
 $country = $_POST['country'] ?? '';
-$resort = $_POST['resort'] ?? '';
+
+// Determine if the form is submitted from a resort page or the enquire-now page
+$destination = ''; // Initialize destination
+if (isset($_POST['resort']) && !empty($_POST['resort'])) {
+    // Resort is set, so it's likely from a resort-specific page
+    $resort = $_POST['resort'];
+    // Attempt to determine destination based on resort name (this might need refinement)
+    // Example: if resort name contains 'Goa', set destination to 'Goa'
+    if (strpos($resort, 'Goa') !== false) {
+        $destination = 'Goa';
+    }
+    // Add more rules if needed for other destinations based on resort names
+} else {
+    // Resort is not set, so get the values from the destination and resort dropdowns
+    $resort = $_POST['resort'] ?? '';
+    $destination = $_POST['destination'] ?? '';
+}
+
 $holiday_destination = $_POST['holiday-destination'] ?? '';
 $preferred_resort = $_POST['preferred-resort'] ?? '';
 
@@ -63,52 +80,63 @@ if ($resort === "Cambodia") {
     $lead_source_description = "Website | Cambodia";
     $lead_location = "General";
     $resort_code = "Cambodia";
+    if (empty($destination)) $destination = "Cambodia";
 } 
 elseif ($resort === "Vietnam") {
     $lead_source_description = "Website | Vietnam";
     $lead_location = "General";
     $resort_code = "Vietnam"; 
+    if (empty($destination)) $destination = "Vietnam";
 }
 elseif ($resort === "Maldives") {
     $lead_source_description = "Website | Maldives";
     $lead_location = "General";
     $resort_code = "Maldives"; 
+    if (empty($destination)) $destination = "Maldives";
 }
 elseif ($resort === "Phuket") {
     $lead_source_description = "Website | Phuket";
     $lead_location = "General";
     $resort_code = "Phuket"; 
+    if (empty($destination)) $destination = "Phuket";
 }
 elseif ($resort === "Bali") {
     $lead_source_description = "Website | Bali";
     $lead_location = "General";
     $resort_code = "Bali"; 
+    if (empty($destination)) $destination = "Bali";
 }
 elseif ($resort === "Koh-Samui" || $resort === "Koh Samui") {
     $lead_source_description = "Website | Koh Samui";
     $lead_location = "General";
     $resort_code = "Koh Samui"; 
+    if (empty($destination)) $destination = "Koh Samui";
 }
 elseif (strpos($resort, "Karma Royal Haathi Mahal") !== false) {
     $lead_source_description = "Website | Karma Royal Haathi Mahal";
     $lead_location = "Goa";
     $resort_code = "Karma Royal Haathi Mahal"; 
+    if (empty($destination)) $destination = "Goa";
 }
 elseif (strpos($resort, "Karma Royal Palms") !== false) {
     $lead_source_description = "Website | Karma Royal Palms";
     $lead_location = "Goa";
     $resort_code = "Karma Royal Palms"; 
+    if (empty($destination)) $destination = "Goa";
 }
 elseif (strpos($resort, "Karma Royal MonteRio") !== false) {
     $lead_source_description = "Website | Karma Royal MonteRio";
     $lead_location = "Goa";
     $resort_code = "Karma Royal MonteRio"; 
+    if (empty($destination)) $destination = "Goa";
 }
 else {
     // Default case
     $lead_source_description = "Website | " . $resort;
     $lead_location = "General";
     $resort_code = $resort;
+    // If destination is still empty, try to infer it or set a default
+    if (empty($destination)) $destination = "Unknown"; 
 }
 
 // Calculating age from DOB
@@ -154,6 +182,7 @@ $data_array = [
     ["Attribute" => "mx_Anniversary_Date", "Value" => ""],
     ["Attribute" => "mx_Country", "Value" => $country],
     ["Attribute" => "mx_Choose_your_month_of_travel", "Value" => "-"],
+    ["Attribute" => "mx_Destination", "Value" => $destination], // Add destination here
     ["Attribute" => "mx_Lead_source_description", "Value" => $lead_source_description]
 ];
 
@@ -273,7 +302,11 @@ try {
 
     // Content
     $mail->isHTML(true);
-    $mail->Subject = "New Lead from $fname through $Website - $resort";
+	$subject = "New Lead from $fname through $Website - $resort";
+	if (!empty($destination)) {
+		$subject = "New Lead from $fname through $Website - $destination - $resort";
+	}
+    $mail->Subject = $subject;
     $mail->Body = "
         Name: $fname $lname <br>
         Email: $email <br>
@@ -282,6 +315,7 @@ try {
         Country: $country <br>
         Passport: $passport <br>
         Preferred Destination/Resort: $resort <br>
+		Destination: $destination <br>
         Lead Source: $lead_source <br> 
         Lead Brand: $lead_brand <br>
         Lead Location: $lead_location <br>
@@ -296,3 +330,4 @@ try {
 } catch (Exception $e) {
     echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
 }
+?>
