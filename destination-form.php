@@ -51,6 +51,76 @@ $current_destination_name = $current_destination_name ?? '';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="css/destination-form.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/css/intlTelInput.css">
+    <title>Enquiry Form</title>
+    <style>
+        /* Basic CSS for the form */
+        .destination-form-container {
+            width: 80%;
+            margin: 20px auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+
+        .destination-form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+        }
+
+        .destination-form-field {
+            margin-bottom: 15px;
+        }
+
+        .destination-form-field label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .destination-form-field input[type="text"],
+        .destination-form-field input[type="email"],
+        .destination-form-field input[type="tel"],
+        .destination-form-field input[type="date"],
+        .destination-form-field select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box; /* Ensures padding doesn't affect width */
+        }
+
+        .destination-form-submit {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .btn {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            background-color: #0056b3;
+        }
+
+        /* Styles for destination and resort selection */
+        .destination-form-space {
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .iti {
+            width: 100%; /* Make the input fill the container */
+        }
+    </style>
 </head>
 <body>
     <div class="destination-form-container">
@@ -160,7 +230,8 @@ $current_destination_name = $current_destination_name ?? '';
                     .then(function(data) { callback(data.country_code); })
                     .catch(function() { callback('us'); });
             },
-            utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/utils.js" // just for formatting/placeholders etc
+            utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/utils.js", // just for formatting/placeholders etc
+            onlyCountries: ["us", "gb", "ca"] // Restrict to these countries
         });
     </script>
     <script src="js/form-handler.js"></script>

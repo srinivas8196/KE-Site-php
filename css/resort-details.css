@@ -52,6 +52,8 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .resort-banner .banner-title {
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    color: #fff!important;
     font-size: 3.5rem;
     font-weight: 700;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.6);
@@ -74,7 +76,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .resort-content-left {
-    padding-right: 30px;
+    padding-right: 50px;
 }
 
 .resort-content-left h2.resort-name {
@@ -258,6 +260,67 @@ h1, h2, h3, h4, h5, h6 {
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
 }
 
+/* Gallery Grid Styles */
+.gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+    padding: 20px 0;
+}
+
+.gallery-item {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    aspect-ratio: 1;
+}
+
+.gallery-link {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.gallery-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.gallery-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.gallery-overlay i {
+    color: white;
+    font-size: 2rem;
+    transform: scale(0.8);
+    transition: transform 0.3s ease;
+}
+
+.gallery-item:hover .gallery-image {
+    transform: scale(1.1);
+}
+
+.gallery-item:hover .gallery-overlay {
+    opacity: 1;
+}
+
+.gallery-item:hover .gallery-overlay i {
+    transform: scale(1);
+}
+
 /* Modern Testimonials with Swiper */
 .testimonials-section.modern-testimonials {
     background: #f8f9fa;
@@ -267,6 +330,16 @@ h1, h2, h3, h4, h5, h6 {
 
 .testimonials-section .swiper {
     padding: 20px 0 40px;
+    overflow: visible;
+}
+
+.testimonials-section .swiper-slide {
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+.testimonials-section .swiper-slide-active {
+    opacity: 1;
 }
 
 .testimonials-section .testimonial-item {
@@ -274,6 +347,12 @@ h1, h2, h3, h4, h5, h6 {
     padding: 30px;
     border-radius: 15px;
     box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+    transform: scale(0.95);
+    transition: transform 0.5s ease;
+}
+
+.testimonials-section .swiper-slide-active .testimonial-item {
+    transform: scale(1);
 }
 
 .testimonials-section .testimonial-content {
@@ -328,8 +407,10 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Modern Form Styles */
 .destination-form-wrapper.modern-form {
+    width: 100%;
+    max-width: 100%;
     background: white;
-    padding: 30px;
+    padding: 10px;
     border-radius: 20px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.1);
 }
@@ -350,7 +431,7 @@ h1, h2, h3, h4, h5, h6 {
 .destination-form-wrapper.modern-form input[type="tel"],
 .destination-form-wrapper.modern-form input[type="date"],
 .destination-form-wrapper.modern-form select {
-    width: 100%;
+    width: 80%;
     padding: 12px 15px;
     border: 2px solid #e1e5ee;
     border-radius: 10px;
@@ -434,5 +515,9 @@ h1, h2, h3, h4, h5, h6 {
     }
     .testimonials-section .testimonial-item {
         padding: 20px;
+    }
+    .gallery-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 10px;
     }
 }

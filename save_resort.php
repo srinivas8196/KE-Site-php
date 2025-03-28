@@ -238,38 +238,33 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $pageContent .= "</div>\n";
     $pageContent .= "</div>\n";
 
-    // Gallery Section (Modified for Swiper Carousel + Fancybox)
-    $pageContent .= "<div class=\"resort-section gallery-section\">\n"; // Added class
+    // Gallery Section (Modified for Grid Layout + Lightbox)
+    $pageContent .= "<div class=\"resort-section gallery-section\">\n"; 
     $pageContent .= "        <h3>Gallery</h3>\n";
     $pageContent .= "<?php if(is_array(\$gallery) && count(\$gallery) > 0): ?>\n";
-    $pageContent .= "<div class=\"swiper gallery-carousel\">\n"; // Swiper container
-    $pageContent .= "<div class=\"swiper-wrapper\">\n";
+    $pageContent .= "<div class=\"gallery-grid\">\n"; // Changed to grid container
     $pageContent .= "<?php foreach(\$gallery as \$img): ?>\n";
-    $pageContent .= "<div class=\"swiper-slide gallery-item\">\n"; // Swiper slide
-    $pageContent .= "<a href=\"<?php echo \$resortFolder . '/' . htmlspecialchars(\$img); ?>\" data-fancybox=\"gallery\" data-caption=\"<?php echo htmlspecialchars(\$resort['resort_name'] ?? ''); ?> Gallery Image\">\n";
-    $pageContent .= "<img src=\"<?php echo \$resortFolder . '/' . htmlspecialchars(\$img); ?>\" alt=\"Gallery Image\">\n";
+    $pageContent .= "<div class=\"gallery-item\">\n";
+    $pageContent .= "<a href=\"<?php echo \$resortFolder . '/' . htmlspecialchars(\$img); ?>\" data-fancybox=\"gallery\" class=\"gallery-link\" data-caption=\"<?php echo htmlspecialchars(\$resort['resort_name'] ?? ''); ?> Gallery Image\">\n";
+    $pageContent .= "<img src=\"<?php echo \$resortFolder . '/' . htmlspecialchars(\$img); ?>\" alt=\"Gallery Image\" class=\"gallery-image\">\n";
+    $pageContent .= "<div class=\"gallery-overlay\"><i class=\"fas fa-search-plus\"></i></div>\n"; // Added overlay with zoom icon
     $pageContent .= "</a>\n";
     $pageContent .= "</div>\n";
     $pageContent .= "<?php endforeach; ?>\n";
-    $pageContent .= "</div>\n";
-    // Add Swiper pagination and navigation
-    $pageContent .= "<div class=\"swiper-pagination gallery-pagination\"></div>\n";
-    $pageContent .= "<div class=\"swiper-button-next gallery-button-next\"></div>\n";
-    $pageContent .= "<div class=\"swiper-button-prev gallery-button-prev\"></div>\n";
     $pageContent .= "</div>\n";
     $pageContent .= "<?php else: ?>\n";
     $pageContent .= "<p>No gallery images available.</p>\n";
     $pageContent .= "<?php endif; ?>\n";
     $pageContent .= "</div>\n";
 
-    // Testimonials Section (Modified for Swiper Carousel)
-    $pageContent .= "<div class=\"resort-section testimonials-section modern-testimonials\">\n"; // Added class
-    $pageContent .= "        <h3>What Our Guests Say</h3>\n"; // Changed title
+    // Testimonials Section (Fixed Autoplay)
+    $pageContent .= "<div class=\"resort-section testimonials-section modern-testimonials\">\n";
+    $pageContent .= "        <h3>What Our Guests Say</h3>\n";
     $pageContent .= "<?php if(is_array(\$testimonials) && count(\$testimonials) > 0): ?>\n";
-    $pageContent .= "<div class=\"swiper testimonial-carousel\">\n"; // Swiper container
+    $pageContent .= "<div class=\"swiper testimonial-carousel\">\n";
     $pageContent .= "<div class=\"swiper-wrapper\">\n";
     $pageContent .= "<?php foreach(\$testimonials as \$t): ?>\n";
-    $pageContent .= "<div class=\"swiper-slide testimonial-item\">\n"; // Swiper slide
+    $pageContent .= "<div class=\"swiper-slide testimonial-item\">\n";
     $pageContent .= "<blockquote class=\"testimonial-content\">\n";
     $pageContent .= "<p>\"<?php echo htmlspecialchars(\$t['content'] ?? ''); ?>\"</p>\n";
     $pageContent .= "<footer class=\"testimonial-author\">\n";
@@ -279,7 +274,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $pageContent .= "</div>\n";
     $pageContent .= "<?php endforeach; ?>\n";
     $pageContent .= "</div>\n";
-    // Add Swiper pagination
     $pageContent .= "<div class=\"swiper-pagination testimonial-pagination\"></div>\n";
     $pageContent .= "</div>\n";
     $pageContent .= "<?php else: ?>\n";
@@ -315,11 +309,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $pageContent .= "<script src=\"https://unpkg.com/swiper/swiper-bundle.min.js\"></script>\n"; // Swiper JS
     $pageContent .= "<script src=\"assets/int-tel-input/js/intlTelInput.min.js\"></script>\n"; // Intl Tel Input JS
     $pageContent .= "<script src=\"assets/int-tel-input/js/utils.js\"></script>\n"; // Intl Tel Input Utils
+    $pageContent .= "<script src=\"https://kit.fontawesome.com/your-font-awesome-kit.js\"></script>\n"; // Add FontAwesome for gallery icons
 
     // Custom JS Initializations
     $pageContent .= "<script>\n";
-    // Fancybox Init
-    $pageContent .= "Fancybox.bind('[data-fancybox=\"gallery\"]', { /* Options */ });\n";
+    // Fancybox Init with carousel effect
+    $pageContent .= "Fancybox.bind('[data-fancybox=\"gallery\"]', {\n";
+    $pageContent .= "  carousel: { infinite: true },\n";
+    $pageContent .= "  Toolbar: {\n";
+    $pageContent .= "    display: ['slideshow', 'fullscreen', 'thumbs', 'close']\n";
+    $pageContent .= "  },\n";
+    $pageContent .= "  Thumbs: { autoStart: true },\n";
+    $pageContent .= "  Slideshow: { autoStart: false, speed: 4000 }\n";
+    $pageContent .= "});\n";
+
     // Gallery Carousel Init
     $pageContent .= "const galleryCarousel = new Swiper('.gallery-carousel', {\n";
     $pageContent .= "loop: true,\n";
@@ -329,14 +332,27 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $pageContent .= "navigation: { nextEl: '.gallery-button-next', prevEl: '.gallery-button-prev' },\n";
     $pageContent .= "breakpoints: { 640: { slidesPerView: 2, spaceBetween: 20 }, 1024: { slidesPerView: 3, spaceBetween: 30 } }\n";
     $pageContent .= "});\n";
-    // Testimonial Carousel Init
+
+    // Testimonial Carousel Init with fixed autoplay
     $pageContent .= "const testimonialCarousel = new Swiper('.testimonial-carousel', {\n";
-    $pageContent .= "loop: true,\n";
-    $pageContent .= "autoplay: { delay: 5000, disableOnInteraction: false },\n";
-    $pageContent .= "pagination: { el: '.testimonial-pagination', clickable: true },\n";
-    $pageContent .= "slidesPerView: 1,\n";
-    $pageContent .= "spaceBetween: 30\n";
+    $pageContent .= "  loop: true,\n";
+    $pageContent .= "  autoplay: {\n";
+    $pageContent .= "    delay: 5000,\n";
+    $pageContent .= "    disableOnInteraction: false,\n";
+    $pageContent .= "    pauseOnMouseEnter: true\n";
+    $pageContent .= "  },\n";
+    $pageContent .= "  speed: 1000,\n";
+    $pageContent .= "  effect: 'fade',\n";
+    $pageContent .= "  fadeEffect: { crossFade: true },\n";
+    $pageContent .= "  pagination: {\n";
+    $pageContent .= "    el: '.testimonial-pagination',\n";
+    $pageContent .= "    clickable: true\n";
+    $pageContent .= "  },\n";
+    $pageContent .= "  on: {\n";
+    $pageContent .= "    init: function() { this.autoplay.start(); }\n";
+    $pageContent .= "  }\n";
     $pageContent .= "});\n";
+
     // Intl Tel Input Init (Target the phone input field in destination-form.php)
     $pageContent .= "const phoneInputField = document.querySelector('#phone');\n";
     $pageContent .= "if (phoneInputField) {\n";
