@@ -1,0 +1,1 @@
+destination_id=2&resort_name=Sample+Resort&resort_description=A+sample+resort+to+test+the+new+design.&banner_title=Sample+Resort+-+Experience+Luxury

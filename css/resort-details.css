@@ -1,179 +1,438 @@
-/* Modern Resort Details Styles */
-:root {
-    --primary-color: #1a73e8;
-    --secondary-color: #34495e;
-    --accent-color: #e74c3c;
-    --text-color: #2c3e50;
-    --light-gray: #f5f6fa;
-}
-
+/* General Styles */
 body {
     font-family: 'Poppins', sans-serif;
-    color: var(--text-color);
-    line-height: 1.6;
+    color: #333;
 }
 
-.banner {
-    position: relative;
-    height: 60vh;
-    overflow: hidden;
-    margin-bottom: 3rem;
-}
-
-.banner img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.banner-title {
-    position: absolute;
-    bottom: 50%;
-    left: 50%;
-    transform: translate(-50%, 50%);
-    color: white;
-    font-size: 3.5rem;
-    font-weight: 700;
-    text-align: center;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-    width: 100%;
-    padding: 0 20px;
-}
-
-.resort-details {
-    padding: 2rem;
-}
-
-.resort-details h2 {
-    font-size: 2.5rem;
-    color: var(--secondary-color);
-    margin-bottom: 1.5rem;
+h1, h2, h3, h4, h5, h6 {
     font-weight: 600;
 }
 
-.resort-details h3 {
-    font-size: 1.8rem;
-    color: var(--primary-color);
-    margin: 2rem 0 1rem;
-    font-weight: 500;
+.section-padding {
+    padding: 40px 0;
 }
 
-.amenities-list {
-    list-style: none;
-    padding: 0;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 1rem;
-}
-
-.amenities-list li {
-    display: flex;
-    align-items: center;
-    padding: 0.5rem;
-    background: var(--light-gray);
-    border-radius: 8px;
-    transition: transform 0.2s;
-}
-
-.amenities-list li:hover {
-    transform: translateY(-2px);
-}
-
-.gallery-carousel, .testimonial-carousel {
-    margin: 2rem 0;
-}
-
-.gallery-carousel img {
-    width: 100%;
-    height: 250px;
-    object-fit: cover;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: transform 0.3s;
-}
-
-.gallery-carousel img:hover {
-    transform: scale(1.05);
-}
-
-.testimonial {
-    background: var(--light-gray);
-    padding: 2rem;
-    border-radius: 10px;
-    margin: 1rem;
-}
-
-.testimonial-content {
-    font-style: italic;
-    font-size: 1.1rem;
-}
-
-.testimonial-author {
-    color: var(--primary-color);
-    font-weight: 500;
-    margin-top: 1rem;
-}
-
-/* Booking Form Styles */
-.booking-form {
-    background: white;
-    padding: 2rem;
-    border-radius: 10px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    position: sticky;
-    top: 2rem;
-}
-
-.booking-form h3 {
-    color: var(--secondary-color);
-    margin-bottom: 1.5rem;
+.section-title {
+    font-size: 2rem;
+    margin-bottom: 30px;
+    color: #1a2a4a;
     text-align: center;
 }
 
-.form-group {
-    margin-bottom: 1.5rem;
+/* Banner Styles */
+.resort-banner {
+    position: relative;
+    height: 500px; /* Increased height */
+    overflow: hidden;
+    color: #fff;
 }
 
-.form-control {
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    padding: 0.8rem;
+.resort-banner.modern-banner {
+    height: 600px; /* Even taller for modern look */
+}
+
+.resort-banner img.banner-image {
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
-    transition: border-color 0.3s;
+    height: 100%;
+    object-fit: cover;
+    z-index: 1;
 }
 
-.form-control:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.2);
+.resort-banner .banner-content-bottom-left {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    z-index: 3;
+    padding: 40px;
+    background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+    width: 100%;
+}
+
+.resort-banner .banner-title {
+    font-size: 3.5rem;
+    font-weight: 700;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.6);
+    margin: 0;
+    transform: translateY(20px);
+    opacity: 0;
+    animation: slideUpFade 0.8s forwards;
+}
+
+@keyframes slideUpFade {
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Main Content Layout */
+.resort-details-container {
+    margin-top: 40px;
+}
+
+.resort-content-left {
+    padding-right: 30px;
+}
+
+.resort-content-left h2.resort-name {
+    font-size: 2.2rem;
+    color: #1a2a4a;
+    margin-bottom: 15px;
+}
+
+.resort-content-left .resort-description {
+    font-size: 1rem;
+    line-height: 1.6;
+    margin-bottom: 30px;
+}
+
+.resort-section {
+    margin-bottom: 40px;
+}
+
+.resort-section h3 {
+    font-size: 1.5rem;
+    color: #2a3b5f;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+}
+
+/* Amenities Styles with Animation */
+.amenities-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 25px;
+}
+
+.amenity-item {
+    text-align: center;
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+.amenity-item.animate-icon {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp 0.6s forwards;
+}
+
+.amenity-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+.amenity-item img {
+    max-width: 50px;
+    height: 50px;
+    object-fit: contain;
+    margin-bottom: 15px;
+    transition: transform 0.3s ease;
+}
+
+.amenity-item:hover img {
+    transform: scale(1.1) rotate(5deg);
+}
+
+.amenity-item p {
+    font-size: 0.9rem;
+    margin-bottom: 0;
+    font-weight: 500;
+    color: #444;
+}
+
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Room Details Styles with Hover Effect */
+.room-details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 25px;
+}
+
+.room-item.room-hover-effect {
+    position: relative;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+.room-image-container {
+    position: relative;
+    overflow: hidden;
+}
+
+.room-image-container img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.room-item.room-hover-effect:hover .room-image-container img {
+    transform: scale(1.1);
+}
+
+.room-info {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 20px;
+    background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+    color: white;
+    transform: translateY(100%);
+    transition: transform 0.3s ease;
+}
+
+.room-item.room-hover-effect:hover .room-info {
+    transform: translateY(0);
+}
+
+.room-info p {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+
+/* Gallery Styles with Swiper */
+.gallery-section .swiper {
+    padding: 20px 0;
+}
+
+.gallery-section .swiper-slide {
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+}
+
+.gallery-section .swiper-slide:hover {
+    transform: translateY(-5px);
+}
+
+.gallery-section .swiper-slide img {
+    width: 100%;
+    height: 250px;
+    object-fit: cover;
+}
+
+.gallery-section .swiper-pagination {
+    bottom: -5px;
+}
+
+.gallery-section .swiper-pagination-bullet {
+    width: 10px;
+    height: 10px;
+    background: #1a2a4a;
+    opacity: 0.5;
+}
+
+.gallery-section .swiper-pagination-bullet-active {
+    opacity: 1;
+}
+
+.gallery-section .swiper-button-next,
+.gallery-section .swiper-button-prev {
+    color: #1a2a4a;
+    background: rgba(255,255,255,0.9);
+    padding: 25px;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.gallery-section .swiper-button-next:hover,
+.gallery-section .swiper-button-prev:hover {
+    background: #fff;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+/* Modern Testimonials with Swiper */
+.testimonials-section.modern-testimonials {
+    background: #f8f9fa;
+    padding: 40px;
+    border-radius: 20px;
+}
+
+.testimonials-section .swiper {
+    padding: 20px 0 40px;
+}
+
+.testimonials-section .testimonial-item {
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+}
+
+.testimonials-section .testimonial-content {
+    position: relative;
+    padding: 20px 0;
+}
+
+.testimonials-section .testimonial-content::before {
+    content: '"';
+    font-size: 4em;
+    color: #1a2a4a;
+    opacity: 0.1;
+    position: absolute;
+    top: -20px;
+    left: -10px;
+}
+
+.testimonials-section .testimonial-content p {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: #444;
+    margin: 0;
+}
+
+.testimonials-section .testimonial-author {
+    margin-top: 20px;
+    font-weight: 600;
+    color: #1a2a4a;
+}
+
+.testimonials-section .testimonial-author span {
+    font-weight: normal;
+    color: #666;
+}
+
+.testimonials-section .swiper-pagination {
+    bottom: 0;
+}
+
+.testimonials-section .swiper-pagination-bullet {
+    width: 10px;
+    height: 10px;
+    background: #1a2a4a;
+    opacity: 0.5;
+}
+
+.testimonials-section .swiper-pagination-bullet-active {
+    opacity: 1;
+    width: 20px;
+    border-radius: 5px;
+}
+
+/* Modern Form Styles */
+.destination-form-wrapper.modern-form {
+    background: white;
+    padding: 30px;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.destination-form-wrapper.modern-form .destination-form-field {
+    margin-bottom: 20px;
+}
+
+.destination-form-wrapper.modern-form label {
+    display: block;
+    margin-bottom: 8px;
+    color: #1a2a4a;
+    font-weight: 500;
+}
+
+.destination-form-wrapper.modern-form input[type="text"],
+.destination-form-wrapper.modern-form input[type="email"],
+.destination-form-wrapper.modern-form input[type="tel"],
+.destination-form-wrapper.modern-form input[type="date"],
+.destination-form-wrapper.modern-form select {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #e1e5ee;
+    border-radius: 10px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.destination-form-wrapper.modern-form input:focus,
+.destination-form-wrapper.modern-form select:focus {
+    border-color: #1a2a4a;
+    box-shadow: 0 0 0 3px rgba(26,42,74,0.1);
     outline: none;
 }
 
-.btn-primary {
-    background: var(--primary-color);
+.destination-form-wrapper.modern-form button[type="submit"] {
+    width: 100%;
+    padding: 15px;
+    background: #1a2a4a;
     color: white;
     border: none;
-    padding: 0.8rem 2rem;
-    border-radius: 6px;
+    border-radius: 10px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.destination-form-wrapper.modern-form button[type="submit"]:hover {
+    background: #2a3b5f;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(26,42,74,0.2);
+}
+
+/* IntlTelInput Customization */
+.iti {
     width: 100%;
-    font-weight: 500;
-    transition: background 0.3s;
 }
 
-.btn-primary:hover {
-    background: #1557b0;
+.iti__flag-container:hover .iti__selected-flag {
+    background-color: rgba(0,0,0,0.05);
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-    .banner-title {
+/* Responsive Adjustments */
+@media (max-width: 991px) {
+    .resort-content-left {
+        padding-right: 0;
+        margin-bottom: 30px;
+    }
+    .sticky-form-container {
+        position: static;
+        height: auto;
+        overflow-y: visible;
+    }
+    .resort-banner {
+        height: 400px;
+    }
+    .resort-banner .banner-title {
         font-size: 2.5rem;
     }
-    
-    .amenities-list {
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    .room-details-grid {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     }
-    
-    .gallery-carousel img {
-        height: 200px;
+}
+
+@media (max-width: 767px) {
+    .amenities-grid {
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        gap: 15px;
+    }
+    .room-details-grid {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    }
+    .resort-banner {
+        height: 300px;
+    }
+    .resort-banner .banner-title {
+        font-size: 2rem;
+    }
+    .testimonials-section.modern-testimonials {
+        padding: 20px;
+    }
+    .testimonials-section .testimonial-item {
+        padding: 20px;
     }
 }

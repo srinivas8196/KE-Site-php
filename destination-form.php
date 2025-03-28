@@ -38,6 +38,10 @@ foreach ($destinations as $destination_id => $destination_name) {
         $active_resorts[$destination_id][] = $row['resort_name'];
     }
 }
+
+// Get current resort and destination names from the included page
+$current_resort_name = $current_resort_name ?? '';
+$current_destination_name = $current_destination_name ?? '';
 ?>
 
 <!DOCTYPE html>
@@ -50,13 +54,15 @@ foreach ($destinations as $destination_id => $destination_name) {
 </head>
 <body>
     <div class="destination-form-container">
-        <form id="enquiryForm" method="POST" action="process_form.php" class="destination-form">
+        <form id="enquiryForm" method="POST" action="submit_enquiry.php" class="destination-form">
             <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
             
             <?php if ($resort_info): ?>
                 <input type="hidden" name="destination" value="<?php echo htmlspecialchars($resort_info['destination_name']); ?>">
                 <input type="hidden" name="resort" value="<?php echo htmlspecialchars($resort_info['resort_name']); ?>">
             <?php else: ?>
+                <input type="hidden" name="destination" value="<?php echo htmlspecialchars($current_destination_name); ?>">
+                <input type="hidden" name="resort" value="<?php echo htmlspecialchars($current_resort_name); ?>">
                 <div class="destination-form-space">
                     <div class="destination-form-field">
                         <label for="destination">Select Destination</label>
@@ -104,20 +110,12 @@ foreach ($destinations as $destination_id => $destination_name) {
                 </div>
 
                 <div class="destination-form-field">
-                    <label for="country">Country</label>
-                    <input type="text" id="country" name="country">
-                </div>
-
-                <div class="destination-form-field full-width">
-                    <label>Do you have a passport? *</label>
-                    <div class="custom-control"></div>
-                        <input type="radio" id="passportYes" name="hasPassport" value="yes" required>
-                        <label for="passportYes">Yes</label>
-                    </div>
-                    <div class="custom-control">
-                        <input type="radio" id="passportNo" name="hasPassport" value="no">
-                        <label for="passportNo">No</label>
-                    </div>
+                    <label for="hasPassport">Do you have a passport? *</label>
+                    <select id="hasPassport" name="hasPassport" required>
+                        <option value="">Select</option>
+                        <option value="yes">Yes</option>
+                        <option value="no">No</option>
+                    </select>
                 </div>
             </div>
 
@@ -152,6 +150,19 @@ foreach ($destinations as $destination_id => $destination_name) {
         </script>
     <?php endif; ?>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/intlTelInput.min.js"></script>
+    <script>
+        const phoneInputField = document.querySelector("#phone");
+        const phoneInput = window.intlTelInput(phoneInputField, {
+            initialCountry: "auto",
+            geoIpLookup: function(callback) {
+                fetch('https://ipapi.co/json')
+                    .then(function(res) { return res.json(); })
+                    .then(function(data) { callback(data.country_code); })
+                    .catch(function() { callback('us'); });
+            },
+            utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/utils.js" // just for formatting/placeholders etc
+        });
+    </script>
     <script src="js/form-handler.js"></script>
 </body>
 </html>

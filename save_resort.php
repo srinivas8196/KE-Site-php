@@ -17,6 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     // Process is_active:
     // For new resorts, force active (1) by default.
+    // For editing, set based on the checkbox.
     if (isset($_POST['resort_id'])) {
         $is_active = isset($_POST['is_active']) ? 1 : 0;
     } else {
@@ -39,7 +40,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Create directories if they don't exist
     if (!file_exists($resortFolderPath)) {
         mkdir($resortFolderPath, 0777, true);
-        mkdir("$resortFolderPath/banner", 0777, true);
         mkdir("$resortFolderPath/amenities", 0777, true);
         mkdir("$resortFolderPath/gallery", 0777, true);
         mkdir("$resortFolderPath/rooms", 0777, true);
@@ -48,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Handle banner image upload
     $banner_image = '';
     if (isset($_FILES['banner_image']) && $_FILES['banner_image']['error'] == UPLOAD_ERR_OK) {
-        $banner_image = "banner/" . basename($_FILES['banner_image']['name']);
+        $banner_image = "banner-" . $_FILES['banner_image']['name'];
         move_uploaded_file($_FILES['banner_image']['tmp_name'], "$resortFolderPath/$banner_image");
     } else if (isset($resort['banner_image'])) {
         $banner_image = $resort['banner_image'];
@@ -60,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         foreach ($_FILES['amenities']['tmp_name'] as $index => $tmpData) {
             if (isset($_FILES['amenities']['error'][$index]['icon']) && $_FILES['amenities']['error'][$index]['icon'] == UPLOAD_ERR_OK) {
                 $file = $_FILES['amenities']['name'][$index]['icon'];
-                $newFileName = basename($file);
+                $newFileName = "amenities-" . $file;
                 move_uploaded_file($_FILES['amenities']['tmp_name'][$index]['icon'], "$resortFolderPath/amenities/$newFileName");
                 $amenities[] = [
                     'name' => $_POST['amenities'][$index]['name'],
@@ -84,7 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         foreach ($_FILES['rooms']['tmp_name'] as $index => $tmpData) {
             if (isset($_FILES['rooms']['error'][$index]['image']) && $_FILES['rooms']['error'][$index]['image'] == UPLOAD_ERR_OK) {
                 $file = $_FILES['rooms']['name'][$index]['image'];
-                $newFileName = basename($file);
+                $newFileName = "rooms-" . $file;
                 move_uploaded_file($_FILES['rooms']['tmp_name'][$index]['image'], "$resortFolderPath/rooms/$newFileName");
                 $rooms[] = [
                     'name'  => $_POST['rooms'][$index]['name'],
@@ -108,7 +108,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         foreach ($_FILES['gallery']['tmp_name'] as $index => $tmpName) {
             if ($_FILES['gallery']['error'][$index] == UPLOAD_ERR_OK) {
                 $file = $_FILES['gallery']['name'][$index];
-                $newFileName = basename($file);
+                $newFileName = "gallery-" . $file;
                 move_uploaded_file($tmpName, "$resortFolderPath/gallery/$newFileName");
                 $galleryImages[] = "gallery/$newFileName";
             }
@@ -159,368 +159,219 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $banner_image,
             $resortPage  // Save the landing page file path (e.g., "abc.php")
         ]);
-
-        // Generate resort landing page file (e.g., abc.php)
-        $pageContent  = "<?php\n";
-        $pageContent .= "require 'db.php';\n";
-        $pageContent .= "require 'kheader.php';\n";
-        $pageContent .= "// Get resort details from database\n";
-        $pageContent .= "\$resort_slug = basename(\$_SERVER['PHP_SELF'], '.php');\n";
-        $pageContent .= "\$stmt = \$pdo->prepare(\"SELECT r.*, d.destination_name \n";
-        $pageContent .= "                       FROM resorts r \n";
-        $pageContent .= "                       LEFT JOIN destinations d ON r.destination_id = d.id \n";
-        $pageContent .= "                       WHERE r.resort_slug = ?\");\n";
-        $pageContent .= "\$stmt->execute([\$resort_slug]);\n";
-        $pageContent .= "\$resort = \$stmt->fetch();\n\n";
-        $pageContent .= "if (!\$resort) {\n";
-        $pageContent .= "    header('Location: 404.php');\n";
-        $pageContent .= "    exit();\n";
-        $pageContent .= "}\n\n";
-        $pageContent .= "// Parse JSON data\n";
-        $pageContent .= "\$amenities = json_decode(\$resort['amenities'], true) ?? [];\n";
-        $pageContent .= "\$rooms = json_decode(\$resort['room_details'], true) ?? [];\n";
-        $pageContent .= "\$gallery = json_decode(\$resort['gallery'], true) ?? [];\n";
-        $pageContent .= "\$testimonials = json_decode(\$resort['testimonials'], true) ?? [];\n";
-        $pageContent .= "?>\n";
-        $pageContent .= "<!DOCTYPE html>\n";
-        $pageContent .= "<html lang=\"en\">\n";
-        $pageContent .= "<head>\n";
-        $pageContent .= "    <meta charset=\"UTF-8\">\n";
-        $pageContent .= "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n";
-        $pageContent .= "    <title><?php echo htmlspecialchars(\$resort['resort_name']); ?> - Karma Experience</title>\n";
-        $pageContent .= "    <link rel=\"stylesheet\" href=\"css/resort-details.css\">\n";
-        $pageContent .= "    <link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/css/lightbox.min.css\">\n";
-        $pageContent .= "    <link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.carousel.min.css\">\n";
-        $pageContent .= "    <link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.theme.default.min.css\">\n";
-        $pageContent .= "    <link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css\">\n";
-        $pageContent .= "    <link rel=\"stylesheet\" href=\"https://unpkg.com/swiper/swiper-bundle.min.css\">\n";
-        $pageContent .= "    <style>\n";
-        $pageContent .= "        /* Room Cards */\n";
-        $pageContent .= "        .rooms-grid {\n";
-        $pageContent .= "            display: grid;\n";
-        $pageContent .= "            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));\n";
-        $pageContent .= "            gap: 20px;\n";
-        $pageContent .= "            padding: 20px 0;\n";
-        $pageContent .= "        }\n";
-        $pageContent .= "        .room-card {\n";
-        $pageContent .= "            background: white;\n";
-        $pageContent .= "            border-radius: 10px;\n";
-        $pageContent .= "            box-shadow: 0 4px 8px rgba(0,0,0,0.1);\n";
-        $pageContent .= "            overflow: hidden;\n";
-        $pageContent .= "            transition: transform 0.3s ease, box-shadow 0.3s ease;\n";
-        $pageContent .= "        }\n";
-        $pageContent .= "        .room-card:hover {\n";
-        $pageContent .= "            transform: translateY(-5px);\n";
-        $pageContent .= "            box-shadow: 0 8px 16px rgba(0,0,0,0.2);\n";
-        $pageContent .= "        }\n";
-        $pageContent .= "        .room-card img {\n";
-        $pageContent .= "            width: 100%;\n";
-        $pageContent .= "            height: 200px;\n";
-        $pageContent .= "            object-fit: cover;\n";
-        $pageContent .= "            transition: transform 0.3s ease;\n";
-        $pageContent .= "        }\n";
-        $pageContent .= "        .room-card:hover img {\n";
-        $pageContent .= "            transform: scale(1.05);\n";
-        $pageContent .= "        }\n";
-        $pageContent .= "        .room-card h4 {\n";
-        $pageContent .= "            padding: 15px;\n";
-        $pageContent .= "            margin: 0;\n";
-        $pageContent .= "            font-size: 1.2em;\n";
-        $pageContent .= "            color: #333;\n";
-        $pageContent .= "            text-align: center;\n";
-        $pageContent .= "        }\n\n";
-        $pageContent .= "        /* Gallery Grid */\n";
-        $pageContent .= "        .gallery-grid {\n";
-        $pageContent .= "            display: grid;\n";
-        $pageContent .= "            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));\n";
-        $pageContent .= "            gap: 15px;\n";
-        $pageContent .= "            padding: 20px 0;\n";
-        $pageContent .= "        }\n";
-        $pageContent .= "        .gallery-item {\n";
-        $pageContent .= "            position: relative;\n";
-        $pageContent .= "            overflow: hidden;\n";
-        $pageContent .= "            border-radius: 8px;\n";
-        $pageContent .= "            aspect-ratio: 1;\n";
-        $pageContent .= "        }\n";
-        $pageContent .= "        .gallery-item img {\n";
-        $pageContent .= "            width: 100%;\n";
-        $pageContent .= "            height: 100%;\n";
-        $pageContent .= "            object-fit: cover;\n";
-        $pageContent .= "            transition: transform 0.3s ease;\n";
-        $pageContent .= "        }\n";
-        $pageContent .= "        .gallery-item:hover img {\n";
-        $pageContent .= "            transform: scale(1.1);\n";
-        $pageContent .= "        }\n";
-        $pageContent .= "        .gallery-item::after {\n";
-        $pageContent .= "            content: '';\n";
-        $pageContent .= "            position: absolute;\n";
-        $pageContent .= "            top: 0;\n";
-        $pageContent .= "            left: 0;\n";
-        $pageContent .= "            right: 0;\n";
-        $pageContent .= "            bottom: 0;\n";
-        $pageContent .= "            background: rgba(0,0,0,0.3);\n";
-        $pageContent .= "            opacity: 0;\n";
-        $pageContent .= "            transition: opacity 0.3s ease;\n";
-        $pageContent .= "        }\n";
-        $pageContent .= "        .gallery-item:hover::after {\n";
-        $pageContent .= "            opacity: 1;\n";
-        $pageContent .= "        }\n";
-        $pageContent .= "        .gallery-item::before {\n";
-        $pageContent .= "            content: '🔍';\n";
-        $pageContent .= "            position: absolute;\n";
-        $pageContent .= "            top: 50%;\n";
-        $pageContent .= "            left: 50%;\n";
-        $pageContent .= "            transform: translate(-50%, -50%) scale(0);\n";
-        $pageContent .= "            color: white;\n";
-        $pageContent .= "            font-size: 24px;\n";
-        $pageContent .= "            z-index: 1;\n";
-        $pageContent .= "            transition: transform 0.3s ease;\n";
-        $pageContent .= "        }\n";
-        $pageContent .= "        .gallery-item:hover::before {\n";
-        $pageContent .= "            transform: translate(-50%, -50%) scale(1);\n";
-        $pageContent .= "        }\n\n";
-        $pageContent .= "        /* Amenities */\n";
-        $pageContent .= "        .amenities-grid {\n";
-        $pageContent .= "            display: grid;\n";
-        $pageContent .= "            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));\n";
-        $pageContent .= "            gap: 15px;\n";
-        $pageContent .= "            padding: 20px 0;\n";
-        $pageContent .= "        }\n";
-        $pageContent .= "        .amenity-item {\n";
-        $pageContent .= "            display: flex;\n";
-        $pageContent .= "            flex-direction: column;\n";
-        $pageContent .= "            align-items: center;\n";
-        $pageContent .= "            text-align: center;\n";
-        $pageContent .= "            padding: 10px;\n";
-        $pageContent .= "        }\n";
-        $pageContent .= "        .amenity-icon {\n";
-        $pageContent .= "            width: 40px;\n";
-        $pageContent .= "            height: 40px;\n";
-        $pageContent .= "            object-fit: contain;\n";
-        $pageContent .= "            margin-bottom: 8px;\n";
-        $pageContent .= "        }\n";
-        $pageContent .= "        .amenity-name {\n";
-        $pageContent .= "            font-size: 0.85em;\n";
-        $pageContent .= "            color: #666;\n";
-        $pageContent .= "            margin: 0;\n";
-        $pageContent .= "            line-height: 1.3;\n";
-        $pageContent .= "        }\n\n";
-        $pageContent .= "        /* Testimonials */\n";
-        $pageContent .= "        .testimonials-section {\n";
-        $pageContent .= "            padding: 30px 0;\n";
-        $pageContent .= "        }\n";
-        $pageContent .= "        .testimonial {\n";
-        $pageContent .= "            background: #fff;\n";
-        $pageContent .= "            padding: 25px;\n";
-        $pageContent .= "            border-radius: 10px;\n";
-        $pageContent .= "            box-shadow: 0 4px 6px rgba(0,0,0,0.1);\n";
-        $pageContent .= "            margin: 10px;\n";
-        $pageContent .= "            text-align: center;\n";
-        $pageContent .= "            transition: all 0.3s ease;\n";
-        $pageContent .= "        }\n";
-        $pageContent .= "        .testimonial:hover {\n";
-        $pageContent .= "            transform: translateY(-5px);\n";
-        $pageContent .= "            box-shadow: 0 8px 15px rgba(0,0,0,0.2);\n";
-        $pageContent .= "        }\n";
-        $pageContent .= "        .testimonial-content {\n";
-        $pageContent .= "            font-size: 1.1em;\n";
-        $pageContent .= "            line-height: 1.6;\n";
-        $pageContent .= "            color: #555;\n";
-        $pageContent .= "            margin-bottom: 20px;\n";
-        $pageContent .= "            font-style: italic;\n";
-        $pageContent .= "        }\n";
-        $pageContent .= "        .testimonial-content i {\n";
-        $pageContent .= "            color: #3498db;\n";
-        $pageContent .= "            margin: 0 10px;\n";
-        $pageContent .= "            font-size: 1.2em;\n";
-        $pageContent .= "        }\n";
-        $pageContent .= "        .testimonial-author {\n";
-        $pageContent .= "            display: flex;\n";
-        $pageContent .= "            flex-direction: column;\n";
-        $pageContent .= "            align-items: center;\n";
-        $pageContent .= "            gap: 5px;\n";
-        $pageContent .= "        }\n";
-        $pageContent .= "        .testimonial-author strong {\n";
-        $pageContent .= "            color: #333;\n";
-        $pageContent .= "            font-size: 1.1em;\n";
-        $pageContent .= "        }\n";
-        $pageContent .= "        .testimonial-author .location {\n";
-        $pageContent .= "            color: #666;\n";
-        $pageContent .= "            font-size: 0.9em;\n";
-        $pageContent .= "        }\n";
-        $pageContent .= "        .swiper-container {\n";
-        $pageContent .= "            width: 100%;\n";
-        $pageContent .= "            padding: 20px 0;\n";
-        $pageContent .= "        }\n";
-        $pageContent .= "        .swiper-slide {\n";
-        $pageContent .= "            display: flex;\n";
-        $pageContent .= "            flex-direction: column;\n";
-        $pageContent .= "            align-items: center;\n";
-        $pageContent .= "            justify-content: center;\n";
-        $pageContent .= "            text-align: center;\n";
-        $pageContent .= "            background: #fff;\n";
-        $pageContent .= "            padding: 30px;\n";
-        $pageContent .= "            border-radius: 10px;\n";
-        $pageContent .= "            box-shadow: 0 4px 6px rgba(0,0,0,0.1);\n";
-        $pageContent .= "        }\n";
-        $pageContent .= "        .swiper-pagination-bullet {\n";
-        $pageContent .= "            background: #3498db;\n";
-        $pageContent .= "        }\n";
-        $pageContent .= "    </style>\n";
-        $pageContent .= "</head>\n";
-        $pageContent .= "<body>\n";
-        $pageContent .= "    <!-- Banner Section -->\n";
-        $pageContent .= "    <div class=\"banner\">\n";
-        $pageContent .= "        <img src=\"assets/resorts/<?php echo \$resort_slug . '/' . htmlspecialchars(\$resort['banner_image']); ?>\" alt=\"<?php echo htmlspecialchars(\$resort['resort_name']); ?>\">\n";
-        $pageContent .= "        <h1 class=\"banner-title\"><?php echo htmlspecialchars(\$resort['banner_title'] ?? \$resort['resort_name']); ?></h1>\n";
-        $pageContent .= "    </div>\n\n";
-        $pageContent .= "    <div class=\"container\">\n";
-        $pageContent .= "        <div class=\"row\">\n";
-        $pageContent .= "            <!-- Main Content Column -->\n";
-        $pageContent .= "            <div class=\"col-lg-8\">\n";
-        $pageContent .= "                <div class=\"resort-details\">\n";
-        $pageContent .= "                    <h2><?php echo htmlspecialchars(\$resort['resort_name']); ?></h2>\n";
-        $pageContent .= "                    <div class=\"resort-description\">\n";
-        $pageContent .= "                        <?php echo \$resort['resort_description']; ?>\n";
-        $pageContent .= "                    </div>\n\n";
-        $pageContent .= "                    <!-- Amenities Section -->\n";
-        $pageContent .= "                    <?php if (!empty(\$amenities)): ?>\n";
-        $pageContent .= "                    <h3>Amenities</h3>\n";
-        $pageContent .= "                    <div class=\"amenities-grid\">\n";
-        $pageContent .= "                        <?php foreach (\$amenities as \$amenity): ?>\n";
-        $pageContent .= "                            <div class=\"amenity-item\">\n";
-        $pageContent .= "                                <?php if (!empty(\$amenity['icon'])): ?>\n";
-        $pageContent .= "                                    <img src=\"assets/resorts/<?php echo \$resort_slug . '/' . htmlspecialchars(\$amenity['icon']); ?>\" alt=\"<?php echo htmlspecialchars(\$amenity['name']); ?>\" class=\"amenity-icon\">\n";
-        $pageContent .= "                                <?php endif; ?>\n";
-        $pageContent .= "                                <p class=\"amenity-name\"><?php echo htmlspecialchars(\$amenity['name']); ?></p>\n";
-        $pageContent .= "                            </div>\n";
-        $pageContent .= "                        <?php endforeach; ?>\n";
-        $pageContent .= "                    </div>\n";
-        $pageContent .= "                    <?php endif; ?>\n\n";
-        $pageContent .= "                    <!-- Rooms Section -->\n";
-        $pageContent .= "                    <?php if (!empty(\$rooms)): ?>\n";
-        $pageContent .= "                    <h3>Accommodations</h3>\n";
-        $pageContent .= "                    <div class=\"rooms-grid\">\n";
-        $pageContent .= "                        <?php foreach (\$rooms as \$room): ?>\n";
-        $pageContent .= "                            <div class=\"room-card\">\n";
-        $pageContent .= "                                <img src=\"assets/resorts/<?php echo \$resort_slug . '/' . htmlspecialchars(\$room['image']); ?>\" alt=\"<?php echo htmlspecialchars(\$room['name']); ?>\">\n";
-        $pageContent .= "                                <h4><?php echo htmlspecialchars(\$room['name']); ?></h4>\n";
-        $pageContent .= "                            </div>\n";
-        $pageContent .= "                        <?php endforeach; ?>\n";
-        $pageContent .= "                    </div>\n";
-        $pageContent .= "                    <?php endif; ?>\n\n";
-        $pageContent .= "                    <!-- Gallery Section -->\n";
-        $pageContent .= "                    <?php if (!empty(\$gallery)): ?>\n";
-        $pageContent .= "                    <h3>Gallery</h3>\n";
-        $pageContent .= "                    <div class=\"gallery-grid\">\n";
-        $pageContent .= "                        <?php foreach (\$gallery as \$image): ?>\n";
-        $pageContent .= "                            <a href=\"assets/resorts/<?php echo \$resort_slug . '/' . htmlspecialchars(\$image); ?>\" class=\"gallery-item\" data-lightbox=\"resort-gallery\">\n";
-        $pageContent .= "                                <img src=\"assets/resorts/<?php echo \$resort_slug . '/' . htmlspecialchars(\$image); ?>\" alt=\"Resort Gallery Image\">\n";
-        $pageContent .= "                            </a>\n";
-        $pageContent .= "                        <?php endforeach; ?>\n";
-        $pageContent .= "                    </div>\n";
-        $pageContent .= "                    <?php endif; ?>\n\n";
-        $pageContent .= "                    <!-- Testimonials Section -->\n";
-        $pageContent .= "                    <?php if (!empty(\$testimonials)): ?>\n";
-        $pageContent .= "                    <h3>Guest Testimonials</h3>\n";
-        $pageContent .= "                    <div class=\"swiper-container\">\n";
-        $pageContent .= "                        <div class=\"swiper-wrapper\">\n";
-        $pageContent .= "                            <?php foreach (\$testimonials as \$testimonial): ?>\n";
-        $pageContent .= "                                <div class=\"swiper-slide\">\n";
-        $pageContent .= "                                    <?php if (!empty(\$testimonial['content'])): ?>\n";
-        $pageContent .= "                                        <p class=\"testimonial-content\">\n";
-        $pageContent .= "                                            <i class=\"fas fa-quote-left\"></i>\n";
-        $pageContent .= "                                            <?php echo htmlspecialchars(\$testimonial['content']); ?>\n";
-        $pageContent .= "                                            <i class=\"fas fa-quote-right\"></i>\n";
-        $pageContent .= "                                        </p>\n";
-        $pageContent .= "                                    <?php endif; ?>\n";
-        $pageContent .= "                                    <?php if (!empty(\$testimonial['name']) || !empty(\$testimonial['from'])): ?>\n";
-        $pageContent .= "                                        <p class=\"testimonial-author\">\n";
-        $pageContent .= "                                            <strong><?php echo htmlspecialchars(\$testimonial['name'] ?? ''); ?></strong>\n";
-        $pageContent .= "                                            <span><?php echo htmlspecialchars(\$testimonial['from'] ?? ''); ?></span>\n";
-        $pageContent .= "                                        </p>\n";
-        $pageContent .= "                                    <?php endif; ?>\n";
-        $pageContent .= "                                </div>\n";
-        $pageContent .= "                            <?php endforeach; ?>\n";
-        $pageContent .= "                        </div>\n";
-        $pageContent .= "                        <!-- Add Pagination -->\n";
-        $pageContent .= "                        <div class=\"swiper-pagination\"></div>\n";
-        $pageContent .= "                    </div>\n";
-        $pageContent .= "                    <?php endif; ?>\n";
-        $pageContent .= "                </div>\n";
-        $pageContent .= "            </div>\n\n";
-        $pageContent .= "            <!-- Sidebar with Enquiry Form -->\n";
-        $pageContent .= "            <div class=\"col-lg-4\">\n";
-        $pageContent .= "                <div class=\"booking-form\">\n";
-        $pageContent .= "                    <?php include 'destination-form.php'; ?>\n";
-        $pageContent .= "                </div>\n";
-        $pageContent .= "            </div>\n";
-        $pageContent .= "        </div>\n";
-        $pageContent .= "    </div>\n\n";
-        $pageContent .= "    <!-- Scripts -->\n";
-        $pageContent .= "    <script src=\"https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js\"></script>\n";
-        $pageContent .= "    <script src=\"https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/js/lightbox.min.js\"></script>\n";
-        $pageContent .= "    <script src=\"https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js\"></script>\n";
-        $pageContent .= "    <script src=\"https://unpkg.com/swiper/swiper-bundle.min.js\"></script>\n";
-        $pageContent .= "    <script>\n";
-        $pageContent .= "        \$(document).ready(function(){\n";
-        $pageContent .= "            // Initialize gallery carousel\n";
-        $pageContent .= "            \$('.gallery-carousel').owlCarousel({\n";
-        $pageContent .= "                loop: true,\n";
-        $pageContent .= "                margin: 10,\n";
-        $pageContent .= "                nav: true,\n";
-        $pageContent .= "                responsive: {\n";
-        $pageContent .= "                    0: { items: 1 },\n";
-        $pageContent .= "                    600: { items: 2 },\n";
-        $pageContent .= "                    1000: { items: 3 }\n";
-        $pageContent .= "                },\n";
-        $pageContent .= "                autoplay: true,\n";
-        $pageContent .= "                autoplayTimeout: 5000,\n";
-        $pageContent .= "                autoplayHoverPause: true\n";
-        $pageContent .= "            });\n\n";
-        $pageContent .= "            // Initialize testimonials carousel\n";
-        $pageContent .= "            \$('.testimonial-carousel').owlCarousel({\n";
-        $pageContent .= "                loop: true,\n";
-        $pageContent .= "                margin: 20,\n";
-        $pageContent .= "                nav: true,\n";
-        $pageContent .= "                dots: true,\n";
-        $pageContent .= "                items: 1, // Show one testimonial at a time\n";
-        $pageContent .= "                autoplay: true,\n";
-        $pageContent .= "                autoplayTimeout: 5000, // 5 seconds per slide\n";
-        $pageContent .= "                autoplayHoverPause: true, // Pause on hover\n";
-        $pageContent .= "                smartSpeed: 800, // Smooth transition speed\n";
-        $pageContent .= "                navText: ['<i class=\"fas fa-chevron-left\"></i>', '<i class=\"fas fa-chevron-right\"></i>'],\n";
-        $pageContent .= "                animateOut: 'fadeOut',\n";
-        $pageContent .= "                animateIn: 'fadeIn'\n";
-        $pageContent .= "            });\n\n";
-        $pageContent .= "            // Initialize lightbox\n";
-        $pageContent .= "            lightbox.option({\n";
-        $pageContent .= "                'resizeDuration': 200,\n";
-        $pageContent .= "                'wrapAround': true\n";
-        $pageContent .= "            });\n";
-        $pageContent .= "        });\n";
-        $pageContent .= "        const swiper = new Swiper('.swiper-container', {\n";
-        $pageContent .= "            loop: true,\n";
-        $pageContent .= "            autoplay: {\n";
-        $pageContent .= "                delay: 5000,\n";
-        $pageContent .= "                disableOnInteraction: false,\n";
-        $pageContent .= "            },\n";
-        $pageContent .= "            pagination: {\n";
-        $pageContent .= "                el: '.swiper-pagination',\n";
-        $pageContent .= "                clickable: true,\n";
-        $pageContent .= "            },\n";
-        $pageContent .= "        });\n";
-        $pageContent .= "<?php require 'kfooter.php'; ?>\n";
-        $pageContent .= "</body>\n";
-        $pageContent .= "</html>\n";
-
-        file_put_contents($resortPage, $pageContent);
-        // Instead of redirecting, show success message and open in new tab
-        echo "<script>
-            window.open('" . $resortPage . "', '_blank');
-            window.location.href = 'resort_list.php';
-        </script>";
-        exit();
     }
+
+    // Generate resort landing page file (e.g., abc.php)
+    $pageContent  = "<?php\n";
+    $pageContent .= "require 'db.php';\n";
+    $pageContent .= "\$stmt = \$pdo->prepare(\"SELECT * FROM resorts WHERE resort_slug = ?\");\n";
+    $pageContent .= "\$stmt->execute(['$resort_slug']);\n";
+    $pageContent .= "\$resort = \$stmt->fetch();\n";
+    $pageContent .= "if (!\$resort) { echo 'Resort not found.'; exit(); }\n";
+    // Redirect to 404 page if resort is not active
+    $pageContent .= "if (\$resort['is_active'] != 1) { header('Location: 404.php'); exit(); }\n";
+    $pageContent .= "\$destStmt = \$pdo->prepare(\"SELECT * FROM destinations WHERE id = ?\");\n";
+    $pageContent .= "\$destStmt->execute([\$resort['destination_id']]);\n";
+    $pageContent .= "\$destination = \$destStmt->fetch();\n";
+    $pageContent .= "\$amenities = json_decode(\$resort['amenities'] ?? '', true);\n";
+    $pageContent .= "\$room_details = json_decode(\$resort['room_details'] ?? '', true);\n";
+    $pageContent .= "\$gallery = json_decode(\$resort['gallery'] ?? '', true);\n";
+    $pageContent .= "\$testimonials = json_decode(\$resort['testimonials'] ?? '', true);\n";
+    // Build the assets folder path for images using the stored slug in the new structure
+    $pageContent .= "\$resortFolder = 'assets/resorts/' . (\$resort['resort_slug'] ?? '');\n";
+    $pageContent .= "?>\n";
+    $pageContent .= "<?php include 'kresort_header.php'; ?>\n";
+    // Link CSS files
+    $pageContent .= "<link rel=\"stylesheet\" href=\"css/resort-details.css\" />\n";
+    $pageContent .= "<link rel=\"stylesheet\" href=\"https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.css\" />\n";
+    $pageContent .= "<link rel=\"stylesheet\" href=\"https://unpkg.com/swiper/swiper-bundle.min.css\" />\n"; // Swiper CSS
+    $pageContent .= "<link rel=\"stylesheet\" href=\"assets/int-tel-input/css/intlTelInput.min.css\">\n"; // Intl Tel Input CSS
+
+    // Banner Section (Modified for bottom-left title)
+    $pageContent .= "<div class=\"resort-banner modern-banner\">\n"; // Added class
+    $pageContent .= "  <img src=\"<?php echo \$resortFolder . '/' . (\$resort['banner_image'] ?? ''); ?>\" alt=\"<?php echo htmlspecialchars(\$resort['resort_name'] ?? ''); ?> Banner\" class=\"banner-image\">\n";
+    $pageContent .= "  <div class=\"banner-content-bottom-left\">\n"; // New container for title
+    $pageContent .= "    <h1 class=\"banner-title\"><?php echo htmlspecialchars(\$resort['banner_title'] ?? ''); ?></h1>\n";
+    $pageContent .= "  </div>\n";
+    $pageContent .= "</div>\n";
+
+    // Main Content Section (2 Columns)
+    $pageContent .= "<div class=\"container resort-details-container section-padding\">\n";
+    $pageContent .= "  <div class=\"row\">\n";
+    // Left Column: Resort Details
+    $pageContent .= "    <div class=\"col-lg-8 resort-content-left\">\n";
+    // Resort Name and Description
+    $pageContent .= "      <h2 class=\"resort-name\"><?php echo htmlspecialchars(\$resort['resort_name'] ?? ''); ?></h2>\n";
+    $pageContent .= "      <p class=\"resort-description\"><?php echo nl2br(htmlspecialchars(\$resort['resort_description'] ?? '')); ?></p>\n";
+
+    // Amenities Section (Added classes for animation)
+    $pageContent .= "<div class=\"resort-section amenities-section\">\n"; // Added class
+    $pageContent .= "        <h3>Amenities</h3>\n";
+    $pageContent .= "<div class=\"amenities-grid\">\n";
+    $pageContent .= "<?php if(is_array(\$amenities)): foreach(\$amenities as \$a): ?>\n";
+    $pageContent .= "<div class=\"amenity-item animate-icon\">\n"; // Added class for animation
+    $pageContent .= "<img src=\"<?php echo \$resortFolder . '/' . htmlspecialchars(\$a['icon'] ?? ''); ?>\" alt=\"<?php echo htmlspecialchars(\$a['name'] ?? ''); ?>\">\n";
+    $pageContent .= "<p><?php echo htmlspecialchars(\$a['name'] ?? ''); ?></p>\n";
+    $pageContent .= "</div>\n";
+    $pageContent .= "<?php endforeach; else: ?>\n";
+    $pageContent .= "<p>No amenities listed.</p>\n";
+    $pageContent .= "<?php endif; ?>\n";
+    $pageContent .= "</div>\n";
+    $pageContent .= "</div>\n";
+
+    // Room Details Section (Added classes for hover effect)
+    $pageContent .= "<div class=\"resort-section rooms-section\">\n"; // Added class
+    $pageContent .= "        <h3>Room Details</h3>\n";
+    $pageContent .= "<div class=\"room-details-grid\">\n";
+    $pageContent .= "<?php if(is_array(\$room_details)): foreach(\$room_details as \$r): ?>\n";
+    $pageContent .= "<div class=\"room-item room-hover-effect\">\n"; // Added class for hover
+    $pageContent .= "<div class=\"room-image-container\">\n"; // Container for image
+    $pageContent .= "<img src=\"<?php echo \$resortFolder . '/' . htmlspecialchars(\$r['image'] ?? ''); ?>\" alt=\"<?php echo htmlspecialchars(\$r['name'] ?? ''); ?>\">\n";
+    $pageContent .= "</div>\n";
+    $pageContent .= "<div class=\"room-info\">\n"; // Container for text
+    $pageContent .= "<p><?php echo htmlspecialchars(\$r['name'] ?? ''); ?></p>\n";
+    $pageContent .= "</div>\n";
+    $pageContent .= "</div>\n";
+    $pageContent .= "<?php endforeach; else: ?>\n";
+    $pageContent .= "<p>No room details available.</p>\n";
+    $pageContent .= "<?php endif; ?>\n";
+    $pageContent .= "</div>\n";
+    $pageContent .= "</div>\n";
+
+    // Gallery Section (Modified for Swiper Carousel + Fancybox)
+    $pageContent .= "<div class=\"resort-section gallery-section\">\n"; // Added class
+    $pageContent .= "        <h3>Gallery</h3>\n";
+    $pageContent .= "<?php if(is_array(\$gallery) && count(\$gallery) > 0): ?>\n";
+    $pageContent .= "<div class=\"swiper gallery-carousel\">\n"; // Swiper container
+    $pageContent .= "<div class=\"swiper-wrapper\">\n";
+    $pageContent .= "<?php foreach(\$gallery as \$img): ?>\n";
+    $pageContent .= "<div class=\"swiper-slide gallery-item\">\n"; // Swiper slide
+    $pageContent .= "<a href=\"<?php echo \$resortFolder . '/' . htmlspecialchars(\$img); ?>\" data-fancybox=\"gallery\" data-caption=\"<?php echo htmlspecialchars(\$resort['resort_name'] ?? ''); ?> Gallery Image\">\n";
+    $pageContent .= "<img src=\"<?php echo \$resortFolder . '/' . htmlspecialchars(\$img); ?>\" alt=\"Gallery Image\">\n";
+    $pageContent .= "</a>\n";
+    $pageContent .= "</div>\n";
+    $pageContent .= "<?php endforeach; ?>\n";
+    $pageContent .= "</div>\n";
+    // Add Swiper pagination and navigation
+    $pageContent .= "<div class=\"swiper-pagination gallery-pagination\"></div>\n";
+    $pageContent .= "<div class=\"swiper-button-next gallery-button-next\"></div>\n";
+    $pageContent .= "<div class=\"swiper-button-prev gallery-button-prev\"></div>\n";
+    $pageContent .= "</div>\n";
+    $pageContent .= "<?php else: ?>\n";
+    $pageContent .= "<p>No gallery images available.</p>\n";
+    $pageContent .= "<?php endif; ?>\n";
+    $pageContent .= "</div>\n";
+
+    // Testimonials Section (Modified for Swiper Carousel)
+    $pageContent .= "<div class=\"resort-section testimonials-section modern-testimonials\">\n"; // Added class
+    $pageContent .= "        <h3>What Our Guests Say</h3>\n"; // Changed title
+    $pageContent .= "<?php if(is_array(\$testimonials) && count(\$testimonials) > 0): ?>\n";
+    $pageContent .= "<div class=\"swiper testimonial-carousel\">\n"; // Swiper container
+    $pageContent .= "<div class=\"swiper-wrapper\">\n";
+    $pageContent .= "<?php foreach(\$testimonials as \$t): ?>\n";
+    $pageContent .= "<div class=\"swiper-slide testimonial-item\">\n"; // Swiper slide
+    $pageContent .= "<blockquote class=\"testimonial-content\">\n";
+    $pageContent .= "<p>\"<?php echo htmlspecialchars(\$t['content'] ?? ''); ?>\"</p>\n";
+    $pageContent .= "<footer class=\"testimonial-author\">\n";
+    $pageContent .= "<?php echo htmlspecialchars(\$t['name'] ?? ''); ?><?php echo !empty(\$t['from']) ? '<span>, ' . htmlspecialchars(\$t['from']) . '</span>' : ''; ?>\n";
+    $pageContent .= "</footer>\n";
+    $pageContent .= "</blockquote>\n";
+    $pageContent .= "</div>\n";
+    $pageContent .= "<?php endforeach; ?>\n";
+    $pageContent .= "</div>\n";
+    // Add Swiper pagination
+    $pageContent .= "<div class=\"swiper-pagination testimonial-pagination\"></div>\n";
+    $pageContent .= "</div>\n";
+    $pageContent .= "<?php else: ?>\n";
+    $pageContent .= "<p>No testimonials available at the moment.</p>\n";
+    $pageContent .= "<?php endif; ?>\n";
+    $pageContent .= "</div>\n";
+
+    $pageContent .= "</div>\n"; // End Left Column
+
+    // Right Column: Sticky Form
+    $pageContent .= "<div class=\"col-lg-4\">\n";
+    $pageContent .= "<div class=\"sticky-form-container\">\n";
+    $pageContent .= "<div class=\"destination-form-wrapper modern-form\">\n"; // Added class for styling
+    // Pass resort and destination names to the form context if needed, or handle within the form itself
+    $pageContent .= "<?php \n";
+    $pageContent .= "// Make resort and destination data available for the included form\n";
+    $pageContent .= "\$current_resort_name = \$resort['resort_name'] ?? ''; \n";
+    $pageContent .= "\$current_destination_name = \$destination['name'] ?? ''; \n";
+    $pageContent .= "include 'destination-form.php'; \n";
+    $pageContent .= "?>\n";
+    $pageContent .= "</div>\n";
+    $pageContent .= "</div>\n";
+    $pageContent .= "</div>\n"; // End Right Column
+
+    $pageContent .= "</div>\n"; // End Row
+    $pageContent .= "</div>\n"; // End Container
+
+    // Include Footer
+    $pageContent .= "<?php include 'kfooter.php'; ?>\n";
+
+    // Include JS Libraries
+    $pageContent .= "<script src=\"https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.js\"></script>\n";
+    $pageContent .= "<script src=\"https://unpkg.com/swiper/swiper-bundle.min.js\"></script>\n"; // Swiper JS
+    $pageContent .= "<script src=\"assets/int-tel-input/js/intlTelInput.min.js\"></script>\n"; // Intl Tel Input JS
+    $pageContent .= "<script src=\"assets/int-tel-input/js/utils.js\"></script>\n"; // Intl Tel Input Utils
+
+    // Custom JS Initializations
+    $pageContent .= "<script>\n";
+    // Fancybox Init
+    $pageContent .= "Fancybox.bind('[data-fancybox=\"gallery\"]', { /* Options */ });\n";
+    // Gallery Carousel Init
+    $pageContent .= "const galleryCarousel = new Swiper('.gallery-carousel', {\n";
+    $pageContent .= "loop: true,\n";
+    $pageContent .= "slidesPerView: 1,\n";
+    $pageContent .= "spaceBetween: 10,\n";
+    $pageContent .= "pagination: { el: '.gallery-pagination', clickable: true },\n";
+    $pageContent .= "navigation: { nextEl: '.gallery-button-next', prevEl: '.gallery-button-prev' },\n";
+    $pageContent .= "breakpoints: { 640: { slidesPerView: 2, spaceBetween: 20 }, 1024: { slidesPerView: 3, spaceBetween: 30 } }\n";
+    $pageContent .= "});\n";
+    // Testimonial Carousel Init
+    $pageContent .= "const testimonialCarousel = new Swiper('.testimonial-carousel', {\n";
+    $pageContent .= "loop: true,\n";
+    $pageContent .= "autoplay: { delay: 5000, disableOnInteraction: false },\n";
+    $pageContent .= "pagination: { el: '.testimonial-pagination', clickable: true },\n";
+    $pageContent .= "slidesPerView: 1,\n";
+    $pageContent .= "spaceBetween: 30\n";
+    $pageContent .= "});\n";
+    // Intl Tel Input Init (Target the phone input field in destination-form.php)
+    $pageContent .= "const phoneInputField = document.querySelector('#phone');\n";
+    $pageContent .= "if (phoneInputField) {\n";
+    $pageContent .= "const phoneInput = window.intlTelInput(phoneInputField, {\n";
+    $pageContent .= "initialCountry: 'auto',\n";
+    $pageContent .= "geoIpLookup: function(callback) {\n";
+    $pageContent .= "fetch('https://ipapi.co/json')\n";
+    $pageContent .= ".then(function(res) { return res.json(); })\n";
+    $pageContent .= ".then(function(data) { callback(data.country_code); })\n";
+    $pageContent .= ".catch(function() { callback('us'); });\n";
+    $pageContent .= "},\n";
+    $pageContent .= "utilsScript: 'assets/int-tel-input/js/utils.js'\n";
+    $pageContent .= "});\n";
+    $pageContent .= "// You might want to store the full number on form submit\n";
+    $pageContent .= "const form = phoneInputField.closest('form');\n";
+    $pageContent .= "if (form) {\n";
+    $pageContent .= "form.addEventListener('submit', function() {\n";
+    $pageContent .= "const fullNumber = phoneInput.getNumber();\n";
+    $pageContent .= "// Add a hidden input to store the full number if needed\n";
+    $pageContent .= "let hiddenInput = form.querySelector('input[name=\"full_phone\"]');\n";
+    $pageContent .= "if (!hiddenInput) {\n";
+    $pageContent .= "hiddenInput = document.createElement('input');\n";
+    $pageContent .= "hiddenInput.type = 'hidden';\n";
+    $pageContent .= "hiddenInput.name = 'full_phone';\n";
+    $pageContent .= "form.appendChild(hiddenInput);\n";
+    $pageContent .= "}\n";
+    $pageContent .= "hiddenInput.value = fullNumber;\n";
+    $pageContent .= "});\n";
+    $pageContent .= "}\n";
+    $pageContent .= "}\n";
+    $pageContent .= "</script>\n";
+
+    file_put_contents($resortPage, $pageContent);
+    
+    header("Location: $resortPage");
+    exit();
 }
 ?>
