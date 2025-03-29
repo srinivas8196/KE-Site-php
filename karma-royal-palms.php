@@ -143,18 +143,115 @@ document.addEventListener('DOMContentLoaded', function() {
 </div>
 <div class="col-lg-4">
 <div class="sticky-form-container">
-<div class="destination-form-wrapper modern-form">
-<style>
-.iti__country-list { max-height: 200px; } /* Limit height of country list */
-.destination-form-wrapper { max-width: 100%; padding: 20px; background: #fff; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-</style>
-<?php 
-// Make resort and destination data available for the included form
-$current_resort_name = $resort['resort_name'] ?? ''; 
-$current_destination_name = $destination['name'] ?? ''; 
-include 'destination-form.php'; 
-?>
+<div class="resort-form-container">
+<form id="resortEnquiryForm" method="POST" action="process_resort_enquiry.php">
+<input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+<input type="hidden" name="resort_id" value="<?php echo htmlspecialchars($resort['id']); ?>">
+<input type="hidden" name="resort_name" value="<?php echo htmlspecialchars($resort['resort_name']); ?>">
+<input type="hidden" name="destination_name" value="<?php echo htmlspecialchars($destination['destination_name']); ?>">
+<input type="hidden" name="resort_code" value="<?php echo htmlspecialchars($resort['resort_code']); ?>">
+<div class="form-grid">
+<div class="form-group">
+<label for="firstName">First Name *</label>
+<input type="text" id="firstName" name="firstName" class="form-control" required>
 </div>
+<div class="form-group">
+<label for="lastName">Last Name *</label>
+<input type="text" id="lastName" name="lastName" class="form-control" required>
+</div>
+<div class="form-group">
+<label for="email">Email *</label>
+<input type="email" id="email" name="email" class="form-control" required>
+</div>
+<div class="form-group">
+<label for="phone">Phone Number *</label>
+<input type="tel" id="phone" name="phone" class="form-control" required>
+<div id="phone-error" class="error-message">Please enter a valid phone number</div>
+</div>
+<div class="form-group">
+<label for="dob">Date of Birth * (Must be 27 years or older)</label>
+<input type="date" id="dob" name="dob" class="form-control" required>
+<div id="dob-error" class="error-message">You must be at least 27 years old</div>
+</div>
+<div class="form-group">
+<label for="hasPassport">Do you have a passport? *</label>
+<select id="hasPassport" name="hasPassport" class="form-control" required>
+<option value="">Select an option</option>
+<option value="yes">Yes</option>
+<option value="no">No</option>
+</select>
+</div>
+</div>
+<button type="submit" class="btn-submit">Submit Enquiry</button>
+</form>
+</div>
+<style>
+.resort-form-container { width: 100%; padding: 20px; background: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+.form-grid { display: grid; grid-template-columns: 1fr; gap: 20px; margin-bottom: 20px; }
+.form-group { margin-bottom: 15px; }
+.form-group label { display: block; margin-bottom: 5px; font-weight: 600; color: #333; }
+.form-control { width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
+.btn-submit { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; width: 100%; }
+.btn-submit:hover { background: #0056b3; }
+.error-message { color: #dc3545; font-size: 12px; margin-top: 5px; display: none; }
+.error-message.show { display: block; }
+.iti { width: 100% !important; }
+.iti__country-list { max-height: 200px !important; overflow-y: auto !important; width: 260px !important; position: absolute !important; z-index: 9999 !important; background-color: white !important; box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important; }
+</style>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Phone number initialization
+    var phoneInput = document.querySelector('#phone');
+    var iti = window.intlTelInput(phoneInput, {
+        preferredCountries: ['in', 'ae', 'gb', 'us'],
+        separateDialCode: true,
+        utilsScript: 'https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/utils.js'
+    });
+    // Create hidden input for full phone number
+    var hiddenPhoneInput = document.createElement('input');
+    hiddenPhoneInput.type = 'hidden';
+    hiddenPhoneInput.name = 'full_phone';
+    phoneInput.parentNode.insertBefore(hiddenPhoneInput, phoneInput.nextSibling);
+    // Date of birth validation
+    var dobInput = document.getElementById('dob');
+    dobInput.max = new Date(new Date().setFullYear(new Date().getFullYear() - 27)).toISOString().split('T')[0];
+    function validateDOB() {
+        var dob = new Date(dobInput.value);
+        var age = Math.floor((new Date() - dob) / (365.25 * 24 * 60 * 60 * 1000));
+        var errorDiv = document.getElementById('dob-error');
+        if (age < 27) {
+            errorDiv.classList.add('show');
+            return false;
+        } else {
+            errorDiv.classList.remove('show');
+            return true;
+        }
+    }
+    function validatePhoneNumber() {
+        var errorDiv = document.getElementById('phone-error');
+        if (!iti.isValidNumber()) {
+            errorDiv.classList.add('show');
+            return false;
+        } else {
+            errorDiv.classList.remove('show');
+            hiddenPhoneInput.value = iti.getNumber();
+            return true;
+        }
+    }
+    // Form validation
+    document.getElementById('resortEnquiryForm').addEventListener('submit', function(event) {
+        var isPhoneValid = validatePhoneNumber();
+        var isDOBValid = validateDOB();
+        if (!isPhoneValid || !isDOBValid) {
+            event.preventDefault();
+        }
+    });
+    // Live validation
+    phoneInput.addEventListener('input', validatePhoneNumber);
+    phoneInput.addEventListener('countrychange', validatePhoneNumber);
+    dobInput.addEventListener('change', validateDOB);
+});
+</script>
 </div>
 </div>
 </div>

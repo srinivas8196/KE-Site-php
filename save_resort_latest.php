@@ -228,8 +228,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         ]);
         
         if ($success) {
-            $_SESSION['success_message'] = "Resort created successfully!";
-            $_SESSION['new_resort_url'] = $resortPage; // Store the new resort URL in session
+            $_SESSION['success_message'] = "New resort created successfully!";
         } else {
             $_SESSION['error_message'] = "Failed to create resort. Please try again.";
         }
@@ -377,30 +376,35 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $pageContent .= ".testimonial-author strong { color: #333; }\n";
     $pageContent .= "</style>\n";
 
-    // Add form styles
-    $pageContent .= "<style>\n";
-    $pageContent .= ".resort-form-container { width: 100%; padding: 20px; background: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }\n";
-    $pageContent .= ".resort-form-container h3 { margin-bottom: 20px; color: #333; }\n";
-    $pageContent .= ".form-grid { display: grid; grid-template-columns: 1fr; gap: 20px; margin-bottom: 20px; }\n";
-    $pageContent .= ".form-group { margin-bottom: 15px; position: relative; }\n";
-    $pageContent .= ".form-group label { display: block; margin-bottom: 5px; font-weight: 600; color: #333; }\n";
-    $pageContent .= ".form-control { width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }\n";
-    $pageContent .= ".btn-submit { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; width: 100%; }\n";
-    $pageContent .= ".btn-submit:hover { background: #0056b3; }\n";
-    $pageContent .= ".error-message { color: #dc3545; font-size: 12px; margin-top: 5px; display: none; }\n";
-    $pageContent .= ".error-message.show { display: block; }\n";
-    $pageContent .= "</style>\n";
+    // Initialize Swiper for testimonials
+    $pageContent .= "<script>\n";
+    $pageContent .= "document.addEventListener('DOMContentLoaded', function() {\n";
+    $pageContent .= "  if(document.querySelector('.testimonial-carousel')) {\n";
+    $pageContent .= "    const testimonialCarousel = new Swiper('.testimonial-carousel', {\n";
+    $pageContent .= "      loop: true,\n";
+    $pageContent .= "      autoplay: {\n";
+    $pageContent .= "        delay: 5000,\n";
+    $pageContent .= "        disableOnInteraction: false,\n";
+    $pageContent .= "        pauseOnMouseEnter: true\n";
+    $pageContent .= "      },\n";
+    $pageContent .= "      speed: 1000,\n";
+    $pageContent .= "      effect: 'fade',\n";
+    $pageContent .= "      fadeEffect: { crossFade: true },\n";
+    $pageContent .= "      pagination: {\n";
+    $pageContent .= "        el: '.testimonial-pagination',\n";
+    $pageContent .= "        clickable: true\n";
+    $pageContent .= "      }\n";
+    $pageContent .= "    });\n";
+    $pageContent .= "  }\n";
+    $pageContent .= "});\n";
+    $pageContent .= "</script>\n";
 
-    // Include JS Libraries at the top
-    $pageContent .= "<script src=\"https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.js\"></script>\n";
-    $pageContent .= "<script src=\"https://unpkg.com/swiper/swiper-bundle.min.js\"></script>\n";
-    $pageContent .= "<script src=\"https://kit.fontawesome.com/your-font-awesome-kit.js\"></script>\n";
+    $pageContent .= "</div>\n"; // End Left Column
 
     // Right Column: Sticky Form
     $pageContent .= "<div class=\"col-lg-4\">\n";
     $pageContent .= "<div class=\"sticky-form-container\">\n";
     $pageContent .= "<div class=\"resort-form-container\">\n";
-    $pageContent .= "<h3>Enquire Now</h3>\n";
     $pageContent .= "<form id=\"resortEnquiryForm\" method=\"POST\" action=\"process_resort_enquiry.php\">\n";
     $pageContent .= "<input type=\"hidden\" name=\"csrf_token\" value=\"<?php echo \$_SESSION['csrf_token']; ?>\">\n";
     $pageContent .= "<input type=\"hidden\" name=\"resort_id\" value=\"<?php echo htmlspecialchars(\$resort['id']); ?>\">\n";
@@ -449,6 +453,84 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $pageContent .= "<button type=\"submit\" class=\"btn-submit\">Submit Enquiry</button>\n";
     $pageContent .= "</form>\n";
     $pageContent .= "</div>\n";
+
+    // Add form styles
+    $pageContent .= "<style>\n";
+    $pageContent .= ".resort-form-container { width: 100%; padding: 20px; background: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }\n";
+    $pageContent .= ".form-grid { display: grid; grid-template-columns: 1fr; gap: 20px; margin-bottom: 20px; }\n";
+    $pageContent .= ".form-group { margin-bottom: 15px; }\n";
+    $pageContent .= ".form-group label { display: block; margin-bottom: 5px; font-weight: 600; color: #333; }\n";
+    $pageContent .= ".form-control { width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }\n";
+    $pageContent .= ".btn-submit { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; width: 100%; }\n";
+    $pageContent .= ".btn-submit:hover { background: #0056b3; }\n";
+    $pageContent .= ".error-message { color: #dc3545; font-size: 12px; margin-top: 5px; display: none; }\n";
+    $pageContent .= ".error-message.show { display: block; }\n";
+    $pageContent .= ".iti { width: 100% !important; }\n";
+    $pageContent .= ".iti__country-list { max-height: 200px !important; overflow-y: auto !important; width: 260px !important; position: absolute !important; z-index: 9999 !important; background-color: white !important; box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important; }\n";
+    $pageContent .= "</style>\n";
+
+    // Add form validation and phone input initialization
+    $pageContent .= "<script>\n";
+    $pageContent .= "document.addEventListener('DOMContentLoaded', function() {\n";
+    $pageContent .= "    // Phone number initialization\n";
+    $pageContent .= "    var phoneInput = document.querySelector('#phone');\n";
+    $pageContent .= "    var iti = window.intlTelInput(phoneInput, {\n";
+    $pageContent .= "        preferredCountries: ['in', 'ae', 'gb', 'us'],\n";
+    $pageContent .= "        separateDialCode: true,\n";
+    $pageContent .= "        utilsScript: 'https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/utils.js'\n";
+    $pageContent .= "    });\n";
+
+    $pageContent .= "    // Create hidden input for full phone number\n";
+    $pageContent .= "    var hiddenPhoneInput = document.createElement('input');\n";
+    $pageContent .= "    hiddenPhoneInput.type = 'hidden';\n";
+    $pageContent .= "    hiddenPhoneInput.name = 'full_phone';\n";
+    $pageContent .= "    phoneInput.parentNode.insertBefore(hiddenPhoneInput, phoneInput.nextSibling);\n";
+
+    $pageContent .= "    // Date of birth validation\n";
+    $pageContent .= "    var dobInput = document.getElementById('dob');\n";
+    $pageContent .= "    dobInput.max = new Date(new Date().setFullYear(new Date().getFullYear() - 27)).toISOString().split('T')[0];\n";
+
+    $pageContent .= "    function validateDOB() {\n";
+    $pageContent .= "        var dob = new Date(dobInput.value);\n";
+    $pageContent .= "        var age = Math.floor((new Date() - dob) / (365.25 * 24 * 60 * 60 * 1000));\n";
+    $pageContent .= "        var errorDiv = document.getElementById('dob-error');\n";
+    $pageContent .= "        if (age < 27) {\n";
+    $pageContent .= "            errorDiv.classList.add('show');\n";
+    $pageContent .= "            return false;\n";
+    $pageContent .= "        } else {\n";
+    $pageContent .= "            errorDiv.classList.remove('show');\n";
+    $pageContent .= "            return true;\n";
+    $pageContent .= "        }\n";
+    $pageContent .= "    }\n";
+
+    $pageContent .= "    function validatePhoneNumber() {\n";
+    $pageContent .= "        var errorDiv = document.getElementById('phone-error');\n";
+    $pageContent .= "        if (!iti.isValidNumber()) {\n";
+    $pageContent .= "            errorDiv.classList.add('show');\n";
+    $pageContent .= "            return false;\n";
+    $pageContent .= "        } else {\n";
+    $pageContent .= "            errorDiv.classList.remove('show');\n";
+    $pageContent .= "            hiddenPhoneInput.value = iti.getNumber();\n";
+    $pageContent .= "            return true;\n";
+    $pageContent .= "        }\n";
+    $pageContent .= "    }\n";
+
+    $pageContent .= "    // Form validation\n";
+    $pageContent .= "    document.getElementById('resortEnquiryForm').addEventListener('submit', function(event) {\n";
+    $pageContent .= "        var isPhoneValid = validatePhoneNumber();\n";
+    $pageContent .= "        var isDOBValid = validateDOB();\n";
+    $pageContent .= "        if (!isPhoneValid || !isDOBValid) {\n";
+    $pageContent .= "            event.preventDefault();\n";
+    $pageContent .= "        }\n";
+    $pageContent .= "    });\n";
+
+    $pageContent .= "    // Live validation\n";
+    $pageContent .= "    phoneInput.addEventListener('input', validatePhoneNumber);\n";
+    $pageContent .= "    phoneInput.addEventListener('countrychange', validatePhoneNumber);\n";
+    $pageContent .= "    dobInput.addEventListener('change', validateDOB);\n";
+    $pageContent .= "});\n";
+    $pageContent .= "</script>\n";
+
     $pageContent .= "</div>\n"; // End sticky-form-container
     $pageContent .= "</div>\n"; // End col-lg-4
 
@@ -458,35 +540,81 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Include Footer
     $pageContent .= "<?php include 'kfooter.php'; ?>\n";
 
-    // Add phone input initialization AFTER the footer
-    $pageContent .= "<!-- Phone Input Initialization -->\n";
-    $pageContent .= "<link rel=\"stylesheet\" href=\"assets/int-tel-input/css/intlTelInput.css\">\n";
-    $pageContent .= "<script src=\"assets/int-tel-input/js/intlTelInput.js\"></script>\n";
+    // Include JS Libraries
+    $pageContent .= "<script src=\"https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.js\"></script>\n";
+    $pageContent .= "<script src=\"https://unpkg.com/swiper/swiper-bundle.min.js\"></script>\n"; // Swiper JS
+    $pageContent .= "<script src=\"assets/int-tel-input/js/intlTelInput.min.js\"></script>\n"; // Intl Tel Input JS
+    $pageContent .= "<script src=\"assets/int-tel-input/js/utils.js\"></script>\n"; // Intl Tel Input Utils
+    $pageContent .= "<script src=\"https://kit.fontawesome.com/your-font-awesome-kit.js\"></script>\n"; // Add FontAwesome for gallery icons
+
+    // Custom JS Initializations
     $pageContent .= "<script>\n";
-    $pageContent .= "window.addEventListener('load', function() {\n";
-    $pageContent .= "    var phoneInput = document.querySelector('#phone');\n";
-    $pageContent .= "    if (phoneInput) {\n";
-    $pageContent .= "        var iti = window.intlTelInput(phoneInput, {\n";
-    $pageContent .= "            utilsScript: 'assets/int-tel-input/js/utils.js',\n";
-    $pageContent .= "            initialCountry: 'us',\n";
-    $pageContent .= "            preferredCountries: ['in', 'ae', 'gb', 'us'],\n";
-    $pageContent .= "            separateDialCode: true,\n";
-    $pageContent .= "            dropdownContainer: document.body\n";
-    $pageContent .= "        });\n";
-    $pageContent .= "        // Store the instance for later use\n";
-    $pageContent .= "        window.iti = iti;\n";
-    $pageContent .= "    }\n";
+    // Fancybox Init with carousel effect
+    $pageContent .= "Fancybox.bind('[data-fancybox=\"gallery\"]', {\n";
+    $pageContent .= "  carousel: { infinite: true },\n";
+    $pageContent .= "  Toolbar: {\n";
+    $pageContent .= "    display: ['slideshow', 'fullscreen', 'thumbs', 'close']\n";
+    $pageContent .= "  },\n";
+    $pageContent .= "  Thumbs: { autoStart: true },\n";
+    $pageContent .= "  Slideshow: { autoStart: false, speed: 4000 }\n";
     $pageContent .= "});\n";
+
+    // Gallery Carousel Init
+    $pageContent .= "const galleryCarousel = new Swiper('.gallery-carousel', {\n";
+    $pageContent .= "loop: true,\n";
+    $pageContent .= "slidesPerView: 1,\n";
+    $pageContent .= "spaceBetween: 10,\n";
+    $pageContent .= "pagination: { el: '.gallery-pagination', clickable: true },\n";
+    $pageContent .= "navigation: { nextEl: '.gallery-button-next', prevEl: '.gallery-button-prev' },\n";
+    $pageContent .= "breakpoints: { 640: { slidesPerView: 2, spaceBetween: 20 }, 1024: { slidesPerView: 3, spaceBetween: 30 } }\n";
+    $pageContent .= "});\n";
+
+    // Intl Tel Input Init (Target the phone input field in destination-form.php)
+    $pageContent .= "const phoneInputField = document.querySelector('#phone');\n";
+    $pageContent .= "if (phoneInputField) {\n";
+    $pageContent .= "const phoneInput = window.intlTelInput(phoneInputField, {\n";
+    $pageContent .= "initialCountry: 'auto',\n";
+    $pageContent .= "geoIpLookup: function(callback) {\n";
+    $pageContent .= "fetch('https://ipapi.co/json')\n";
+    $pageContent .= ".then(function(res) { return res.json(); })\n";
+    $pageContent .= ".then(function(data) { callback(data.country_code); })\n";
+    $pageContent .= ".catch(function() { callback('us'); });\n";
+    $pageContent .= "},\n";
+    $pageContent .= "utilsScript: 'assets/int-tel-input/js/utils.js'\n";
+    $pageContent .= "});\n";
+    $pageContent .= "// You might want to store the full number on form submit\n";
+    $pageContent .= "const form = phoneInputField.closest('form');\n";
+    $pageContent .= "if (form) {\n";
+    $pageContent .= "form.addEventListener('submit', function() {\n";
+    $pageContent .= "const fullNumber = phoneInput.getNumber();\n";
+    $pageContent .= "// Add a hidden input to store the full number if needed\n";
+    $pageContent .= "let hiddenInput = form.querySelector('input[name=\"full_phone\"]');\n";
+    $pageContent .= "if (!hiddenInput) {\n";
+    $pageContent .= "hiddenInput = document.createElement('input');\n";
+    $pageContent .= "hiddenInput.type = 'hidden';\n";
+    $pageContent .= "hiddenInput.name = 'full_phone';\n";
+    $pageContent .= "form.appendChild(hiddenInput);\n";
+    $pageContent .= "}\n";
+    $pageContent .= "hiddenInput.value = fullNumber;\n";
+    $pageContent .= "});\n";
+    $pageContent .= "}\n";
+    $pageContent .= "}\n";
     $pageContent .= "</script>\n";
-    $pageContent .= "<style>\n";
-    $pageContent .= ".iti { width: 100%; }\n";
-    $pageContent .= ".iti__country-list { z-index: 999999; background-color: white; border: 1px solid #CCC; }\n";
-    $pageContent .= "</style>\n";
 
     file_put_contents($resortPage, $pageContent);
     
-    // Always redirect to resort list
-    header('Location: resort_list.php');
+    // Different redirect behavior for create vs update
+    if (isset($_POST['resort_id']) && !empty($_POST['resort_id'])) {
+        // Update case - redirect to resort list in current tab
+        header('Location: resort_list.php');
+        exit();
+    } else {
+        // Create case - open new resort in new tab and redirect current tab to resort list
+        echo "<script>
+            window.open('$resortPage', '_blank');
+            window.location.href = 'resort_list.php';
+        </script>";
+    }
     exit();
 }
 ?>

@@ -147,23 +147,29 @@ $resorts = $stmt->fetchAll();
       <h2 class="text-3xl font-bold mb-6">Resorts List</h2>
       <div class="container mt-4">
         <?php if (isset($_SESSION['success_message'])): ?>
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <div class="alert alert-success">
                 <?php 
                 echo $_SESSION['success_message'];
                 unset($_SESSION['success_message']);
                 ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         <?php endif; ?>
 
         <?php if (isset($_SESSION['error_message'])): ?>
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <div class="alert alert-danger">
                 <?php 
                 echo $_SESSION['error_message'];
                 unset($_SESSION['error_message']);
                 ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
+        <?php endif; ?>
+
+        <?php if (isset($_SESSION['new_resort_url'])): ?>
+            <script>
+                // Open the new resort page in a new tab
+                window.open('<?php echo $_SESSION['new_resort_url']; ?>', '_blank');
+                <?php unset($_SESSION['new_resort_url']); ?>
+            </script>
         <?php endif; ?>
       </div>
       <div class="mb-4 flex items-center space-x-4">

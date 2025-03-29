@@ -19,7 +19,7 @@ $resortFolder = 'assets/resorts/' . ($resort['resort_slug'] ?? '');
 <link rel="stylesheet" href="css/resort-details.css" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.css" />
 <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
-<link rel="stylesheet" href="assets/int-tel-input/css/intlTelInput.min.css">
+<link rel="stylesheet" href="assets/int-tel-input/css/intlTelInput.css">
 <div class="resort-banner modern-banner">
 <?php if (!empty($resort['banner_image'])): ?>
   <img src="<?php echo $resortFolder . '/' . htmlspecialchars($resort['banner_image']); ?>" alt="<?php echo htmlspecialchars($resort['resort_name']); ?> Banner" class="banner-image">
@@ -143,18 +143,80 @@ document.addEventListener('DOMContentLoaded', function() {
 </div>
 <div class="col-lg-4">
 <div class="sticky-form-container">
-<div class="destination-form-wrapper modern-form">
-<style>
-.iti__country-list { max-height: 200px; } /* Limit height of country list */
-.destination-form-wrapper { max-width: 100%; padding: 20px; background: #fff; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-</style>
-<?php 
-// Make resort and destination data available for the included form
-$current_resort_name = $resort['resort_name'] ?? ''; 
-$current_destination_name = $destination['name'] ?? ''; 
-include 'destination-form.php'; 
-?>
+<div class="resort-form-container">
+<form id="resortEnquiryForm" method="POST" action="process_resort_enquiry.php">
+<input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+<input type="hidden" name="resort_id" value="<?php echo htmlspecialchars($resort['id']); ?>">
+<input type="hidden" name="resort_name" value="<?php echo htmlspecialchars($resort['resort_name']); ?>">
+<input type="hidden" name="destination_name" value="<?php echo htmlspecialchars($destination['destination_name']); ?>">
+<input type="hidden" name="resort_code" value="<?php echo htmlspecialchars($resort['resort_code']); ?>">
+<div class="form-grid">
+<div class="form-group">
+<label for="firstName">First Name *</label>
+<input type="text" id="firstName" name="firstName" class="form-control" required>
 </div>
+<div class="form-group">
+<label for="lastName">Last Name *</label>
+<input type="text" id="lastName" name="lastName" class="form-control" required>
+</div>
+<div class="form-group">
+<label for="email">Email *</label>
+<input type="email" id="email" name="email" class="form-control" required>
+</div>
+<div class="form-group">
+<label for="phone">Phone Number *</label>
+<input type="tel" id="phone" name="phone" class="form-control" required>
+<div id="phone-error" class="error-message">Please enter a valid phone number</div>
+</div>
+<div class="form-group">
+<label for="dob">Date of Birth * (Must be 27 years or older)</label>
+<input type="date" id="dob" name="dob" class="form-control" required>
+<div id="dob-error" class="error-message">You must be at least 27 years old</div>
+</div>
+<div class="form-group">
+<label for="hasPassport">Do you have a passport? *</label>
+<select id="hasPassport" name="hasPassport" class="form-control" required>
+<option value="">Select an option</option>
+<option value="yes">Yes</option>
+<option value="no">No</option>
+</select>
+</div>
+</div>
+<button type="submit" class="btn-submit">Submit Enquiry</button>
+</form>
+</div>
+<style>
+.resort-form-container { width: 100%; padding: 20px; background: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+.form-grid { display: grid; grid-template-columns: 1fr; gap: 20px; margin-bottom: 20px; }
+.form-group { margin-bottom: 15px; position: relative; }
+.form-group label { display: block; margin-bottom: 5px; font-weight: 600; color: #333; }
+.form-control { width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
+.btn-submit { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; width: 100%; }
+.btn-submit:hover { background: #0056b3; }
+.error-message { color: #dc3545; font-size: 12px; margin-top: 5px; display: none; }
+.error-message.show { display: block; }
+
+/* Phone Input Styles */
+.iti { width: 100%; position: relative; display: inline-block; }
+.iti__country-list { 
+    position: absolute !important;
+    z-index: 999999 !important;
+    background-color: white !important;
+    border: 1px solid #CCC !important;
+    margin-top: 0 !important;
+    width: 300px !important;
+    max-height: 200px !important;
+    overflow-y: scroll !important;
+    -webkit-overflow-scrolling: touch !important;
+    top: 100% !important;
+    left: 0 !important;
+}
+.iti__country { padding: 5px 10px !important; cursor: pointer !important; }
+.iti__country:hover { background-color: #f1f1f1 !important; }
+.iti__flag-container { position: absolute !important; top: 0 !important; bottom: 0 !important; padding: 1px !important; }
+.iti__selected-flag { padding: 0 6px 0 8px !important; }
+#phone { padding-left: 52px !important; }
+</style>
 </div>
 </div>
 </div>
@@ -166,49 +228,64 @@ include 'destination-form.php';
 <script src="assets/int-tel-input/js/utils.js"></script>
 <script src="https://kit.fontawesome.com/your-font-awesome-kit.js"></script>
 <script>
+// Initialize Fancybox
 Fancybox.bind('[data-fancybox="gallery"]', {
-  carousel: { infinite: true },
-  Toolbar: {
-    display: ['slideshow', 'fullscreen', 'thumbs', 'close']
-  },
-  Thumbs: { autoStart: true },
-  Slideshow: { autoStart: false, speed: 4000 }
+    carousel: { infinite: true },
+    Toolbar: { display: ['slideshow', 'fullscreen', 'thumbs', 'close'] },
+    Thumbs: { autoStart: true },
+    Slideshow: { autoStart: false, speed: 4000 }
 });
+
+// Initialize Swiper for gallery
 const galleryCarousel = new Swiper('.gallery-carousel', {
-loop: true,
-slidesPerView: 1,
-spaceBetween: 10,
-pagination: { el: '.gallery-pagination', clickable: true },
-navigation: { nextEl: '.gallery-button-next', prevEl: '.gallery-button-prev' },
-breakpoints: { 640: { slidesPerView: 2, spaceBetween: 20 }, 1024: { slidesPerView: 3, spaceBetween: 30 } }
+    loop: true,
+    slidesPerView: 1,
+    spaceBetween: 10,
+    pagination: { el: '.gallery-pagination', clickable: true },
+    navigation: { nextEl: '.gallery-button-next', prevEl: '.gallery-button-prev' },
+    breakpoints: { 640: { slidesPerView: 2, spaceBetween: 20 }, 1024: { slidesPerView: 3, spaceBetween: 30 } }
 });
+
+// Initialize phone input
 const phoneInputField = document.querySelector('#phone');
 if (phoneInputField) {
-const phoneInput = window.intlTelInput(phoneInputField, {
-initialCountry: 'auto',
-geoIpLookup: function(callback) {
-fetch('https://ipapi.co/json')
-.then(function(res) { return res.json(); })
-.then(function(data) { callback(data.country_code); })
-.catch(function() { callback('us'); });
-},
-utilsScript: 'assets/int-tel-input/js/utils.js'
-});
-// You might want to store the full number on form submit
-const form = phoneInputField.closest('form');
-if (form) {
-form.addEventListener('submit', function() {
-const fullNumber = phoneInput.getNumber();
-// Add a hidden input to store the full number if needed
-let hiddenInput = form.querySelector('input[name="full_phone"]');
-if (!hiddenInput) {
-hiddenInput = document.createElement('input');
-hiddenInput.type = 'hidden';
-hiddenInput.name = 'full_phone';
-form.appendChild(hiddenInput);
-}
-hiddenInput.value = fullNumber;
-});
-}
+    const phoneInput = window.intlTelInput(phoneInputField, {
+        initialCountry: 'us',
+        preferredCountries: ['in', 'ae', 'gb', 'us'],
+        separateDialCode: true,
+        utilsScript: 'assets/int-tel-input/js/utils.js',
+        dropdownContainer: document.body
+    });
+
+    // Store the instance for later use
+    window.iti = phoneInput;
+
+    // Handle validation
+    phoneInputField.addEventListener('change', function() {
+        const errorDiv = document.querySelector('#phone-error');
+        if (phoneInput.isValidNumber()) {
+            errorDiv.style.display = 'none';
+        } else {
+            errorDiv.style.display = 'block';
+        }
+    });
+
+    // Handle form submission
+    const form = phoneInputField.closest('form');
+    if (form) {
+        form.addEventListener('submit', function() {
+            const fullNumber = phoneInput.getNumber();
+            let hiddenInput = form.querySelector('input[name="full_phone"]');
+            if (!hiddenInput) {
+                hiddenInput = document.createElement('input');
+                hiddenInput.type = 'hidden';
+                hiddenInput.name = 'full_phone';
+                form.appendChild(hiddenInput);
+            }
+            hiddenInput.value = fullNumber;
+        });
+    }
 }
 </script>
+</body>
+</html>

@@ -51,28 +51,32 @@ $current_destination_name = $current_destination_name ?? '';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <?php if (basename($_SERVER['PHP_SELF']) === 'destination-form.php'): ?>
     <link rel="stylesheet" href="css/destination-form.css">
+    <?php endif; ?>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/css/intlTelInput.css">
     <title>Enquiry Form</title>
     <style>
         /* Basic CSS for the form */
         .destination-form-container {
-            width: 80%;
+            width: 100%;
             margin: 20px auto;
             padding: 20px;
             border: 1px solid #ddd;
             border-radius: 5px;
             background-color: #f9f9f9;
+            box-sizing: border-box;
         }
 
         .destination-form-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 15px;
         }
 
         .destination-form-field {
             margin-bottom: 15px;
+            position: relative;
         }
 
         .destination-form-field label {
@@ -90,7 +94,7 @@ $current_destination_name = $current_destination_name ?? '';
             padding: 8px;
             border: 1px solid #ccc;
             border-radius: 4px;
-            box-sizing: border-box; /* Ensures padding doesn't affect width */
+            box-sizing: border-box;
         }
 
         .destination-form-submit {
@@ -119,8 +123,70 @@ $current_destination_name = $current_destination_name ?? '';
             border-radius: 5px;
         }
 
+        /* Phone input specific styles */
         .iti {
-            width: 100%; /* Make the input fill the container */
+            width: 100% !important;
+            display: block !important;
+        }
+
+        .iti__country-list {
+            max-height: 200px !important;
+            overflow-y: auto !important;
+            width: 260px !important;
+            position: absolute !important;
+            z-index: 9999 !important;
+            background-color: white !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
+        }
+
+        .iti__country {
+            padding: 5px 10px !important;
+            white-space: nowrap !important;
+        }
+
+        .iti__flag-container {
+            padding: 0 !important;
+        }
+
+        .iti__selected-flag {
+            padding: 0 6px 0 8px !important;
+        }
+
+        /* Custom scrollbar */
+        .iti__country-list::-webkit-scrollbar {
+            width: 8px !important;
+        }
+
+        .iti__country-list::-webkit-scrollbar-track {
+            background: #f1f1f1 !important;
+            border-radius: 4px !important;
+        }
+
+        .iti__country-list::-webkit-scrollbar-thumb {
+            background: #888 !important;
+            border-radius: 4px !important;
+        }
+
+        .iti__country-list::-webkit-scrollbar-thumb:hover {
+            background: #555 !important;
+        }
+
+        /* Ensure the phone input container is properly positioned */
+        .phone-input-container {
+            position: relative !important;
+            width: 100% !important;
+        }
+
+        /* Error message styling */
+        .invalid-feedback {
+            color: #dc3545;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            display: none;
+        }
+
+        .invalid-feedback.show {
+            display: block;
         }
     </style>
 </head>
@@ -173,7 +239,10 @@ $current_destination_name = $current_destination_name ?? '';
 
                 <div class="destination-form-field">
                     <label for="phone">Phone Number *</label>
-                    <input type="tel" id="phone" name="phone" required>
+                    <div class="phone-input-container">
+                        <input type="tel" id="phone" name="phone" class="form-control" required>
+                        <div id="phone-error" class="invalid-feedback">Please enter a valid phone number</div>
+                    </div>
                 </div>
 
                 <div class="destination-form-field">
@@ -223,17 +292,62 @@ $current_destination_name = $current_destination_name ?? '';
     <?php endif; ?>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/intlTelInput.min.js"></script>
     <script>
-        const phoneInputField = document.querySelector("#phone");
-        const phoneInput = window.intlTelInput(phoneInputField, {
-            initialCountry: "auto",
-            geoIpLookup: function(callback) {
-                fetch('https://ipapi.co/json')
-                    .then(function(res) { return res.json(); })
-                    .then(function(data) { callback(data.country_code); })
-                    .catch(function() { callback('us'); });
-            },
-            utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/utils.js", // just for formatting/placeholders etc
-            onlyCountries: ["us", "gb", "ca"] // Restrict to these countries
+        // Initialize phone input when DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            var input = document.querySelector("#phone");
+            if (input) {
+                var iti = window.intlTelInput(input, {
+                    preferredCountries: ['in', 'ae', 'gb', 'us'],
+                    separateDialCode: true,
+                    utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/utils.js",
+                    dropdownContainer: document.querySelector('.phone-input-container'),
+                    customContainer: "iti-custom-container"
+                });
+
+                // Create hidden input for full phone number
+                var hiddenInput = document.createElement("input");
+                hiddenInput.type = "hidden";
+                hiddenInput.name = "full_phone";
+                input.parentNode.insertBefore(hiddenInput, input.nextSibling);
+
+                // Handle country change
+                input.addEventListener("countrychange", function() {
+                    var selectedCountry = iti.getSelectedCountryData();
+                    hiddenInput.value = "+" + selectedCountry.dialCode + input.value;
+                    validatePhoneNumber();
+                });
+
+                // Handle input change
+                input.addEventListener("input", function() {
+                    validatePhoneNumber();
+                });
+
+                // Validate phone number
+                function validatePhoneNumber() {
+                    var errorDiv = document.querySelector("#phone-error");
+                    if (!iti.isValidNumber()) {
+                        errorDiv.classList.add("show");
+                        input.classList.add("is-invalid");
+                    } else {
+                        errorDiv.classList.remove("show");
+                        input.classList.remove("is-invalid");
+                        hiddenInput.value = iti.getNumber();
+                    }
+                }
+
+                // Form validation
+                var form = document.querySelector("#enquiryForm");
+                if (form) {
+                    form.addEventListener("submit", function(event) {
+                        if (!iti.isValidNumber()) {
+                            event.preventDefault();
+                            validatePhoneNumber();
+                        } else {
+                            hiddenInput.value = iti.getNumber();
+                        }
+                    });
+                }
+            }
         });
     </script>
     <script src="js/form-handler.js"></script>
