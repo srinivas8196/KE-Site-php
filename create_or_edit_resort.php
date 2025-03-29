@@ -97,6 +97,78 @@ include 'bheader.php';
     .sidebar-collapsed { width: 64px; }
     .sidebar-collapsed .sidebar-item-text { display: none; }
     .sidebar-collapsed .sidebar-icon { text-align: center; }
+    .gallery-preview img {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        border-radius: 8px;
+    }
+    .gallery-preview {
+        position: relative;
+        transition: all 0.3s ease;
+    }
+    .gallery-preview:hover {
+        transform: translateY(-2px);
+    }
+    .current-gallery {
+        margin-bottom: 20px;
+    }
+    .gallery-preview-container, .room-preview-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 15px;
+        margin-bottom: 15px;
+    }
+    .gallery-preview-item, .room-preview-item {
+        position: relative;
+        aspect-ratio: 1;
+        overflow: hidden;
+        border-radius: 8px;
+    }
+    .gallery-preview-item img, .room-preview-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .gallery-preview-overlay, .room-preview-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+    .gallery-preview-item:hover .gallery-preview-overlay,
+    .room-preview-item:hover .room-preview-overlay {
+        opacity: 1;
+    }
+    .room-detail-item {
+        border: 1px solid #ddd;
+        padding: 15px;
+        margin-bottom: 15px;
+        border-radius: 8px;
+    }
+    .alert {
+        padding: 15px;
+        margin-bottom: 20px;
+        border: 1px solid transparent;
+        border-radius: 4px;
+    }
+    .alert-success {
+        color: #155724;
+        background-color: #d4edda;
+        border-color: #c3e6cb;
+    }
+    .alert-danger {
+        color: #721c24;
+        background-color: #f8d7da;
+        border-color: #f5c6cb;
+    }
   </style>
 </head>
 <body class="bg-gray-100">
@@ -172,15 +244,15 @@ include 'bheader.php';
           <label for="banner_title" class="form-label">Banner Title:</label>
           <input type="text" id="banner_title" name="banner_title" class="form-control" required value="<?php echo $resort ? htmlspecialchars($resort['banner_title']) : ''; ?>">
         </div>
-        <div class="mb-3">
-          <label for="banner_image" class="form-label">Banner Image:</label>
-          <input type="file" id="banner_image" name="banner_image" class="form-control" accept=".jpg,.jpeg,.png,.webp" <?php echo $resort ? '' : 'required'; ?>>
-          <?php if ($resort && !empty($resort['banner_image'])): ?>
-            <div class="mt-2">
-              <p>Current Banner Image:</p>
-              <img src="assets/resorts/<?php echo htmlspecialchars($resort['resort_slug']); ?>/<?php echo htmlspecialchars($resort['banner_image']); ?>" alt="Banner Image" style="max-width:200px;">
-            </div>
-          <?php endif; ?>
+        <div class="form-group">
+            <label for="banner_image">Banner Image</label>
+            <?php if(isset($resort['banner_image']) && !empty($resort['banner_image'])): ?>
+                <div class="current-image">
+                    <img src="assets/resorts/<?php echo $resort['resort_slug']; ?>/<?php echo htmlspecialchars($resort['banner_image']); ?>" alt="Current Banner" style="max-width: 200px;">
+                    <input type="hidden" name="existing_banner_image" value="<?php echo htmlspecialchars($resort['banner_image']); ?>">
+                </div>
+            <?php endif; ?>
+            <input type="file" class="form-control" id="banner_image" name="banner_image" accept="image/*">
         </div>
         <!-- Resort Type -->
         <div class="mb-3">
@@ -239,115 +311,96 @@ include 'bheader.php';
         <button type="button" class="btn btn-secondary mb-3" onclick="addAmenity()">Add Amenity</button>
 
         <!-- Dynamic Rooms Section -->
-        <div class="mb-3" id="rooms">
-          <label class="form-label">Rooms:</label>
-          <?php if ($resort && !empty($resort['room_details'])):
-              $roomsData = json_decode($resort['room_details'], true);
-              $roomsCount = count($roomsData); // Count rooms
-              foreach ($roomsData as $index => $room): ?>
-              <div class="row mb-2">
-                <div class="col-md-6">
-                  <input type="text" name="rooms[<?php echo $index; ?>][name]" class="form-control" placeholder="Room Name" required value="<?php echo htmlspecialchars($room['name']); ?>">
-                </div>
-                <div class="col-md-4">
-                  <input type="file" name="rooms[<?php echo $index; ?>][image]" class="form-control" accept=".jpg,.jpeg,.png,.webp">
-                  <small>Current: <?php echo htmlspecialchars($room['image']); ?></small>
-                  <!-- Hidden field to retain existing image -->
-                  <input type="hidden" name="rooms[<?php echo $index; ?>][existing_image]" value="<?php echo htmlspecialchars($room['image']); ?>">
-                </div>
-                <div class="col-md-2">
-                  <?php if ($roomsCount > 1): // Conditionally show delete button ?>
-                    <button type="button" class="btn btn-danger btn-sm" onclick="removeElement(this)">Delete</button>
-                  <?php endif; ?>
-                </div>
-              </div>
-          <?php endforeach; else: ?>
-              <div class="row mb-2">
-                <div class="col-md-6">
-                  <input type="text" name="rooms[0][name]" class="form-control" placeholder="Room Name" required>
-                </div>
-                <div class="col-md-4">
-                  <input type="file" name="rooms[0][image]" class="form-control" accept=".jpg,.jpeg,.png,.webp" required>
-                </div>
-                <div class="col-md-2">
-                    <!-- Delete button not shown when adding first room -->
-                </div>
-              </div>
-          <?php endif; ?>
+        <div class="form-group">
+            <label>Room Details</label>
+            <div id="roomDetailsContainer">
+                <?php if (!empty($resort['room_details'])): 
+                    $rooms = json_decode($resort['room_details'], true);
+                    if (is_array($rooms)):
+                        foreach ($rooms as $index => $room): ?>
+                            <div class="room-detail-item">
+                                <div class="room-preview-container">
+                                    <?php if (!empty($room['image'])): ?>
+                                        <div class="room-preview-item">
+                                            <img src="<?php echo $resortFolder . '/' . htmlspecialchars($room['image']); ?>" alt="Room Image">
+                                            <div class="room-preview-overlay">
+                                                <button type="button" class="btn btn-danger btn-sm delete-room-image" data-index="<?php echo $index; ?>">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                    <?php endif; ?>
+                                </div>
+                                <input type="text" name="rooms[<?php echo $index; ?>][name]" class="form-control" value="<?php echo htmlspecialchars($room['name']); ?>" placeholder="Room Name">
+                                <input type="file" name="rooms[<?php echo $index; ?>][image]" class="form-control" accept="image/*" onchange="previewRoomImage(this, <?php echo $index; ?>)">
+                                <button type="button" class="btn btn-danger remove-room">Remove Room</button>
+                            </div>
+                        <?php endforeach;
+                    endif;
+                endif; ?>
+            </div>
+            <button type="button" class="btn btn-success" onclick="addRoomDetail()">Add Room</button>
         </div>
-        <button type="button" class="btn btn-secondary mb-3" onclick="addRoom()">Add Room</button>
 
         <!-- Gallery Images -->
-        <div class="mb-3">
-          <label for="gallery" class="form-label">Gallery Images:</label>
-          <input type="file" id="gallery" name="gallery[]" class="form-control" accept=".jpg,.jpeg,.png,.webp" multiple <?php echo $resort ? '' : 'required'; ?> onchange="previewImages(this)">
-          
-          <!-- Preview for newly added images -->
-          <div id="imagePreviewContainer" class="mt-2 flex flex-wrap gap-2"></div>
-
-          <?php if ($resort && !empty($resort['gallery'])): ?>
-            <div class="mt-2">
-              <p>Current Gallery Images:</p>
-              <div class="flex flex-wrap gap-2">
-                <?php foreach ($galleryData as $index => $galleryImg): ?>
-                  <div class="relative" id="gallery-item-<?php echo $index; ?>">
-                    <img src="assets/resorts/<?php echo htmlspecialchars($resort['resort_slug']); ?>/<?php echo htmlspecialchars($galleryImg); ?>" 
-                         alt="Gallery Image" style="max-width:150px;">
-                    <input type="hidden" name="existing_gallery[]" value="<?php echo htmlspecialchars($galleryImg); ?>">
-                    <button type="button" 
-                            onclick="removeGalleryImage(<?php echo $index; ?>)" 
-                            class="absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center"
-                            title="Delete image">
-                      ×
-                    </button>
-                  </div>
-                <?php endforeach; ?>
-              </div>
+        <div class="form-group">
+            <label>Gallery Images</label>
+            <div class="gallery-preview-container">
+                <?php if (!empty($resort['gallery'])): 
+                    $gallery = json_decode($resort['gallery'], true);
+                    if (is_array($gallery)):
+                        foreach ($gallery as $index => $image): ?>
+                            <div class="gallery-preview-item">
+                                <img src="<?php echo $resortFolder . '/' . htmlspecialchars($image); ?>" alt="Gallery Image">
+                                <div class="gallery-preview-overlay">
+                                    <button type="button" class="btn btn-danger btn-sm delete-gallery-image" data-index="<?php echo $index; ?>">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                                <input type="hidden" name="existing_gallery[]" value="<?php echo htmlspecialchars($image); ?>">
+                            </div>
+                        <?php endforeach;
+                    endif;
+                endif; ?>
             </div>
-          <?php endif; ?>
+            <input type="file" name="gallery[]" class="form-control" multiple accept="image/*" onchange="previewGalleryImages(this)">
         </div>
 
         <!-- Dynamic Testimonials Section -->
         <div class="mb-3" id="testimonials">
           <label class="form-label">Testimonials:</label>
-          <?php if ($resort && !empty($resort['testimonials'])):
-              $testimonialsData = json_decode($resort['testimonials'], true);
-              $testimonialsCount = count($testimonialsData); // Count testimonials
-              foreach ($testimonialsData as $index => $testimonial): ?>
+          <?php 
+          // Initialize testimonials array
+          $testimonialsData = [];
+          if ($resort && !empty($resort['testimonials'])) {
+              $testimonialsData = json_decode($resort['testimonials'], true) ?? [];
+          }
+          
+          // Always show at least one testimonial form
+          if (empty($testimonialsData)) {
+              $testimonialsData = [['name' => '', 'from' => '', 'content' => '']];
+          }
+          
+          foreach ($testimonialsData as $index => $testimonial): ?>
               <div class="row mb-2">
                 <div class="col-md-4">
-                  <input type="text" name="testimonials[<?php echo $index; ?>][name]" class="form-control" placeholder="Name" required value="<?php echo htmlspecialchars($testimonial['name']); ?>">
+                  <input type="text" name="testimonials[<?php echo $index; ?>][name]" class="form-control" placeholder="Name" required value="<?php echo htmlspecialchars($testimonial['name'] ?? ''); ?>">
                 </div>
                 <div class="col-md-4">
-                  <input type="text" name="testimonials[<?php echo $index; ?>][from]" class="form-control" placeholder="Source" required value="<?php echo htmlspecialchars($testimonial['from']); ?>">
+                  <input type="text" name="testimonials[<?php echo $index; ?>][from]" class="form-control" placeholder="Source" required value="<?php echo htmlspecialchars($testimonial['from'] ?? ''); ?>">
                 </div>
                 <div class="col-md-3">
-                  <textarea name="testimonials[<?php echo $index; ?>][content]" class="form-control" placeholder="Testimonial" required><?php echo htmlspecialchars($testimonial['content']); ?></textarea>
+                  <textarea name="testimonials[<?php echo $index; ?>][content]" class="form-control" placeholder="Testimonial" required><?php echo htmlspecialchars($testimonial['content'] ?? ''); ?></textarea>
                 </div>
                 <div class="col-md-1">
-                  <?php if ($testimonialsCount > 1): // Conditionally show delete button ?>
+                  <?php if (count($testimonialsData) > 1): ?>
                     <button type="button" class="btn btn-danger btn-sm" onclick="removeElement(this)">Delete</button>
                   <?php endif; ?>
                 </div>
               </div>
-          <?php endforeach; else: ?>
-              <div class="row mb-2">
-                <div class="col-md-4">
-                  <input type="text" name="testimonials[0][name]" class="form-control" placeholder="Name" required>
-                </div>
-                <div class="col-md-4">
-                  <input type="text" name="testimonials[0][from]" class="form-control" placeholder="Source" required>
-                </div>
-                <div class="col-md-3">
-                  <textarea name="testimonials[0][content]" class="form-control" placeholder="Testimonial" required></textarea>
-                </div>
-                <div class="col-md-1">
-                    <!-- Delete button not shown when adding first testimonial -->
-                </div>
-              </div>
-          <?php endif; ?>
+          <?php endforeach; ?>
+          <!-- Add new testimonial button -->
+          <button type="button" class="btn btn-secondary mb-3" onclick="addTestimonial()">Add Testimonial</button>
         </div>
-        <button type="button" class="btn btn-secondary mb-3" onclick="addTestimonial()">Add Testimonial</button>
         <br><br>
         <button type="submit" class="btn btn-primary"><?php echo $resort ? "Update Resort" : "Create Resort"; ?></button>
       </form>
@@ -391,19 +444,20 @@ include 'bheader.php';
       const index = container.querySelectorAll('.row').length;
       const div = document.createElement('div');
       div.className = 'row mb-2';
-      div.innerHTML = `<div class="col-md-4">
-                          <input type="text" name="testimonials[${index}][name]" class="form-control" placeholder="Name" required>
-                        </div>
-                        <div class="col-md-4">
-                          <input type="text" name="testimonials[${index}][from]" class="form-control" placeholder="Source" required>
-                        </div>
-                        <div class="col-md-3">
-                          <textarea name="testimonials[${index}][content]" class="form-control" placeholder="Testimonial" required></textarea>
-                        </div>
-                        <div class="col-md-1">
-                          <button type="button" class="btn btn-danger btn-sm" onclick="removeElement(this)">Delete</button>
-                        </div>`;
-      container.appendChild(div);
+      div.innerHTML = `
+        <div class="col-md-4">
+          <input type="text" name="testimonials[${index}][name]" class="form-control" placeholder="Name" required>
+        </div>
+        <div class="col-md-4">
+          <input type="text" name="testimonials[${index}][from]" class="form-control" placeholder="Source" required>
+        </div>
+        <div class="col-md-3">
+          <textarea name="testimonials[${index}][content]" class="form-control" placeholder="Testimonial" required></textarea>
+        </div>
+        <div class="col-md-1">
+          <button type="button" class="btn btn-danger btn-sm" onclick="removeElement(this)">Delete</button>
+        </div>`;
+      container.insertBefore(div, container.querySelector('button.btn-secondary'));
     }
     function removeElement(button) {
       button.closest('.row').remove();
@@ -413,54 +467,87 @@ include 'bheader.php';
       sidebar.classList.toggle('sidebar-collapsed');
     });
 
-    function previewImages(input) {
-      const container = document.getElementById('imagePreviewContainer');
-      container.innerHTML = ''; // Clear previous previews
+    function previewGalleryImages(input) {
+        const container = document.querySelector('.gallery-preview-container');
+        if (input.files) {
+            for (let i = 0; i < input.files.length; i++) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const div = document.createElement('div');
+                    div.className = 'gallery-preview-item';
+                    div.innerHTML = `
+                        <img src="${e.target.result}" alt="Preview">
+                        <div class="gallery-preview-overlay">
+                            <button type="button" class="btn btn-danger btn-sm delete-gallery-image">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    `;
+                    container.appendChild(div);
+                    
+                    // Add delete functionality to new preview
+                    div.querySelector('.delete-gallery-image').addEventListener('click', function() {
+                        if (confirm('Are you sure you want to delete this image?')) {
+                            div.remove();
+                        }
+                    });
+                }
+                reader.readAsDataURL(input.files[i]);
+            }
+        }
+    }
 
-      if (input.files && input.files.length > 0) {
-        Array.from(input.files).forEach((file, index) => {
-          const reader = new FileReader();
-          reader.onload = function(e) {
-            const previewWrapper = document.createElement('div');
-            previewWrapper.className = 'relative';
-            previewWrapper.innerHTML = `
-              <img src="${e.target.result}" alt="Preview" style="max-width:150px;">
-              <button type="button" 
-                      onclick="removeNewImage(this, ${index})" 
-                      class="absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center"
-                      title="Remove image">
-                ×
-              </button>
-            `;
-            container.appendChild(previewWrapper);
-          };
-          reader.readAsDataURL(file);
+    function previewRoomImage(input, index) {
+        const container = input.closest('.room-detail-item').querySelector('.room-preview-container');
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                // Remove existing preview if any
+                container.innerHTML = '';
+                
+                const div = document.createElement('div');
+                div.className = 'room-preview-item';
+                div.innerHTML = `
+                    <img src="${e.target.result}" alt="Preview">
+                    <div class="room-preview-overlay">
+                        <button type="button" class="btn btn-danger btn-sm delete-room-image">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+                container.appendChild(div);
+                
+                // Add delete functionality to new preview
+                div.querySelector('.delete-room-image').addEventListener('click', function() {
+                    if (confirm('Are you sure you want to delete this image?')) {
+                        div.remove();
+                    }
+                });
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    // Add this at the beginning of your script section
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle gallery image deletion
+        document.querySelectorAll('.delete-gallery-image').forEach(button => {
+            button.addEventListener('click', function() {
+                if (confirm('Are you sure you want to delete this image?')) {
+                    this.closest('.gallery-preview-item').remove();
+                }
+            });
         });
-      }
-    }
 
-    function removeNewImage(button, index) {
-      const input = document.getElementById('gallery');
-      const container = document.getElementById('imagePreviewContainer');
-      
-      // Create a new FileList without the removed image
-      const dt = new DataTransfer();
-      Array.from(input.files)
-        .filter((file, i) => i !== index)
-        .forEach(file => dt.items.add(file));
-      
-      input.files = dt.files;
-      button.closest('.relative').remove();
-
-      // Refresh previews
-      previewImages(input);
-    }
-
-    function removeGalleryImage(index) {
-      if (confirm('Are you sure you want to delete this image?')) {
-        document.getElementById(`gallery-item-${index}`).remove();
-      }
-    }
+        // Handle room image deletion
+        document.querySelectorAll('.delete-room-image').forEach(button => {
+            button.addEventListener('click', function() {
+                if (confirm('Are you sure you want to delete this image?')) {
+                    this.closest('.room-preview-item').remove();
+                }
+            });
+        });
+    });
   </script>
 </body>
 </html>

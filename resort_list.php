@@ -145,6 +145,27 @@ $resorts = $stmt->fetchAll();
         </ol>
       </nav>
       <h2 class="text-3xl font-bold mb-6">Resorts List</h2>
+      <div class="container mt-4">
+        <?php if (isset($_SESSION['success_message'])): ?>
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <?php 
+                echo $_SESSION['success_message'];
+                unset($_SESSION['success_message']);
+                ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        <?php endif; ?>
+
+        <?php if (isset($_SESSION['error_message'])): ?>
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <?php 
+                echo $_SESSION['error_message'];
+                unset($_SESSION['error_message']);
+                ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        <?php endif; ?>
+      </div>
       <div class="mb-4 flex items-center space-x-4">
         <input type="text" id="search" placeholder="Search resorts..." class="border rounded p-2 flex-grow">
         <select id="filter-status" class="border rounded p-2">
