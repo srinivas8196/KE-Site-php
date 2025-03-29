@@ -1,0 +1,41 @@
+# Example .htaccess file
+# Copy this file to .htaccess and update with your actual settings
+
+# Enable URL rewriting
+RewriteEngine On
+
+# Set the base directory for the rewrite rules
+RewriteBase /
+
+# Prevent directory listing
+Options -Indexes
+
+# Handle PHP errors
+php_flag display_errors Off
+php_value error_reporting E_ALL
+php_value error_log logs/error.log
+
+# Protect sensitive files
+<FilesMatch "^\.">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Block access to sensitive directories
+RedirectMatch 403 ^/\.git/.*$
+RedirectMatch 403 ^/vendor/.*$
+RedirectMatch 403 ^/node_modules/.*$
+
+# Force HTTPS (uncomment in production)
+# RewriteCond %{HTTPS} off
+# RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# Custom error pages
+ErrorDocument 404 /404.php
+ErrorDocument 500 /500.php
+
+# PHP settings
+php_value upload_max_filesize 64M
+php_value post_max_size 64M
+php_value max_execution_time 300
+php_value max_input_time 300 
