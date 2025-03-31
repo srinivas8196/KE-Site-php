@@ -1,5 +1,30 @@
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+
+// Start debug logging
+$debug_log = fopen('resort_debug.log', 'a');
+fwrite($debug_log, "\n=== " . date('Y-m-d H:i:s') . " ===\n");
+fwrite($debug_log, "Script started\n");
+fwrite($debug_log, "REQUEST_METHOD: " . $_SERVER['REQUEST_METHOD'] . "\n");
+fwrite($debug_log, "REQUEST_URI: " . $_SERVER['REQUEST_URI'] . "\n");
+fwrite($debug_log, "POST data received: " . print_r($_POST, true) . "\n");
+fwrite($debug_log, "FILES data received: " . print_r($_FILES, true) . "\n");
+
+// Check if the script is being accessed directly
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    fwrite($debug_log, "Error: Script accessed with method " . $_SERVER['REQUEST_METHOD'] . "\n");
+    fwrite($debug_log, "Expected POST method\n");
+    fclose($debug_log);
+    die("This script should be accessed via POST method only.");
+}
+
 require 'db.php';
+$pdo = require 'db.php';  // Get the returned PDO object
+
+// Log PDO status
+fwrite($debug_log, "PDO exists: " . (isset($pdo) ? "Yes" : "No") . "\n");
 
 // Fetch existing resort details if editing
 $resort = null;

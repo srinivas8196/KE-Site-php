@@ -1,5 +1,33 @@
 <?php
-require 'db.php';
+session_start();
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+
+// Start debug logging
+$debug_log = fopen('resort_debug.log', 'a');
+fwrite($debug_log, "\n=== " . date('Y-m-d H:i:s') . " ===\n");
+fwrite($debug_log, "Script started\n");
+fwrite($debug_log, "REQUEST_METHOD: " . $_SERVER['REQUEST_METHOD'] . "\n");
+fwrite($debug_log, "REQUEST_URI: " . $_SERVER['REQUEST_URI'] . "\n");
+fwrite($debug_log, "POST data received: " . print_r($_POST, true) . "\n");
+fwrite($debug_log, "FILES data received: " . print_r($_FILES, true) . "\n");
+
+// Check if the script is being accessed directly
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    fwrite($debug_log, "Error: Script accessed with method " . $_SERVER['REQUEST_METHOD'] . "\n");
+    fwrite($debug_log, "Expected POST method\n");
+    fclose($debug_log);
+    die("This script should be accessed via POST method only.");
+}
+
+// Initialize database connection
+$pdo = require 'db.php';
+if (!$pdo) {
+    fwrite($debug_log, "Error: Database connection failed\n");
+    fclose($debug_log);
+    die("Database connection failed");
+}
 
 // Fetch existing resort details if editing
 $resort = null;
@@ -262,24 +290,92 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $pageContent .= "<link rel=\"stylesheet\" href=\"https://unpkg.com/swiper/swiper-bundle.min.css\" />\n"; // Swiper CSS
     $pageContent .= "<link rel=\"stylesheet\" href=\"assets/int-tel-input/css/intlTelInput.min.css\">\n"; // Intl Tel Input CSS
 
-    // Banner Section (Modified for bottom-left title)
+    // Banner Section with title at bottom and animation (no overlay background)
     $pageContent .= "<div class=\"resort-banner modern-banner\">\n";
     $pageContent .= "<?php if (!empty(\$resort['banner_image'])): ?>\n";
     $pageContent .= "  <img src=\"<?php echo \$resortFolder . '/' . htmlspecialchars(\$resort['banner_image']); ?>\" alt=\"<?php echo htmlspecialchars(\$resort['resort_name']); ?> Banner\" class=\"banner-image\">\n";
-    $pageContent .= "<?php endif; ?>\n";
-    $pageContent .= "  <div class=\"banner-content-bottom-left\">\n";
-    $pageContent .= "    <h1 class=\"banner-title\"><?php echo htmlspecialchars(\$resort['banner_title'] ?? ''); ?></h1>\n";
+    $pageContent .= "  <div class=\"banner-content animated-banner-content\">\n";
+    $pageContent .= "    <div class=\"container\">\n";
+    $pageContent .= "      <h1 class=\"banner-title animate-title\"><?php echo htmlspecialchars(\$resort['banner_title'] ?? ''); ?></h1>\n";
+    $pageContent .= "    </div>\n";
     $pageContent .= "  </div>\n";
+    $pageContent .= "<?php endif; ?>\n";
     $pageContent .= "</div>\n";
-
+    
     // Main Content Section (2 Columns)
     $pageContent .= "<div class=\"container resort-details-container section-padding\">\n";
     $pageContent .= "  <div class=\"row\">\n";
     // Left Column: Resort Details
     $pageContent .= "    <div class=\"col-lg-8 resort-content-left\">\n";
-    // Resort Name and Description
+    // Resort Name
     $pageContent .= "      <h2 class=\"resort-name\"><?php echo htmlspecialchars(\$resort['resort_name'] ?? ''); ?></h2>\n";
     $pageContent .= "      <p class=\"resort-description\"><?php echo nl2br(htmlspecialchars(\$resort['resort_description'] ?? '')); ?></p>\n";
+
+    // Add custom styles for banner title positioning with animation
+    $pageContent .= "<style>\n";
+    $pageContent .= ".modern-banner {\n";
+    $pageContent .= "  position: relative;\n";
+    $pageContent .= "  margin-bottom: 0;\n";
+    $pageContent .= "  overflow: hidden;\n";
+    $pageContent .= "}\n";
+    $pageContent .= ".modern-banner img {\n";
+    $pageContent .= "  width: 100%;\n";
+    $pageContent .= "  height: auto;\n";
+    $pageContent .= "  display: block;\n";
+    $pageContent .= "}\n";
+    $pageContent .= ".banner-content {\n";
+    $pageContent .= "  position: absolute;\n";
+    $pageContent .= "  bottom: 30px;\n";
+    $pageContent .= "  left: 0;\n";
+    $pageContent .= "  width: 100%;\n";
+    $pageContent .= "  padding: 25px 0;\n";
+    $pageContent .= "  z-index: 10;\n";
+    $pageContent .= "}\n";
+    $pageContent .= ".animated-banner-content {\n";
+    $pageContent .= "  animation: fadeInUp 1s ease-out;\n";
+    $pageContent .= "}\n";
+    $pageContent .= "@keyframes fadeInUp {\n";
+    $pageContent .= "  from {\n";
+    $pageContent .= "    opacity: 0;\n";
+    $pageContent .= "    transform: translateY(30px);\n";
+    $pageContent .= "  }\n";
+    $pageContent .= "  to {\n";
+    $pageContent .= "    opacity: 1;\n";
+    $pageContent .= "    transform: translateY(0);\n";
+    $pageContent .= "  }\n";
+    $pageContent .= "}\n";
+    $pageContent .= ".banner-title {\n";
+    $pageContent .= "  font-size: 3.2rem;\n";
+    $pageContent .= "  font-weight: 700;\n";
+    $pageContent .= "  margin: 0;\n";
+    $pageContent .= "  color: #fff;\n";
+    $pageContent .= "  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8);\n";
+    $pageContent .= "  animation: slidein 1.5s ease-out;\n";
+    $pageContent .= "}\n";
+    $pageContent .= "@keyframes slidein {\n";
+    $pageContent .= "  from {\n";
+    $pageContent .= "    transform: translateX(-50px);\n";
+    $pageContent .= "    opacity: 0;\n";
+    $pageContent .= "  }\n";
+    $pageContent .= "  to {\n";
+    $pageContent .= "    transform: translateX(0);\n";
+    $pageContent .= "    opacity: 1;\n";
+    $pageContent .= "  }\n";
+    $pageContent .= "}\n";
+    $pageContent .= "@media (max-width: 768px) {\n";
+    $pageContent .= "  .banner-title {\n";
+    $pageContent .= "    font-size: 2.2rem;\n";
+    $pageContent .= "  }\n";
+    $pageContent .= "  .banner-content {\n";
+    $pageContent .= "    bottom: 15px;\n";
+    $pageContent .= "    padding: 15px 0;\n";
+    $pageContent .= "  }\n";
+    $pageContent .= "}\n";
+    $pageContent .= ".resort-name {\n";
+    $pageContent .= "  margin-top: 1rem;\n";
+    $pageContent .= "  margin-bottom: 1rem;\n";
+    $pageContent .= "}\n";
+    $pageContent .= "</style>\n";
 
     // Amenities Section (Added classes for animation)
     $pageContent .= "<div class=\"resort-section amenities-section\">\n"; // Added class
@@ -341,12 +437,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Testimonials Section (Fixed Autoplay)
     $pageContent .= "<div class=\"resort-section testimonials-section modern-testimonials\">\n";
     $pageContent .= "        <h3>What Our Guests Say</h3>\n";
-    $pageContent .= "<?php\n";
-    $pageContent .= "\$testimonials = json_decode(\$resort['testimonials'], true);\n";
-    $pageContent .= "if(is_array(\$testimonials) && count(\$testimonials) > 0): ?>\n";
     $pageContent .= "<div class=\"swiper testimonial-carousel\">\n";
     $pageContent .= "<div class=\"swiper-wrapper\">\n";
-    $pageContent .= "<?php foreach(\$testimonials as \$t): ?>\n";
+    $pageContent .= "<?php if(is_array(\$testimonials) && count(\$testimonials) > 0): foreach(\$testimonials as \$t): ?>\n";
     $pageContent .= "<div class=\"swiper-slide testimonial-item\">\n";
     $pageContent .= "<blockquote class=\"testimonial-content\">\n";
     $pageContent .= "<p class=\"testimonial-text\">\"<?php echo htmlspecialchars(\$t['content']); ?>\"</p>\n";
@@ -358,43 +451,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $pageContent .= "</footer>\n";
     $pageContent .= "</blockquote>\n";
     $pageContent .= "</div>\n";
-    $pageContent .= "<?php endforeach; ?>\n";
-    $pageContent .= "</div>\n";
-    $pageContent .= "<div class=\"swiper-pagination testimonial-pagination\"></div>\n";
-    $pageContent .= "</div>\n";
-    $pageContent .= "<?php else: ?>\n";
+    $pageContent .= "<?php endforeach; else: ?>\n";
     $pageContent .= "<p>No testimonials available at the moment.</p>\n";
     $pageContent .= "<?php endif; ?>\n";
     $pageContent .= "</div>\n";
-
-    // Add CSS for testimonials
-    $pageContent .= "<style>\n";
-    $pageContent .= ".testimonial-carousel { padding: 20px 0; }\n";
-    $pageContent .= ".testimonial-item { text-align: center; padding: 20px; }\n";
-    $pageContent .= ".testimonial-content { font-style: italic; margin-bottom: 15px; }\n";
-    $pageContent .= ".testimonial-text { font-size: 1.1em; line-height: 1.6; margin-bottom: 15px; }\n";
-    $pageContent .= ".testimonial-author { font-size: 0.9em; color: #666; }\n";
-    $pageContent .= ".testimonial-author strong { color: #333; }\n";
-    $pageContent .= "</style>\n";
-
-    // Add form styles
-    $pageContent .= "<style>\n";
-    $pageContent .= ".resort-form-container { width: 100%; padding: 20px; background: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }\n";
-    $pageContent .= ".resort-form-container h3 { margin-bottom: 20px; color: #333; }\n";
-    $pageContent .= ".form-grid { display: grid; grid-template-columns: 1fr; gap: 20px; margin-bottom: 20px; }\n";
-    $pageContent .= ".form-group { margin-bottom: 15px; position: relative; }\n";
-    $pageContent .= ".form-group label { display: block; margin-bottom: 5px; font-weight: 600; color: #333; }\n";
-    $pageContent .= ".form-control { width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }\n";
-    $pageContent .= ".btn-submit { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; width: 100%; }\n";
-    $pageContent .= ".btn-submit:hover { background: #0056b3; }\n";
-    $pageContent .= ".error-message { color: #dc3545; font-size: 12px; margin-top: 5px; display: none; }\n";
-    $pageContent .= ".error-message.show { display: block; }\n";
-    $pageContent .= "</style>\n";
-
-    // Include JS Libraries at the top
-    $pageContent .= "<script src=\"https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.js\"></script>\n";
-    $pageContent .= "<script src=\"https://unpkg.com/swiper/swiper-bundle.min.js\"></script>\n";
-    $pageContent .= "<script src=\"https://kit.fontawesome.com/your-font-awesome-kit.js\"></script>\n";
+    $pageContent .= "<div class=\"swiper-pagination testimonial-pagination\"></div>\n";
+    $pageContent .= "</div>\n";
+    $pageContent .= "</div>\n";
+    $pageContent .= "</div>\n"; // End left column
 
     // Right Column: Sticky Form
     $pageContent .= "<div class=\"col-lg-4\">\n";
@@ -454,6 +518,60 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     $pageContent .= "</div>\n"; // End Row
     $pageContent .= "</div>\n"; // End Container
+
+    // Initialize Swiper for testimonials - place after the main containers
+    $pageContent .= "<script>\n";
+    $pageContent .= "document.addEventListener('DOMContentLoaded', function() {\n";
+    $pageContent .= "  new Swiper('.testimonial-carousel', {\n";
+    $pageContent .= "    slidesPerView: 1,\n";
+    $pageContent .= "    spaceBetween: 30,\n";
+    $pageContent .= "    loop: true,\n";
+    $pageContent .= "    autoplay: {\n";
+    $pageContent .= "      delay: 5000,\n";
+    $pageContent .= "      disableOnInteraction: false,\n";
+    $pageContent .= "    },\n";
+    $pageContent .= "    pagination: {\n";
+    $pageContent .= "      el: '.testimonial-pagination',\n";
+    $pageContent .= "      clickable: true,\n";
+    $pageContent .= "    },\n";
+    $pageContent .= "  });\n";
+    $pageContent .= "});\n";
+    $pageContent .= "</script>\n";
+
+    // Add CSS for testimonials
+    $pageContent .= "<style>\n";
+    $pageContent .= ".testimonial-carousel { padding: 20px 0; }\n";
+    $pageContent .= ".testimonial-item { text-align: center; padding: 20px; background: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }\n";
+    $pageContent .= ".testimonial-content { font-style: italic; margin-bottom: 15px; }\n";
+    $pageContent .= ".testimonial-text { font-size: 1.1em; line-height: 1.6; margin-bottom: 15px; }\n";
+    $pageContent .= ".testimonial-author { font-size: 0.9em; color: #666; }\n";
+    $pageContent .= ".testimonial-author strong { color: #333; }\n";
+    $pageContent .= ".swiper-pagination { position: relative; margin-top: 20px; }\n";
+    $pageContent .= ".swiper-pagination-bullet { width: 10px; height: 10px; background: #007bff; opacity: 0.5; }\n";
+    $pageContent .= ".swiper-pagination-bullet-active { opacity: 1; }\n";
+    $pageContent .= "</style>\n";
+
+    // Add form styles
+    $pageContent .= "<style>\n";
+    $pageContent .= ".resort-details-container { padding: 40px 0; position: relative; }\n";
+    $pageContent .= ".sticky-form-container { position: sticky; top: 100px; margin-bottom: 20px; z-index: 100; }\n";
+    $pageContent .= ".resort-form-container { background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }\n";
+    $pageContent .= ".resort-content-left { padding-right: 30px; }\n";
+    $pageContent .= "@media (max-width: 991px) { .sticky-form-container { position: relative; top: 0; margin-top: 30px; } .resort-content-left { padding-right: 15px; } }\n";
+    $pageContent .= ".form-grid { display: grid; grid-template-columns: 1fr; gap: 20px; margin-bottom: 20px; }\n";
+    $pageContent .= ".form-group { margin-bottom: 15px; position: relative; }\n";
+    $pageContent .= ".form-group label { display: block; margin-bottom: 5px; font-weight: 600; color: #333; }\n";
+    $pageContent .= ".form-control { width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }\n";
+    $pageContent .= ".btn-submit { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; width: 100%; }\n";
+    $pageContent .= ".btn-submit:hover { background: #0056b3; }\n";
+    $pageContent .= ".error-message { color: #dc3545; font-size: 12px; margin-top: 5px; display: none; }\n";
+    $pageContent .= ".error-message.show { display: block; }\n";
+    $pageContent .= "</style>\n";
+
+    // Include JS Libraries
+    $pageContent .= "<script src=\"https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.js\"></script>\n";
+    $pageContent .= "<script src=\"https://unpkg.com/swiper/swiper-bundle.min.js\"></script>\n";
+    $pageContent .= "<script src=\"https://kit.fontawesome.com/your-font-awesome-kit.js\"></script>\n";
 
     // Include Footer
     $pageContent .= "<?php include 'kfooter.php'; ?>\n";

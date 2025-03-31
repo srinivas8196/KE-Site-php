@@ -8,8 +8,40 @@ $user = $_SESSION['user'];
 require 'db.php';
 $stmt = $pdo->query("SELECT r.*, d.destination_name FROM resorts r JOIN destinations d ON r.destination_id = d.id ORDER BY d.destination_name, r.resort_name");
 $resorts = $stmt->fetchAll();
+
+// Include header with error checking
+if (file_exists('bheader.php')) {
+    include 'bheader.php';
+} else {
+    // If header doesn't exist, show a simple admin header
+    echo '<!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Resort Management</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    </head>
+    <body>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+            <div class="container">
+                <a class="navbar-brand" href="dashboard.php">Admin Dashboard</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item"><a class="nav-link" href="dashboard.php">Dashboard</a></li>
+                        <li class="nav-item"><a class="nav-link" href="resort_list.php">Resorts</a></li>
+                        <li class="nav-item"><a class="nav-link" href="logout.php">Logout</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    ';
+}
 ?>
-<?php include 'bheader.php'; ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -112,11 +144,11 @@ $resorts = $stmt->fetchAll();
         <a href="dashboard.php" class="block py-3 px-6 text-gray-700 hover:bg-blue-500 hover:text-white transition-colors flex items-center">
           <i class="fas fa-tachometer-alt mr-2 sidebar-icon"></i> <span class="sidebar-item-text">Dashboard</span>
         </a>
-        <?php if($user['user_type'] === 'super_admin'): ?>
+       
           <a href="manage_users.php" class="block py-3 px-6 text-gray-700 hover:bg-blue-500 hover:text-white transition-colors flex items-center">
             <i class="fas fa-users mr-2 sidebar-icon"></i> <span class="sidebar-item-text">Manage Users</span>
           </a>
-        <?php endif; ?>
+      
         <a href="destination_list.php" class="block py-3 px-6 text-gray-700 hover:bg-blue-500 hover:text-white transition-colors flex items-center">
           <i class="fas fa-map-marker-alt mr-2 sidebar-icon"></i> <span class="sidebar-item-text">Manage Destinations</span>
         </a>
@@ -304,7 +336,7 @@ $resorts = $stmt->fetchAll();
         switchContainer.removeChild(spinner);
       }
     }
-
+    <?php echo "<!-- Line 115 Test -->"; ?>
     document.querySelectorAll('.toggle-active').forEach(function(checkbox) {
       checkbox.addEventListener('change', function() {
         updateResortStatus(this);
@@ -379,6 +411,18 @@ $resorts = $stmt->fetchAll();
       });
     });
   </script>
-</body>
-</html>
-<?php include 'bfooter.php'; ?>
+
+// Bottom of file - include footer with error checking
+if (file_exists('bfooter.php')) {
+    include 'bfooter.php';
+} else {
+    // If footer doesn't exist, show a simple admin footer
+    echo '    <footer class="bg-dark text-white py-3 mt-5">
+        <div class="container text-center">
+            <p class="mb-0">&copy; ' . date('Y') . ' KE Resorts. All rights reserved.</p>
+        </div>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    </body>
+    </html>';
+}

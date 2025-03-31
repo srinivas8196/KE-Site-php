@@ -19,20 +19,86 @@ $resortFolder = 'assets/resorts/' . ($resort['resort_slug'] ?? '');
 <link rel="stylesheet" href="css/resort-details.css" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.css" />
 <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
-<link rel="stylesheet" href="assets/int-tel-input/css/intlTelInput.css">
+<link rel="stylesheet" href="assets/int-tel-input/css/intlTelInput.min.css">
 <div class="resort-banner modern-banner">
 <?php if (!empty($resort['banner_image'])): ?>
   <img src="<?php echo $resortFolder . '/' . htmlspecialchars($resort['banner_image']); ?>" alt="<?php echo htmlspecialchars($resort['resort_name']); ?> Banner" class="banner-image">
-<?php endif; ?>
-  <div class="banner-content-bottom-left">
-    <h1 class="banner-title"><?php echo htmlspecialchars($resort['banner_title'] ?? ''); ?></h1>
+  <div class="banner-content animated-banner-content">
+    <div class="container">
+      <h1 class="banner-title animate-title"><?php echo htmlspecialchars($resort['banner_title'] ?? ''); ?></h1>
+    </div>
   </div>
+<?php endif; ?>
 </div>
 <div class="container resort-details-container section-padding">
   <div class="row">
     <div class="col-lg-8 resort-content-left">
       <h2 class="resort-name"><?php echo htmlspecialchars($resort['resort_name'] ?? ''); ?></h2>
       <p class="resort-description"><?php echo nl2br(htmlspecialchars($resort['resort_description'] ?? '')); ?></p>
+<style>
+.modern-banner {
+  position: relative;
+  margin-bottom: 0;
+  overflow: hidden;
+}
+.modern-banner img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.banner-content {
+  position: absolute;
+  bottom: 30px;
+  left: 0;
+  width: 100%;
+  padding: 25px 0;
+  z-index: 10;
+}
+.animated-banner-content {
+  animation: fadeInUp 1s ease-out;
+}
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.banner-title {
+  font-size: 3.2rem;
+  font-weight: 700;
+  margin: 0;
+  color: #fff;
+  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8);
+  animation: slidein 1.5s ease-out;
+}
+@keyframes slidein {
+  from {
+    transform: translateX(-50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+@media (max-width: 768px) {
+  .banner-title {
+    font-size: 2.2rem;
+  }
+  .banner-content {
+    bottom: 15px;
+    padding: 15px 0;
+  }
+}
+.resort-name {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+</style>
 <div class="resort-section amenities-section">
         <h3>Amenities</h3>
 <div class="amenities-grid">
@@ -86,12 +152,9 @@ if(is_array($gallery) && count($gallery) > 0): ?>
 </div>
 <div class="resort-section testimonials-section modern-testimonials">
         <h3>What Our Guests Say</h3>
-<?php
-$testimonials = json_decode($resort['testimonials'], true);
-if(is_array($testimonials) && count($testimonials) > 0): ?>
 <div class="swiper testimonial-carousel">
 <div class="swiper-wrapper">
-<?php foreach($testimonials as $t): ?>
+<?php if(is_array($testimonials) && count($testimonials) > 0): foreach($testimonials as $t): ?>
 <div class="swiper-slide testimonial-item">
 <blockquote class="testimonial-content">
 <p class="testimonial-text">"<?php echo htmlspecialchars($t['content']); ?>"</p>
@@ -103,47 +166,18 @@ if(is_array($testimonials) && count($testimonials) > 0): ?>
 </footer>
 </blockquote>
 </div>
-<?php endforeach; ?>
-</div>
-<div class="swiper-pagination testimonial-pagination"></div>
-</div>
-<?php else: ?>
+<?php endforeach; else: ?>
 <p>No testimonials available at the moment.</p>
 <?php endif; ?>
 </div>
-<style>
-.testimonial-carousel { padding: 20px 0; }
-.testimonial-item { text-align: center; padding: 20px; }
-.testimonial-content { font-style: italic; margin-bottom: 15px; }
-.testimonial-text { font-size: 1.1em; line-height: 1.6; margin-bottom: 15px; }
-.testimonial-author { font-size: 0.9em; color: #666; }
-.testimonial-author strong { color: #333; }
-</style>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  if(document.querySelector('.testimonial-carousel')) {
-    const testimonialCarousel = new Swiper('.testimonial-carousel', {
-      loop: true,
-      autoplay: {
-        delay: 5000,
-        disableOnInteraction: false,
-        pauseOnMouseEnter: true
-      },
-      speed: 1000,
-      effect: 'fade',
-      fadeEffect: { crossFade: true },
-      pagination: {
-        el: '.testimonial-pagination',
-        clickable: true
-      }
-    });
-  }
-});
-</script>
+<div class="swiper-pagination testimonial-pagination"></div>
+</div>
+</div>
 </div>
 <div class="col-lg-4">
 <div class="sticky-form-container">
 <div class="resort-form-container">
+<h3>Enquire Now</h3>
 <form id="resortEnquiryForm" method="POST" action="process_resort_enquiry.php">
 <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
 <input type="hidden" name="resort_id" value="<?php echo htmlspecialchars($resort['id']); ?>">
@@ -185,8 +219,44 @@ document.addEventListener('DOMContentLoaded', function() {
 <button type="submit" class="btn-submit">Submit Enquiry</button>
 </form>
 </div>
+</div>
+</div>
+</div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  new Swiper('.testimonial-carousel', {
+    slidesPerView: 1,
+    spaceBetween: 30,
+    loop: true,
+    autoplay: {
+      delay: 5000,
+      disableOnInteraction: false,
+    },
+    pagination: {
+      el: '.testimonial-pagination',
+      clickable: true,
+    },
+  });
+});
+</script>
 <style>
-.resort-form-container { width: 100%; padding: 20px; background: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+.testimonial-carousel { padding: 20px 0; }
+.testimonial-item { text-align: center; padding: 20px; background: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+.testimonial-content { font-style: italic; margin-bottom: 15px; }
+.testimonial-text { font-size: 1.1em; line-height: 1.6; margin-bottom: 15px; }
+.testimonial-author { font-size: 0.9em; color: #666; }
+.testimonial-author strong { color: #333; }
+.swiper-pagination { position: relative; margin-top: 20px; }
+.swiper-pagination-bullet { width: 10px; height: 10px; background: #007bff; opacity: 0.5; }
+.swiper-pagination-bullet-active { opacity: 1; }
+</style>
+<style>
+.resort-details-container { padding: 40px 0; position: relative; }
+.sticky-form-container { position: sticky; top: 100px; margin-bottom: 20px; z-index: 100; }
+.resort-form-container { background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+.resort-content-left { padding-right: 30px; }
+@media (max-width: 991px) { .sticky-form-container { position: relative; top: 0; margin-top: 30px; } .resort-content-left { padding-right: 15px; } }
 .form-grid { display: grid; grid-template-columns: 1fr; gap: 20px; margin-bottom: 20px; }
 .form-group { margin-bottom: 15px; position: relative; }
 .form-group label { display: block; margin-bottom: 5px; font-weight: 600; color: #333; }
@@ -195,97 +265,31 @@ document.addEventListener('DOMContentLoaded', function() {
 .btn-submit:hover { background: #0056b3; }
 .error-message { color: #dc3545; font-size: 12px; margin-top: 5px; display: none; }
 .error-message.show { display: block; }
-
-/* Phone Input Styles */
-.iti { width: 100%; position: relative; display: inline-block; }
-.iti__country-list { 
-    position: absolute !important;
-    z-index: 999999 !important;
-    background-color: white !important;
-    border: 1px solid #CCC !important;
-    margin-top: 0 !important;
-    width: 300px !important;
-    max-height: 200px !important;
-    overflow-y: scroll !important;
-    -webkit-overflow-scrolling: touch !important;
-    top: 100% !important;
-    left: 0 !important;
-}
-.iti__country { padding: 5px 10px !important; cursor: pointer !important; }
-.iti__country:hover { background-color: #f1f1f1 !important; }
-.iti__flag-container { position: absolute !important; top: 0 !important; bottom: 0 !important; padding: 1px !important; }
-.iti__selected-flag { padding: 0 6px 0 8px !important; }
-#phone { padding-left: 52px !important; }
 </style>
-</div>
-</div>
-</div>
-</div>
-<?php include 'kfooter.php'; ?>
 <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.js"></script>
 <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
-<script src="assets/int-tel-input/js/intlTelInput.min.js"></script>
-<script src="assets/int-tel-input/js/utils.js"></script>
 <script src="https://kit.fontawesome.com/your-font-awesome-kit.js"></script>
+<?php include 'kfooter.php'; ?>
+<!-- Phone Input Initialization -->
+<link rel="stylesheet" href="assets/int-tel-input/css/intlTelInput.css">
+<script src="assets/int-tel-input/js/intlTelInput.js"></script>
 <script>
-// Initialize Fancybox
-Fancybox.bind('[data-fancybox="gallery"]', {
-    carousel: { infinite: true },
-    Toolbar: { display: ['slideshow', 'fullscreen', 'thumbs', 'close'] },
-    Thumbs: { autoStart: true },
-    Slideshow: { autoStart: false, speed: 4000 }
-});
-
-// Initialize Swiper for gallery
-const galleryCarousel = new Swiper('.gallery-carousel', {
-    loop: true,
-    slidesPerView: 1,
-    spaceBetween: 10,
-    pagination: { el: '.gallery-pagination', clickable: true },
-    navigation: { nextEl: '.gallery-button-next', prevEl: '.gallery-button-prev' },
-    breakpoints: { 640: { slidesPerView: 2, spaceBetween: 20 }, 1024: { slidesPerView: 3, spaceBetween: 30 } }
-});
-
-// Initialize phone input
-const phoneInputField = document.querySelector('#phone');
-if (phoneInputField) {
-    const phoneInput = window.intlTelInput(phoneInputField, {
-        initialCountry: 'us',
-        preferredCountries: ['in', 'ae', 'gb', 'us'],
-        separateDialCode: true,
-        utilsScript: 'assets/int-tel-input/js/utils.js',
-        dropdownContainer: document.body
-    });
-
-    // Store the instance for later use
-    window.iti = phoneInput;
-
-    // Handle validation
-    phoneInputField.addEventListener('change', function() {
-        const errorDiv = document.querySelector('#phone-error');
-        if (phoneInput.isValidNumber()) {
-            errorDiv.style.display = 'none';
-        } else {
-            errorDiv.style.display = 'block';
-        }
-    });
-
-    // Handle form submission
-    const form = phoneInputField.closest('form');
-    if (form) {
-        form.addEventListener('submit', function() {
-            const fullNumber = phoneInput.getNumber();
-            let hiddenInput = form.querySelector('input[name="full_phone"]');
-            if (!hiddenInput) {
-                hiddenInput = document.createElement('input');
-                hiddenInput.type = 'hidden';
-                hiddenInput.name = 'full_phone';
-                form.appendChild(hiddenInput);
-            }
-            hiddenInput.value = fullNumber;
+window.addEventListener('load', function() {
+    var phoneInput = document.querySelector('#phone');
+    if (phoneInput) {
+        var iti = window.intlTelInput(phoneInput, {
+            utilsScript: 'assets/int-tel-input/js/utils.js',
+            initialCountry: 'us',
+            preferredCountries: ['in', 'ae', 'gb', 'us'],
+            separateDialCode: true,
+            dropdownContainer: document.body
         });
+        // Store the instance for later use
+        window.iti = iti;
     }
-}
+});
 </script>
-</body>
-</html>
+<style>
+.iti { width: 100%; }
+.iti__country-list { z-index: 999999; background-color: white; border: 1px solid #CCC; }
+</style>

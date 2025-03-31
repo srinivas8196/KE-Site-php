@@ -24,15 +24,41 @@ $resortFolder = 'assets/resorts/' . ($resort['resort_slug'] ?? '');
 <?php if (!empty($resort['banner_image'])): ?>
   <img src="<?php echo $resortFolder . '/' . htmlspecialchars($resort['banner_image']); ?>" alt="<?php echo htmlspecialchars($resort['resort_name']); ?> Banner" class="banner-image">
 <?php endif; ?>
-  <div class="banner-content-bottom-left">
-    <h1 class="banner-title"><?php echo htmlspecialchars($resort['banner_title'] ?? ''); ?></h1>
-  </div>
 </div>
 <div class="container resort-details-container section-padding">
   <div class="row">
     <div class="col-lg-8 resort-content-left">
+      <h1 class="banner-title"><?php echo htmlspecialchars($resort['banner_title'] ?? ''); ?></h1>
       <h2 class="resort-name"><?php echo htmlspecialchars($resort['resort_name'] ?? ''); ?></h2>
       <p class="resort-description"><?php echo nl2br(htmlspecialchars($resort['resort_description'] ?? '')); ?></p>
+<style>
+.modern-banner {
+  position: relative;
+  margin-bottom: 0;
+  overflow: hidden;
+}
+.modern-banner img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.banner-title {
+  font-size: 3rem;
+  font-weight: 700;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  color: #333;
+}
+@media (max-width: 768px) {
+  .banner-title {
+    font-size: 2rem;
+  }
+}
+.resort-name {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+</style>
 <div class="resort-section amenities-section">
         <h3>Amenities</h3>
 <div class="amenities-grid">
@@ -86,12 +112,9 @@ if(is_array($gallery) && count($gallery) > 0): ?>
 </div>
 <div class="resort-section testimonials-section modern-testimonials">
         <h3>What Our Guests Say</h3>
-<?php
-$testimonials = json_decode($resort['testimonials'], true);
-if(is_array($testimonials) && count($testimonials) > 0): ?>
 <div class="swiper testimonial-carousel">
 <div class="swiper-wrapper">
-<?php foreach($testimonials as $t): ?>
+<?php if(is_array($testimonials) && count($testimonials) > 0): foreach($testimonials as $t): ?>
 <div class="swiper-slide testimonial-item">
 <blockquote class="testimonial-content">
 <p class="testimonial-text">"<?php echo htmlspecialchars($t['content']); ?>"</p>
@@ -103,47 +126,18 @@ if(is_array($testimonials) && count($testimonials) > 0): ?>
 </footer>
 </blockquote>
 </div>
-<?php endforeach; ?>
-</div>
-<div class="swiper-pagination testimonial-pagination"></div>
-</div>
-<?php else: ?>
+<?php endforeach; else: ?>
 <p>No testimonials available at the moment.</p>
 <?php endif; ?>
 </div>
-<style>
-.testimonial-carousel { padding: 20px 0; }
-.testimonial-item { text-align: center; padding: 20px; }
-.testimonial-content { font-style: italic; margin-bottom: 15px; }
-.testimonial-text { font-size: 1.1em; line-height: 1.6; margin-bottom: 15px; }
-.testimonial-author { font-size: 0.9em; color: #666; }
-.testimonial-author strong { color: #333; }
-</style>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  if(document.querySelector('.testimonial-carousel')) {
-    const testimonialCarousel = new Swiper('.testimonial-carousel', {
-      loop: true,
-      autoplay: {
-        delay: 5000,
-        disableOnInteraction: false,
-        pauseOnMouseEnter: true
-      },
-      speed: 1000,
-      effect: 'fade',
-      fadeEffect: { crossFade: true },
-      pagination: {
-        el: '.testimonial-pagination',
-        clickable: true
-      }
-    });
-  }
-});
-</script>
+<div class="swiper-pagination testimonial-pagination"></div>
+</div>
+</div>
 </div>
 <div class="col-lg-4">
 <div class="sticky-form-container">
 <div class="resort-form-container">
+<h3>Enquire Now</h3>
 <form id="resortEnquiryForm" method="POST" action="process_resort_enquiry.php">
 <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
 <input type="hidden" name="resort_id" value="<?php echo htmlspecialchars($resort['id']); ?>">
@@ -185,127 +179,77 @@ document.addEventListener('DOMContentLoaded', function() {
 <button type="submit" class="btn-submit">Submit Enquiry</button>
 </form>
 </div>
+</div>
+</div>
+</div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  new Swiper('.testimonial-carousel', {
+    slidesPerView: 1,
+    spaceBetween: 30,
+    loop: true,
+    autoplay: {
+      delay: 5000,
+      disableOnInteraction: false,
+    },
+    pagination: {
+      el: '.testimonial-pagination',
+      clickable: true,
+    },
+  });
+});
+</script>
 <style>
-.resort-form-container { width: 100%; padding: 20px; background: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+.testimonial-carousel { padding: 20px 0; }
+.testimonial-item { text-align: center; padding: 20px; background: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+.testimonial-content { font-style: italic; margin-bottom: 15px; }
+.testimonial-text { font-size: 1.1em; line-height: 1.6; margin-bottom: 15px; }
+.testimonial-author { font-size: 0.9em; color: #666; }
+.testimonial-author strong { color: #333; }
+.swiper-pagination { position: relative; margin-top: 20px; }
+.swiper-pagination-bullet { width: 10px; height: 10px; background: #007bff; opacity: 0.5; }
+.swiper-pagination-bullet-active { opacity: 1; }
+</style>
+<style>
+.resort-details-container { padding: 40px 0; position: relative; }
+.sticky-form-container { position: sticky; top: 100px; margin-bottom: 20px; z-index: 100; }
+.resort-form-container { background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+.resort-content-left { padding-right: 30px; }
+@media (max-width: 991px) { .sticky-form-container { position: relative; top: 0; margin-top: 30px; } .resort-content-left { padding-right: 15px; } }
 .form-grid { display: grid; grid-template-columns: 1fr; gap: 20px; margin-bottom: 20px; }
-.form-group { margin-bottom: 15px; }
+.form-group { margin-bottom: 15px; position: relative; }
 .form-group label { display: block; margin-bottom: 5px; font-weight: 600; color: #333; }
 .form-control { width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
 .btn-submit { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; width: 100%; }
 .btn-submit:hover { background: #0056b3; }
 .error-message { color: #dc3545; font-size: 12px; margin-top: 5px; display: none; }
 .error-message.show { display: block; }
-.iti { width: 100% !important; }
-.iti__country-list { max-height: 200px !important; overflow-y: auto !important; width: 260px !important; position: absolute !important; z-index: 9999 !important; background-color: white !important; box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important; }
 </style>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Phone number initialization
-    var phoneInput = document.querySelector('#phone');
-    var iti = window.intlTelInput(phoneInput, {
-        preferredCountries: ['in', 'ae', 'gb', 'us'],
-        separateDialCode: true,
-        utilsScript: 'https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/utils.js'
-    });
-    // Create hidden input for full phone number
-    var hiddenPhoneInput = document.createElement('input');
-    hiddenPhoneInput.type = 'hidden';
-    hiddenPhoneInput.name = 'full_phone';
-    phoneInput.parentNode.insertBefore(hiddenPhoneInput, phoneInput.nextSibling);
-    // Date of birth validation
-    var dobInput = document.getElementById('dob');
-    dobInput.max = new Date(new Date().setFullYear(new Date().getFullYear() - 27)).toISOString().split('T')[0];
-    function validateDOB() {
-        var dob = new Date(dobInput.value);
-        var age = Math.floor((new Date() - dob) / (365.25 * 24 * 60 * 60 * 1000));
-        var errorDiv = document.getElementById('dob-error');
-        if (age < 27) {
-            errorDiv.classList.add('show');
-            return false;
-        } else {
-            errorDiv.classList.remove('show');
-            return true;
-        }
-    }
-    function validatePhoneNumber() {
-        var errorDiv = document.getElementById('phone-error');
-        if (!iti.isValidNumber()) {
-            errorDiv.classList.add('show');
-            return false;
-        } else {
-            errorDiv.classList.remove('show');
-            hiddenPhoneInput.value = iti.getNumber();
-            return true;
-        }
-    }
-    // Form validation
-    document.getElementById('resortEnquiryForm').addEventListener('submit', function(event) {
-        var isPhoneValid = validatePhoneNumber();
-        var isDOBValid = validateDOB();
-        if (!isPhoneValid || !isDOBValid) {
-            event.preventDefault();
-        }
-    });
-    // Live validation
-    phoneInput.addEventListener('input', validatePhoneNumber);
-    phoneInput.addEventListener('countrychange', validatePhoneNumber);
-    dobInput.addEventListener('change', validateDOB);
-});
-</script>
-</div>
-</div>
-</div>
-</div>
-<?php include 'kfooter.php'; ?>
 <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.js"></script>
 <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
-<script src="assets/int-tel-input/js/intlTelInput.min.js"></script>
-<script src="assets/int-tel-input/js/utils.js"></script>
 <script src="https://kit.fontawesome.com/your-font-awesome-kit.js"></script>
+<?php include 'kfooter.php'; ?>
+<!-- Phone Input Initialization -->
+<link rel="stylesheet" href="assets/int-tel-input/css/intlTelInput.css">
+<script src="assets/int-tel-input/js/intlTelInput.js"></script>
 <script>
-Fancybox.bind('[data-fancybox="gallery"]', {
-  carousel: { infinite: true },
-  Toolbar: {
-    display: ['slideshow', 'fullscreen', 'thumbs', 'close']
-  },
-  Thumbs: { autoStart: true },
-  Slideshow: { autoStart: false, speed: 4000 }
+window.addEventListener('load', function() {
+    var phoneInput = document.querySelector('#phone');
+    if (phoneInput) {
+        var iti = window.intlTelInput(phoneInput, {
+            utilsScript: 'assets/int-tel-input/js/utils.js',
+            initialCountry: 'us',
+            preferredCountries: ['in', 'ae', 'gb', 'us'],
+            separateDialCode: true,
+            dropdownContainer: document.body
+        });
+        // Store the instance for later use
+        window.iti = iti;
+    }
 });
-const galleryCarousel = new Swiper('.gallery-carousel', {
-loop: true,
-slidesPerView: 1,
-spaceBetween: 10,
-pagination: { el: '.gallery-pagination', clickable: true },
-navigation: { nextEl: '.gallery-button-next', prevEl: '.gallery-button-prev' },
-breakpoints: { 640: { slidesPerView: 2, spaceBetween: 20 }, 1024: { slidesPerView: 3, spaceBetween: 30 } }
-});
-const phoneInputField = document.querySelector('#phone');
-if (phoneInputField) {
-const phoneInput = window.intlTelInput(phoneInputField, {
-initialCountry: 'auto',
-geoIpLookup: function(callback) {
-fetch('https://ipapi.co/json')
-.then(function(res) { return res.json(); })
-.then(function(data) { callback(data.country_code); })
-.catch(function() { callback('us'); });
-},
-utilsScript: 'assets/int-tel-input/js/utils.js'
-});
-// You might want to store the full number on form submit
-const form = phoneInputField.closest('form');
-if (form) {
-form.addEventListener('submit', function() {
-const fullNumber = phoneInput.getNumber();
-// Add a hidden input to store the full number if needed
-let hiddenInput = form.querySelector('input[name="full_phone"]');
-if (!hiddenInput) {
-hiddenInput = document.createElement('input');
-hiddenInput.type = 'hidden';
-hiddenInput.name = 'full_phone';
-form.appendChild(hiddenInput);
-}
-hiddenInput.value = fullNumber;
-});
-}
-}
 </script>
+<style>
+.iti { width: 100%; }
+.iti__country-list { z-index: 999999; background-color: white; border: 1px solid #CCC; }
+</style>

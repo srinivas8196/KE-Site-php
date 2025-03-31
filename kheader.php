@@ -7,11 +7,12 @@
     ini_set('display_errors', 1);
 
     // Include database connection
-    include_once 'db.php';
+    require_once 'db.php';
+    $pdo = require 'db.php';
 
     // Function to get all destinations with their active resorts - ONLY for mega menu display
     function getDestinationsForMenu() {
-        global $conn;  // Changed from $pdo to $conn to match db.php
+        global $pdo;
         
         $sql = "SELECT d.id as dest_id, d.destination_name, 
                        r.id as resort_id, r.resort_name, r.resort_slug, r.is_active
@@ -22,7 +23,7 @@
                 ORDER BY d.destination_name, r.resort_name";
         
         try {
-            $stmt = $conn->query($sql);  // Changed from $pdo to $conn
+            $stmt = $pdo->query($sql);
             $menuDestinations = [];
             
             while($row = $stmt->fetch()) {
