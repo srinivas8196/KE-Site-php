@@ -150,6 +150,20 @@ if(is_array($gallery) && count($gallery) > 0): ?>
 <p>No gallery images available.</p>
 <?php endif; ?>
 </div>
+<style>
+.gallery-section { margin-bottom: 30px; }
+.gallery-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.gallery-item { position: relative; overflow: hidden; border-radius: 6px; height: 0; padding-bottom: 70%; transition: transform 0.3s; }
+.gallery-item:hover { transform: scale(1.02); }
+.gallery-link { display: block; height: 100%; width: 100%; position: absolute; top: 0; left: 0; }
+.gallery-image { object-fit: cover; height: 100%; width: 100%; position: absolute; top: 0; left: 0; transition: all 0.3s; }
+.gallery-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); opacity: 0; transition: opacity 0.3s; display: flex; align-items: center; justify-content: center; }
+.gallery-overlay i { color: white; font-size: 24px; }
+.gallery-item:hover .gallery-overlay { opacity: 1; }
+.gallery-item:hover .gallery-image { filter: brightness(1.1); }
+@media (max-width: 991px) { .gallery-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 576px) { .gallery-grid { grid-template-columns: 1fr; } }
+</style>
 <div class="resort-section testimonials-section modern-testimonials">
         <h3>What Our Guests Say</h3>
 <div class="swiper testimonial-carousel">
@@ -276,6 +290,7 @@ document.addEventListener('DOMContentLoaded', function() {
 <!-- Phone Input Initialization -->
 <link rel="stylesheet" href="assets/int-tel-input/css/intlTelInput.css">
 <script src="assets/int-tel-input/js/intlTelInput.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/utils.js"></script>
 <script>
 window.addEventListener('load', function() {
     var phoneInput = document.querySelector('#phone');
@@ -284,11 +299,13 @@ window.addEventListener('load', function() {
     
     if (phoneInput) {
         var iti = window.intlTelInput(phoneInput, {
-            utilsScript: 'assets/int-tel-input/js/utils.js',
-            initialCountry: 'us',
+            utilsScript: 'https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/utils.js',
+            initialCountry: 'in',
             preferredCountries: ['in', 'ae', 'gb', 'us'],
             separateDialCode: true,
-            dropdownContainer: document.body
+            dropdownContainer: document.body,
+            formatOnDisplay: true,
+            autoPlaceholder: 'aggressive'
         });
         // Store the instance for later use
         window.iti = iti;
@@ -302,9 +319,25 @@ window.addEventListener('load', function() {
                 
                 // Validate phone number
                 if (!iti.isValidNumber()) {
-                    e.preventDefault();
+                    var errorCode = iti.getValidationError();
+                    var errorMsg = '';
+                    // Error codes from utils.js
+                    switch(errorCode) {
+                        case 0: errorMsg = 'Invalid number'; break;
+                        case 1: errorMsg = 'Invalid country code'; break;
+                        case 2: errorMsg = 'Number too short'; break;
+                        case 3: errorMsg = 'Number too long'; break;
+                        case 4: errorMsg = 'Invalid number'; break;
+                        default: errorMsg = 'Invalid phone number'; break;
+                    }
+                    document.getElementById('phone-error').textContent = errorMsg;
                     document.getElementById('phone-error').classList.add('show');
-                    return false;
+                    
+                    // Allow form to proceed anyway - India has many valid number formats
+                    fullPhoneInput.value = phoneInput.value;
+                    return true;
+                } else {
+                    document.getElementById('phone-error').classList.remove('show');
                 }
                 
                 // Validate date of birth (27+ years old)

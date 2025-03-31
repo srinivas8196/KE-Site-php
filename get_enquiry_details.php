@@ -6,34 +6,81 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 
-$pdo = require 'db.php';
-
-// Validate input
-if (!isset($_GET['id'])) {
-    header('Content-Type: application/json');
-    echo json_encode(['success' => false, 'message' => 'Missing enquiry ID']);
-    exit();
-}
-
-$enquiry_id = intval($_GET['id']);
+// Enable error reporting for debugging
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
 try {
-    // Get enquiry details
-    $stmt = $pdo->prepare("SELECT e.*, r.is_partner 
-                          FROM resort_enquiries e 
-                          LEFT JOIN resorts r ON e.resort_id = r.id 
-                          WHERE e.id = ?");
+    $pdo = require 'db.php';
+
+    // Validate input
+    if (!isset($_GET['id']) || empty($_GET['id'])) {
+        throw new Exception('Missing enquiry ID');
+    }
+
+    $enquiry_id = intval($_GET['id']);
+    
+    // Log the request
+    error_log("Fetching enquiry ID: " . $enquiry_id);
+    
+    // First check if the enquiry exists
+    $checkStmt = $pdo->prepare("SELECT COUNT(*) FROM resort_enquiries WHERE id = ?");
+    $checkStmt->execute([$enquiry_id]);
+    $count = $checkStmt->fetchColumn();
+    
+    if ($count == 0) {
+        throw new Exception('Enquiry not found with ID: ' . $enquiry_id);
+    }
+
+    // Get enquiry details with resort and destination information
+    $query = "SELECT 
+                e.*, 
+                r.resort_name, 
+                r.is_partner,
+                r.resort_code,
+                d.destination_name 
+              FROM 
+                resort_enquiries e 
+              LEFT JOIN 
+                resorts r ON e.resort_id = r.id 
+              LEFT JOIN 
+                destinations d ON e.destination_id = d.id
+              WHERE 
+                e.id = ?";
+                
+    $stmt = $pdo->prepare($query);
     $stmt->execute([$enquiry_id]);
     $enquiry = $stmt->fetch(PDO::FETCH_ASSOC);
     
-    if ($enquiry) {
-        header('Content-Type: application/json');
-        echo json_encode($enquiry);
-    } else {
-        header('Content-Type: application/json');
-        echo json_encode(['success' => false, 'message' => 'Enquiry not found']);
+    if (!$enquiry) {
+        throw new Exception('Enquiry found in DB but failed to fetch details. ID: ' . $enquiry_id);
     }
-} catch (Exception $e) {
+    
+    // Convert dates to proper format
+    if (!empty($enquiry['date_of_birth'])) {
+        $enquiry['date_of_birth'] = date('Y-m-d', strtotime($enquiry['date_of_birth']));
+    }
+    
+    if (!empty($enquiry['created_at'])) {
+        $enquiry['created_at_formatted'] = date('Y-m-d H:i:s', strtotime($enquiry['created_at']));
+    }
+    
+    // Prepare yes/no fields
+    $enquiry['has_passport'] = isset($enquiry['has_passport']) ? ucfirst($enquiry['has_passport']) : 'Not specified';
+    
+    // Add success flag
+    $enquiry['success'] = true;
+    
+    // Send response
     header('Content-Type: application/json');
-    echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+    echo json_encode($enquiry);
+    
+} catch (Exception $e) {
+    error_log("Error in get_enquiry_details.php: " . $e->getMessage());
+    header('Content-Type: application/json');
+    echo json_encode([
+        'success' => false, 
+        'message' => $e->getMessage(),
+        'error_details' => $e->getTraceAsString()
+    ]);
 } 

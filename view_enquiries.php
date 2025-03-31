@@ -352,51 +352,10 @@ include 'bheader.php';
                 </button>
             </div>
             <div class="p-6" id="modal-content">
-                <div class="flex flex-col space-y-4">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <h4 class="font-semibold mb-2">Customer Information</h4>
-                            <p><span class="font-medium">Name:</span> <span id="modal-name"></span></p>
-                            <p><span class="font-medium">Email:</span> <span id="modal-email"></span></p>
-                            <p><span class="font-medium">Phone:</span> <span id="modal-phone"></span></p>
-                            <p><span class="font-medium">Date of Birth:</span> <span id="modal-dob"></span></p>
-                            <p><span class="font-medium">Has Passport:</span> <span id="modal-passport"></span></p>
-                            <p><span class="font-medium">Country:</span> <span id="modal-country"></span></p>
-                        </div>
-                        <div>
-                            <h4 class="font-semibold mb-2">Resort Information</h4>
-                            <p><span class="font-medium">Resort:</span> <span id="modal-resort"></span></p>
-                            <p><span class="font-medium">Destination:</span> <span id="modal-destination"></span></p>
-                            <p><span class="font-medium">Resort Code:</span> <span id="modal-code"></span></p>
-                            <p><span class="font-medium">Date Submitted:</span> <span id="modal-date"></span></p>
-                            <p><span class="font-medium">Status:</span> <span id="modal-status"></span></p>
-                            <p><span class="font-medium">Partner Hotel:</span> <span id="modal-partner"></span></p>
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <h4 class="font-semibold mb-2">LeadSquared Details</h4>
-                        <div class="bg-gray-50 p-4 rounded">
-                            <p><span class="font-medium">Lead Source:</span> <span id="modal-lead-source"></span></p>
-                            <p><span class="font-medium">Lead Brand:</span> <span id="modal-lead-brand"></span></p>
-                            <p><span class="font-medium">Lead Sub Brand:</span> <span id="modal-lead-sub-brand"></span></p>
-                            <p><span class="font-medium">Lead Source Description:</span> <span id="modal-lead-source-description"></span></p>
-                            <p><span class="font-medium">Lead Location:</span> <span id="modal-lead-location"></span></p>
-                            <p><span class="font-medium">LeadSquared ID:</span> <span id="modal-leadsquared-id"></span></p>
-                        </div>
-                    </div>
-                    
-                    <div class="mt-4">
-                        <h4 class="font-semibold mb-2">Actions</h4>
-                        <div class="flex space-x-2">
-                            <button class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm" id="emailCustomer">
-                                <i class="fas fa-envelope mr-2"></i> Email Customer
-                            </button>
-                            <button class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md text-sm" id="markConverted">
-                                <i class="fas fa-check-circle mr-2"></i> Mark as Converted
-                            </button>
-                        </div>
-                    </div>
+                <!-- Loading state -->
+                <div class="text-center p-8">
+                    <i class="fas fa-spinner fa-spin fa-2x"></i>
+                    <p class="mt-2">Loading enquiry details...</p>
                 </div>
             </div>
         </div>
@@ -463,69 +422,145 @@ include 'bheader.php';
                 });
             });
             
-            // View details button handler
-            $('.view-details').click(function() {
+            // Direct view details functionality
+            $(document).on('click', '.view-details', function() {
                 const enquiryId = $(this).data('enquiry-id');
+                const baseUrl = window.location.protocol + '//' + window.location.host;
+                const ajaxUrl = baseUrl + '/get_enquiry_details.php';
                 
-                // Fetch enquiry details
-                $.ajax({
-                    url: 'get_enquiry_details.php',
-                    type: 'GET',
-                    data: { id: enquiryId },
-                    dataType: 'json',
-                    success: function(data) {
-                        // Populate modal with data
-                        $('#modal-title').text('Enquiry Details: EQ' + data.id);
-                        $('#modal-name').text(data.first_name + ' ' + data.last_name);
-                        $('#modal-email').text(data.email);
-                        $('#modal-phone').text(data.phone);
-                        $('#modal-dob').text(data.date_of_birth || 'Not provided');
-                        $('#modal-passport').text(data.has_passport || 'Not provided');
-                        $('#modal-country').text(data.country_code || 'Not provided');
-                        $('#modal-resort').text(data.resort_name);
-                        $('#modal-destination').text(data.destination_name);
-                        $('#modal-code').text(data.resort_code);
-                        $('#modal-date').text(new Date(data.created_at).toLocaleString());
-                        $('#modal-status').text(data.status.charAt(0).toUpperCase() + data.status.slice(1));
-                        $('#modal-partner').text(data.is_partner == 1 ? 'Yes' : 'No');
-                        
-                        // LeadSquared details
-                        $('#modal-lead-source').text(data.lead_source || 'Web Enquiry');
-                        $('#modal-lead-brand').text(data.lead_brand || 'Timeshare Marketing');
-                        $('#modal-lead-sub-brand').text(data.lead_sub_brand || 'Not available');
-                        $('#modal-lead-source-description').text(data.lead_source_description || 'Not available');
-                        $('#modal-lead-location').text(data.lead_location || data.resort_name);
-                        $('#modal-leadsquared-id').text(data.leadsquared_id || 'Not available');
-                        
-                        // Setup action buttons
-                        $('#emailCustomer').off('click').on('click', function() {
-                            window.location.href = 'mailto:' + data.email + '?subject=Your Enquiry about ' + data.resort_name;
-                        });
-                        
-                        $('#markConverted').off('click').on('click', function() {
-                            $.ajax({
-                                url: 'update_enquiry_status.php',
-                                type: 'POST',
-                                data: {
-                                    enquiry_id: data.id,
-                                    status: 'converted'
-                                },
-                                success: function() {
-                                    $('#enquiryDetailModal').hide();
-                                    toastr.success('Enquiry marked as converted');
-                                    location.reload();
-                                }
+                console.log('View Details clicked for enquiry ID:', enquiryId);
+                console.log('AJAX URL:', ajaxUrl);
+                
+                // Show modal and loading state
+                $('#modal-content').html('<div class="text-center p-8"><i class="fas fa-spinner fa-spin fa-2x"></i><p class="mt-2">Loading enquiry details...</p></div>');
+                $('#enquiryDetailModal').removeClass('hidden');
+                
+                // Fetch using basic XMLHttpRequest to avoid jQuery AJAX issues
+                const xhr = new XMLHttpRequest();
+                xhr.open('GET', 'get_enquiry_details.php?id=' + enquiryId, true);
+                xhr.onload = function() {
+                    if (xhr.status === 200) {
+                        console.log('Response:', xhr.responseText);
+                        try {
+                            const data = JSON.parse(xhr.responseText);
+                            
+                            if (!data || data.success === false) {
+                                $('#modal-content').html('<div class="text-center p-8 text-red-500"><i class="fas fa-exclamation-triangle fa-2x mb-3"></i><p>Error loading enquiry details: ' + (data ? data.message : 'Unknown error') + '</p></div>');
+                                return;
+                            }
+                            
+                            // Create modal content HTML
+                            const modalHtml = `
+                            <div class="flex flex-col space-y-4">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <h4 class="text-lg font-medium mb-3 text-gray-700 border-b pb-2">Customer Information</h4>
+                                        <div class="space-y-2">
+                                            <p><span class="font-medium text-gray-600">Name:</span> ${data.first_name || ''} ${data.last_name || ''}</p>
+                                            <p><span class="font-medium text-gray-600">Email:</span> ${data.email || 'Not provided'}</p>
+                                            <p><span class="font-medium text-gray-600">Phone:</span> ${data.phone || 'Not provided'}</p>
+                                            <p><span class="font-medium text-gray-600">Date of Birth:</span> ${data.date_of_birth || 'Not provided'}</p>
+                                            <p><span class="font-medium text-gray-600">Has Passport:</span> ${data.has_passport || 'Not provided'}</p>
+                                            <p><span class="font-medium text-gray-600">Country:</span> ${data.country_code || 'Not provided'}</p>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-lg font-medium mb-3 text-gray-700 border-b pb-2">Resort Information</h4>
+                                        <div class="space-y-2">
+                                            <p><span class="font-medium text-gray-600">Resort:</span> ${data.resort_name || 'Not available'}</p>
+                                            <p><span class="font-medium text-gray-600">Destination:</span> ${data.destination_name || 'Not available'}</p>
+                                            <p><span class="font-medium text-gray-600">Resort Code:</span> ${data.resort_code || 'Not available'}</p>
+                                            <p><span class="font-medium text-gray-600">Date Submitted:</span> ${data.created_at ? new Date(data.created_at).toLocaleString() : 'Unknown'}</p>
+                                            <p><span class="font-medium text-gray-600">Status:</span> <span class="px-2 py-1 rounded ${getStatusClass(data.status)}">${data.status ? (data.status.charAt(0).toUpperCase() + data.status.slice(1)) : 'Unknown'}</span></p>
+                                            <p><span class="font-medium text-gray-600">Partner Hotel:</span> ${data.is_partner == 1 ? 'Yes' : 'No'}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <h4 class="text-lg font-medium mb-3 text-gray-700 border-b pb-2">LeadSquared Details</h4>
+                                    <div class="bg-gray-50 p-4 rounded">
+                                        <div class="space-y-2">
+                                            <p><span class="font-medium text-gray-600">Lead Source:</span> ${data.lead_source || 'Web Enquiry'}</p>
+                                            <p><span class="font-medium text-gray-600">Lead Brand:</span> ${data.lead_brand || 'Timeshare Marketing'}</p>
+                                            <p><span class="font-medium text-gray-600">Lead Sub Brand:</span> ${data.lead_sub_brand || 'Not available'}</p>
+                                            <p><span class="font-medium text-gray-600">Lead Source Description:</span> ${data.lead_source_description || 'Not available'}</p>
+                                            <p><span class="font-medium text-gray-600">Lead Location:</span> ${data.lead_location || data.resort_name || 'Not available'}</p>
+                                            <p><span class="font-medium text-gray-600">LeadSquared ID:</span> ${data.leadsquared_id || 'Not available'}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-4 pt-4 border-t">
+                                    <h4 class="text-lg font-medium mb-3 text-gray-700">Actions</h4>
+                                    <div class="flex flex-wrap gap-3">
+                                        <button class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm transition duration-300 ease-in-out flex items-center" id="emailCustomer" data-email="${data.email}">
+                                            <i class="fas fa-envelope mr-2"></i> Email Customer
+                                        </button>
+                                        <button class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md text-sm transition duration-300 ease-in-out flex items-center" id="markConverted" data-id="${data.id}">
+                                            <i class="fas fa-check-circle mr-2"></i> Mark as Converted
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            `;
+                            
+                            // Update modal title and content
+                            $('#modal-title').text('Enquiry Details: EQ' + data.id);
+                            $('#modal-content').html(modalHtml);
+                            
+                            // Setup action button handlers
+                            $('#emailCustomer').on('click', function() {
+                                const email = $(this).data('email');
+                                window.location.href = 'mailto:' + email + '?subject=Your Enquiry about ' + data.resort_name;
                             });
-                        });
-                        
-                        // Show modal
-                        $('#enquiryDetailModal').removeClass('hidden');
-                    },
-                    error: function() {
-                        toastr.error('Failed to load enquiry details');
+                            
+                            $('#markConverted').on('click', function() {
+                                const id = $(this).data('id');
+                                $.ajax({
+                                    url: 'update_enquiry_status.php',
+                                    type: 'POST',
+                                    data: {
+                                        enquiry_id: id,
+                                        status: 'converted'
+                                    },
+                                    success: function() {
+                                        $('#enquiryDetailModal').addClass('hidden');
+                                        toastr.success('Enquiry marked as converted');
+                                        location.reload();
+                                    },
+                                    error: function(xhr, status, error) {
+                                        console.error('Error updating status:', error);
+                                        toastr.error('Failed to update status: ' + error);
+                                    }
+                                });
+                            });
+                        } catch (e) {
+                            console.error('Error parsing JSON:', e);
+                            $('#modal-content').html('<div class="text-center p-8 text-red-500"><i class="fas fa-exclamation-triangle fa-2x mb-3"></i><p>Error parsing enquiry details: ' + e.message + '</p><pre class="mt-4 p-2 bg-gray-100 rounded overflow-auto text-xs text-left">' + xhr.responseText.substring(0, 200) + '...</pre></div>');
+                        }
+                    } else {
+                        console.error('Request failed with status:', xhr.status);
+                        $('#modal-content').html('<div class="text-center p-8 text-red-500"><i class="fas fa-exclamation-triangle fa-2x mb-3"></i><p>Error loading enquiry details. Server responded with status: ' + xhr.status + '</p></div>');
                     }
-                });
+                };
+                xhr.onerror = function() {
+                    console.error('Request failed');
+                    $('#modal-content').html('<div class="text-center p-8 text-red-500"><i class="fas fa-exclamation-triangle fa-2x mb-3"></i><p>Network error when trying to load enquiry details</p></div>');
+                };
+                xhr.send();
             });
+            
+            // Helper function for status styling
+            function getStatusClass(status) {
+                switch(status) {
+                    case 'new': return 'bg-yellow-100 text-yellow-800';
+                    case 'contacted': return 'bg-blue-100 text-blue-800';
+                    case 'converted': return 'bg-green-100 text-green-800';
+                    case 'closed': return 'bg-gray-100 text-gray-800';
+                    default: return 'bg-gray-100 text-gray-800';
+                }
+            }
             
             // Close modal
             $('#closeModal').click(function() {

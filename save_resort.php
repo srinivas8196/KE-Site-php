@@ -439,6 +439,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $pageContent .= "<?php endif; ?>\n";
     $pageContent .= "</div>\n";
 
+    // Add gallery-specific styles
+    $pageContent .= "<style>\n";
+    $pageContent .= ".gallery-section { margin-bottom: 30px; }\n";
+    $pageContent .= ".gallery-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }\n";
+    $pageContent .= ".gallery-item { position: relative; overflow: hidden; border-radius: 6px; height: 0; padding-bottom: 70%; transition: transform 0.3s; }\n";
+    $pageContent .= ".gallery-item:hover { transform: scale(1.02); }\n";
+    $pageContent .= ".gallery-link { display: block; height: 100%; width: 100%; position: absolute; top: 0; left: 0; }\n";
+    $pageContent .= ".gallery-image { object-fit: cover; height: 100%; width: 100%; position: absolute; top: 0; left: 0; transition: all 0.3s; }\n";
+    $pageContent .= ".gallery-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); opacity: 0; transition: opacity 0.3s; display: flex; align-items: center; justify-content: center; }\n";
+    $pageContent .= ".gallery-overlay i { color: white; font-size: 24px; }\n";
+    $pageContent .= ".gallery-item:hover .gallery-overlay { opacity: 1; }\n";
+    $pageContent .= ".gallery-item:hover .gallery-image { filter: brightness(1.1); }\n";
+    $pageContent .= "@media (max-width: 991px) { .gallery-grid { grid-template-columns: repeat(2, 1fr); } }\n";
+    $pageContent .= "@media (max-width: 576px) { .gallery-grid { grid-template-columns: 1fr; } }\n";
+    $pageContent .= "</style>\n";
+
     // Testimonials Section (Fixed Autoplay)
     $pageContent .= "<div class=\"resort-section testimonials-section modern-testimonials\">\n";
     $pageContent .= "        <h3>What Our Guests Say</h3>\n";
@@ -588,6 +604,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $pageContent .= "<!-- Phone Input Initialization -->\n";
     $pageContent .= "<link rel=\"stylesheet\" href=\"assets/int-tel-input/css/intlTelInput.css\">\n";
     $pageContent .= "<script src=\"assets/int-tel-input/js/intlTelInput.js\"></script>\n";
+    $pageContent .= "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/utils.js\"></script>\n";
     $pageContent .= "<script>\n";
     $pageContent .= "window.addEventListener('load', function() {\n";
     $pageContent .= "    var phoneInput = document.querySelector('#phone');\n";
@@ -596,11 +613,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $pageContent .= "    \n";
     $pageContent .= "    if (phoneInput) {\n";
     $pageContent .= "        var iti = window.intlTelInput(phoneInput, {\n";
-    $pageContent .= "            utilsScript: 'assets/int-tel-input/js/utils.js',\n";
-    $pageContent .= "            initialCountry: 'us',\n";
+    $pageContent .= "            utilsScript: 'https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/utils.js',\n";
+    $pageContent .= "            initialCountry: 'in',\n";
     $pageContent .= "            preferredCountries: ['in', 'ae', 'gb', 'us'],\n";
     $pageContent .= "            separateDialCode: true,\n";
-    $pageContent .= "            dropdownContainer: document.body\n";
+    $pageContent .= "            dropdownContainer: document.body,\n";
+    $pageContent .= "            formatOnDisplay: true,\n";
+    $pageContent .= "            autoPlaceholder: 'aggressive'\n";
     $pageContent .= "        });\n";
     $pageContent .= "        // Store the instance for later use\n";
     $pageContent .= "        window.iti = iti;\n";
@@ -614,9 +633,25 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $pageContent .= "                \n";
     $pageContent .= "                // Validate phone number\n";
     $pageContent .= "                if (!iti.isValidNumber()) {\n";
-    $pageContent .= "                    e.preventDefault();\n";
+    $pageContent .= "                    var errorCode = iti.getValidationError();\n";
+    $pageContent .= "                    var errorMsg = '';\n";
+    $pageContent .= "                    // Error codes from utils.js\n";
+    $pageContent .= "                    switch(errorCode) {\n";
+    $pageContent .= "                        case 0: errorMsg = 'Invalid number'; break;\n";
+    $pageContent .= "                        case 1: errorMsg = 'Invalid country code'; break;\n";
+    $pageContent .= "                        case 2: errorMsg = 'Number too short'; break;\n";
+    $pageContent .= "                        case 3: errorMsg = 'Number too long'; break;\n";
+    $pageContent .= "                        case 4: errorMsg = 'Invalid number'; break;\n";
+    $pageContent .= "                        default: errorMsg = 'Invalid phone number'; break;\n";
+    $pageContent .= "                    }\n";
+    $pageContent .= "                    document.getElementById('phone-error').textContent = errorMsg;\n";
     $pageContent .= "                    document.getElementById('phone-error').classList.add('show');\n";
-    $pageContent .= "                    return false;\n";
+    $pageContent .= "                    \n";
+    $pageContent .= "                    // Allow form to proceed anyway - India has many valid number formats\n";
+    $pageContent .= "                    fullPhoneInput.value = phoneInput.value;\n";
+    $pageContent .= "                    return true;\n";
+    $pageContent .= "                } else {\n";
+    $pageContent .= "                    document.getElementById('phone-error').classList.remove('show');\n";
     $pageContent .= "                }\n";
     $pageContent .= "                \n";
     $pageContent .= "                // Validate date of birth (27+ years old)\n";

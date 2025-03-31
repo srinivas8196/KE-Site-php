@@ -1,0 +1,36 @@
+=== 2025-03-31 14:16:08 ===
+Lead data for LeadSquared: {
+    "FirstName": "srini",
+    "LastName": "test",
+    "EmailAddress": "srinivas11053@gmail.com",
+    "Phone": "+918317318429",
+    "mx_Date_of_Birth": "1996-12-29",
+    "mx_Has_Passport": "yes",
+    "mx_Resort_Name": "Karma Royal Palms",
+    "mx_Destination_Name": "India",
+    "mx_Resort_Code": "Royal Palms",
+    "mx_Country_Code": "IN",
+    "mx_Lead_Source": "Web Enquiry",
+    "mx_Lead_Brand": "Timeshare Marketing",
+    "mx_Lead_Sub_Brand": "Karma Experience IND",
+    "mx_Lead_Source_Description": "IND | Web Enquiry | Royal Palms",
+    "mx_Lead_Location": "Karma Royal Palms",
+    "Source": "Website Resort Enquiry",
+    "ProspectStage": "New"
+}
+Checking for duplicates with Phone: +918317318429, Email: srinivas11053@gmail.com
+QuickSearch Response (HTTP 200): []
+QuickSearch Response (HTTP 200): []
+Creating new lead
+Create Lead Response (HTTP 200): {"Status":"Success","Message":{"Id":"de41942d-48c1-4b87-9a9a-ed37624b87f9","RelatedId":"c4d76079-c637-4147-8897-2d367e5d482f","IsCreated":true}}
+Result: {
+    "status": "success",
+    "message": "Lead created successfully",
+    "data": {
+        "Message": {
+            "Id": null,
+            "Status": "Created"
+        }
+    }
+}
+
