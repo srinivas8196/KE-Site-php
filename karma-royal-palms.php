@@ -23,12 +23,16 @@ $resortFolder = 'assets/resorts/' . ($resort['resort_slug'] ?? '');
 <div class="resort-banner modern-banner">
 <?php if (!empty($resort['banner_image'])): ?>
   <img src="<?php echo $resortFolder . '/' . htmlspecialchars($resort['banner_image']); ?>" alt="<?php echo htmlspecialchars($resort['resort_name']); ?> Banner" class="banner-image">
+  <div class="banner-content animated-banner-content">
+    <div class="container">
+      <h1 class="banner-title animate-title"><?php echo htmlspecialchars($resort['banner_title'] ?? ''); ?></h1>
+    </div>
+  </div>
 <?php endif; ?>
 </div>
 <div class="container resort-details-container section-padding">
   <div class="row">
     <div class="col-lg-8 resort-content-left">
-      <h1 class="banner-title"><?php echo htmlspecialchars($resort['banner_title'] ?? ''); ?></h1>
       <h2 class="resort-name"><?php echo htmlspecialchars($resort['resort_name'] ?? ''); ?></h2>
       <p class="resort-description"><?php echo nl2br(htmlspecialchars($resort['resort_description'] ?? '')); ?></p>
 <style>
@@ -42,16 +46,52 @@ $resortFolder = 'assets/resorts/' . ($resort['resort_slug'] ?? '');
   height: auto;
   display: block;
 }
+.banner-content {
+  position: absolute;
+  bottom: 30px;
+  left: 0;
+  width: 100%;
+  padding: 25px 0;
+  z-index: 10;
+}
+.animated-banner-content {
+  animation: fadeInUp 1s ease-out;
+}
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 .banner-title {
-  font-size: 3rem;
+  font-size: 3.2rem;
   font-weight: 700;
-  margin-top: 1rem;
-  margin-bottom: 1rem;
-  color: #333;
+  margin: 0;
+  color: #fff;
+  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8);
+  animation: slidein 1.5s ease-out;
+}
+@keyframes slidein {
+  from {
+    transform: translateX(-50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 @media (max-width: 768px) {
   .banner-title {
-    font-size: 2rem;
+    font-size: 2.2rem;
+  }
+  .banner-content {
+    bottom: 15px;
+    padding: 15px 0;
   }
 }
 .resort-name {
@@ -139,11 +179,13 @@ if(is_array($gallery) && count($gallery) > 0): ?>
 <div class="resort-form-container">
 <h3>Enquire Now</h3>
 <form id="resortEnquiryForm" method="POST" action="process_resort_enquiry.php">
-<input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+<input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token'] ?? bin2hex(random_bytes(32)); ?>">
 <input type="hidden" name="resort_id" value="<?php echo htmlspecialchars($resort['id']); ?>">
 <input type="hidden" name="resort_name" value="<?php echo htmlspecialchars($resort['resort_name']); ?>">
 <input type="hidden" name="destination_name" value="<?php echo htmlspecialchars($destination['destination_name']); ?>">
 <input type="hidden" name="resort_code" value="<?php echo htmlspecialchars($resort['resort_code']); ?>">
+<input type="hidden" name="destination_id" value="<?php echo htmlspecialchars($destination['id']); ?>">
+<input type="hidden" name="full_phone" id="full_phone">
 <div class="form-grid">
 <div class="form-group">
 <label for="firstName">First Name *</label>
@@ -163,9 +205,9 @@ if(is_array($gallery) && count($gallery) > 0): ?>
 <div id="phone-error" class="error-message">Please enter a valid phone number</div>
 </div>
 <div class="form-group">
-<label for="dob">Date of Birth * (Must be 27 years or older)</label>
-<input type="date" id="dob" name="dob" class="form-control" required>
-<div id="dob-error" class="error-message">You must be at least 27 years old</div>
+<label for="dob">Date of Birth * (Must be born in 1997 or earlier)</label>
+<input type="date" id="dob" name="dob" class="form-control" required max="1997-01-01">
+<div id="dob-error" class="error-message">You must be born in 1997 or earlier</div>
 </div>
 <div class="form-group">
 <label for="hasPassport">Do you have a passport? *</label>
@@ -212,18 +254,19 @@ document.addEventListener('DOMContentLoaded', function() {
 .swiper-pagination-bullet-active { opacity: 1; }
 </style>
 <style>
-.resort-details-container { padding: 40px 0; position: relative; }
-.sticky-form-container { position: sticky; top: 100px; margin-bottom: 20px; z-index: 100; }
-.resort-form-container { background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-.resort-content-left { padding-right: 30px; }
+.resort-details-container { padding: 30px 0; position: relative; }
+.sticky-form-container { position: sticky; top: 120px; margin-bottom: 15px; z-index: 100; }
+.resort-form-container { background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+.resort-form-container h3 { margin-top: 0; margin-bottom: 10px; font-size: 20px; }
+.resort-content-left { padding-right: 35px; }
 @media (max-width: 991px) { .sticky-form-container { position: relative; top: 0; margin-top: 30px; } .resort-content-left { padding-right: 15px; } }
-.form-grid { display: grid; grid-template-columns: 1fr; gap: 20px; margin-bottom: 20px; }
-.form-group { margin-bottom: 15px; position: relative; }
-.form-group label { display: block; margin-bottom: 5px; font-weight: 600; color: #333; }
-.form-control { width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
-.btn-submit { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; width: 100%; }
+.form-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 15px; }
+.form-group { margin-bottom: 8px; position: relative; }
+.form-group label { display: block; margin-bottom: 3px; font-weight: 600; color: #333; font-size: 13px; }
+.form-control { width: 100%; padding: 6px 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
+.btn-submit { background: #007bff; color: white; padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; font-size: 15px; width: 100%; margin-top: 5px; }
 .btn-submit:hover { background: #0056b3; }
-.error-message { color: #dc3545; font-size: 12px; margin-top: 5px; display: none; }
+.error-message { color: #dc3545; font-size: 11px; margin-top: 2px; display: none; }
 .error-message.show { display: block; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.js"></script>
@@ -236,6 +279,9 @@ document.addEventListener('DOMContentLoaded', function() {
 <script>
 window.addEventListener('load', function() {
     var phoneInput = document.querySelector('#phone');
+    var fullPhoneInput = document.querySelector('#full_phone');
+    var form = document.querySelector('#resortEnquiryForm');
+    
     if (phoneInput) {
         var iti = window.intlTelInput(phoneInput, {
             utilsScript: 'assets/int-tel-input/js/utils.js',
@@ -246,6 +292,41 @@ window.addEventListener('load', function() {
         });
         // Store the instance for later use
         window.iti = iti;
+        
+        // Update hidden full_phone field with international format before submit
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                if (fullPhoneInput) {
+                    fullPhoneInput.value = iti.getNumber();
+                }
+                
+                // Validate phone number
+                if (!iti.isValidNumber()) {
+                    e.preventDefault();
+                    document.getElementById('phone-error').classList.add('show');
+                    return false;
+                }
+                
+                // Validate date of birth (27+ years old)
+                var dobInput = document.getElementById('dob');
+                if (dobInput) {
+                    var dob = new Date(dobInput.value);
+                    var today = new Date();
+                    var age = today.getFullYear() - dob.getFullYear();
+                    var monthDiff = today.getMonth() - dob.getMonth();
+                    
+                    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+                        age--;
+                    }
+                    
+                    if (age < 27) {
+                        e.preventDefault();
+                        document.getElementById('dob-error').classList.add('show');
+                        return false;
+                    }
+                }
+            });
+        }
     }
 });
 </script>

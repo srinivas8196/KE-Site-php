@@ -2,8 +2,9 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-require 'db.php';
+$pdo = require 'db.php';
 require 'vendor/autoload.php';
+require 'leadsquared_helper.php'; // Add LeadSquared helper functions
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 use libphonenumber\PhoneNumberUtil;
@@ -14,19 +15,52 @@ $env = parse_ini_file('.env');
 
 // Verify CSRF token
 if (!isset($_POST['csrf_token']) || !isset($_SESSION['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
-    die('Invalid request');
+    $_SESSION['error_message'] = 'Invalid request. Security token mismatch.';
+    header('Location: ' . $_SERVER['HTTP_REFERER']);
+    exit;
 }
 
 // Get form data
 $firstName = $_POST['firstName'] ?? '';
 $lastName = $_POST['lastName'] ?? '';
 $email = $_POST['email'] ?? '';
-$phone = $_POST['full_phone'] ?? '';
+$phone = $_POST['full_phone'] ?? $_POST['phone'] ?? ''; // Prefer the full_phone field if available
 $dob = $_POST['dob'] ?? '';
 $hasPassport = $_POST['hasPassport'] ?? '';
 $resortName = $_POST['resort_name'] ?? '';
 $destinationName = $_POST['destination_name'] ?? '';
 $resortCode = $_POST['resort_code'] ?? '';
+$resortId = $_POST['resort_id'] ?? '';
+$destinationId = $_POST['destination_id'] ?? '';
+
+// Basic validation
+if (empty($firstName) || empty($lastName) || empty($email) || empty($phone)) {
+    $_SESSION['error_message'] = 'Please fill in all required fields.';
+    header('Location: ' . $_SERVER['HTTP_REFERER']);
+    exit;
+}
+
+// Validate destination_id (to avoid foreign key constraint error)
+if (!empty($destinationId)) {
+    $checkDestStmt = $pdo->prepare("SELECT id FROM destinations WHERE id = ?");
+    $checkDestStmt->execute([$destinationId]);
+    $destExists = $checkDestStmt->fetchColumn();
+    
+    if (!$destExists) {
+        // If destination doesn't exist, try to get it from the resort
+        if (!empty($resortId)) {
+            $checkResortStmt = $pdo->prepare("SELECT destination_id FROM resorts WHERE id = ?");
+            $checkResortStmt->execute([$resortId]);
+            $destinationId = $checkResortStmt->fetchColumn();
+        }
+        
+        // If still no valid destination_id, log error and set to NULL
+        if (empty($destinationId)) {
+            error_log("Warning: Invalid destination_id submitted in resort enquiry form. Setting to NULL.");
+            $destinationId = NULL;
+        }
+    }
+}
 
 // Get country from phone number
 $phoneUtil = PhoneNumberUtil::getInstance();
@@ -37,97 +71,145 @@ try {
     $countryCode = 'UNKNOWN';
 }
 
-// Get destination_id from resort_id
-$stmt = $conn->prepare("SELECT destination_id FROM resorts WHERE id = :resort_id");
-$stmt->execute(['resort_id' => $_POST['resort_id']]);
-$resort = $stmt->fetch(PDO::FETCH_ASSOC);
-$destination_id = $resort['destination_id'];
+// Check if resort is a partner hotel
+$stmt = $pdo->prepare("SELECT is_partner FROM resorts WHERE id = ?");
+$stmt->execute([$resortId]);
+$resortDetails = $stmt->fetch(PDO::FETCH_ASSOC);
+$isPartner = $resortDetails['is_partner'] ?? 0;
 
-// Save enquiry to database
-$stmt = $conn->prepare("INSERT INTO resort_enquiries (resort_id, destination_id, first_name, last_name, email, phone, date_of_birth, has_passport, resort_name, destination_name, resort_code) VALUES (:resort_id, :destination_id, :firstName, :lastName, :email, :phone, :dob, :hasPassport, :resort_name, :destination_name, :resort_code)");
-$stmt->execute([
-    'resort_id' => $_POST['resort_id'],
-    'destination_id' => $destination_id,
-    'firstName' => $_POST['firstName'],
-    'lastName' => $_POST['lastName'],
-    'email' => $_POST['email'],
-    'phone' => $_POST['full_phone'],
-    'dob' => $_POST['dob'],
-    'hasPassport' => $_POST['hasPassport'],
-    'resort_name' => $_POST['resort_name'],
-    'destination_name' => $_POST['destination_name'],
-    'resort_code' => $_POST['resort_code']
-]);
+// Generate LeadSquared details based on country code
+$leadSource = 'Web Enquiry';
+$leadBrand = 'Timeshare Marketing';
 
-if (!$stmt) {
-    $_SESSION['error'] = "Failed to save enquiry: " . implode(" ", $stmt->errorInfo());
-    header("Location: " . $_SERVER['HTTP_REFERER']);
-    exit();
+// Set Lead Sub Brand based on country code
+$leadSubBrand = 'Karma Experience ROW'; // Default is Rest of World
+if ($countryCode == 'AU') {
+    $leadSubBrand = 'Karma Experience AU';
+} elseif ($countryCode == 'ID') {
+    $leadSubBrand = 'Karma Experience ID';
+} elseif ($countryCode == 'IN') {
+    $leadSubBrand = 'Karma Experience IND';
+} elseif ($countryCode == 'GB') {
+    $leadSubBrand = 'Karma Experience UK';
 }
 
-// Prepare LeadSquared data
-$accessKey = $env['LEADSQUARED_ACCESS_KEY'];
-$secretKey = $env['LEADSQUARED_SECRET_KEY'];
-$leadSourceDescription = strtolower($countryCode) . ' | web enquiry | ' . $resortCode;
+// Generate Lead Source Description
+$countryPrefix = 'ROW'; // Default is Rest of World
+if ($countryCode == 'AU') {
+    $countryPrefix = 'AU';
+} elseif ($countryCode == 'ID') {
+    $countryPrefix = 'ID';
+} elseif ($countryCode == 'IN') {
+    $countryPrefix = 'IND';
+} elseif ($countryCode == 'GB') {
+    $countryPrefix = 'UK';
+}
 
-$leadData = array(
-    'FirstName' => $firstName,
-    'LastName' => $lastName,
-    'EmailAddress' => $email,
-    'Phone' => $phone,
-    'DateOfBirth' => $dob,
-    'HasPassport' => $hasPassport,
-    'mx_Resort_Name' => $resortName,
-    'mx_Destination' => $destinationName,
-    'mx_Resort_Code' => $resortCode,
-    'ProspectStage' => 'New',
-    'Brand' => 'demo',
-    'SubBrand' => 'demo int',
-    'LeadSource' => 'web enquiry',
-    'LeadSourceDescription' => $leadSourceDescription,
-    'LeadLocation' => $countryCode
-);
+// Format: [COUNTRY_PREFIX] | Web Enquiry | [KEPH (if partner)] resort code
+$leadSourceDescription = $countryPrefix . ' | ' . $leadSource . ' | ';
+if ($isPartner) {
+    $leadSourceDescription .= 'KEPH ';
+}
+$leadSourceDescription .= $resortCode;
 
-// Send to LeadSquared
-$url = "https://api.leadsquared.com/v2/LeadManagement.svc/Lead.Create";
-$curl = curl_init($url);
-curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($curl, CURLOPT_POST, true);
-curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($leadData));
-curl_setopt($curl, CURLOPT_HTTPHEADER, array(
-    'Content-Type: application/json',
-    'accessKey: ' . $accessKey,
-    'secretKey: ' . $secretKey
-));
+// Lead Location is Resort Name
+$leadLocation = $resortName;
+$latestLeadSource = $leadSource;
 
-$response = curl_exec($curl);
-$error = curl_error($curl);
-curl_close($curl);
-
-// Send email notification
-$mail = new PHPMailer(true);
 try {
+    // Prepare the SQL statement with proper NULL handling for destination_id
+    $stmt = $pdo->prepare("INSERT INTO resort_enquiries 
+        (resort_id, destination_id, first_name, last_name, email, phone, date_of_birth, has_passport, 
+        resort_name, destination_name, resort_code, status, country_code, lead_source, lead_brand, 
+        lead_sub_brand, lead_source_description, lead_location) 
+        VALUES (?, " . (is_null($destinationId) ? "NULL" : "?") . ", ?, ?, ?, ?, ?, ?, ?, ?, ?, 'new', ?, ?, ?, ?, ?, ?)");
+    
+    // Build parameters array based on destination_id being NULL or not
+    $params = [$resortId];
+    if (!is_null($destinationId)) {
+        $params[] = $destinationId;
+    }
+    $params = array_merge($params, [
+        $firstName,
+        $lastName,
+        $email,
+        $phone,
+        $dob,
+        $hasPassport,
+        $resortName,
+        $destinationName,
+        $resortCode,
+        $countryCode,
+        $leadSource,
+        $leadBrand,
+        $leadSubBrand,
+        $leadSourceDescription,
+        $leadLocation
+    ]);
+    
+    // Execute with proper parameters
+    $stmt->execute($params);
+
+    // Get the last inserted ID
+    $enquiryId = $pdo->lastInsertId();
+
+    // Format data for LeadSquared
+    $leadSquaredData = [
+        'first_name' => $firstName,
+        'last_name' => $lastName,
+        'email' => $email,
+        'phone' => $phone,
+        'date_of_birth' => $dob,
+        'has_passport' => $hasPassport,
+        'resort_name' => $resortName,
+        'destination_name' => $destinationName,
+        'resort_code' => $resortCode,
+        'country_code' => $countryCode,
+        'lead_source' => $leadSource,
+        'lead_brand' => $leadBrand,
+        'lead_sub_brand' => $leadSubBrand,
+        'lead_source_description' => $leadSourceDescription,
+        'lead_location' => $leadLocation,
+        'enquiry_id' => $enquiryId
+    ];
+
+    // Send to LeadSquared API
+    $formattedData = formatLeadSquaredData($leadSquaredData);
+    $leadSquaredResponse = createLeadSquaredLead($formattedData);
+
+    // Update database with LeadSquared response
+    if ($leadSquaredResponse['status'] === 'success' && isset($leadSquaredResponse['data']['Message'])) {
+        $leadId = $leadSquaredResponse['data']['Message']['Id'] ?? null;
+        if ($leadId) {
+            $updateStmt = $pdo->prepare("UPDATE resort_enquiries SET leadsquared_id = ? WHERE id = ?");
+            $updateStmt->execute([$leadId, $enquiryId]);
+        }
+    }
+    
+    // Send email notification
+    $mail = new PHPMailer(true);
+    
     // Server settings
     $mail->isSMTP();
     $mail->Host = $env['SMTP_HOST'];
     $mail->SMTPAuth = true;
     $mail->Username = $env['SMTP_USERNAME'];
     $mail->Password = $env['SMTP_PASSWORD'];
-    $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+    $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
     $mail->Port = $env['SMTP_PORT'];
 
     // Recipients
     $mail->setFrom($env['MAIL_FROM_ADDRESS'], $env['MAIL_FROM_NAME']);
-    $mail->addAddress($env['MAIL_TO_ADDRESS']);
+    $mail->addAddress('webdev@karmaexperience.in', 'Karma Experience Web Development');
     $mail->addReplyTo($email, $firstName . ' ' . $lastName);
 
     // Content
     $mail->isHTML(true);
-    $mail->Subject = 'New Resort Enquiry: ' . $resortName;
+    $mail->Subject = "New Resort Enquiry: {$resortName} (#EQ{$enquiryId})";
     
-    // Email body
+    // Email body with LeadSquared details
     $body = "
-    <h2>New Resort Enquiry</h2>
+    <h2>New Resort Enquiry (#EQ{$enquiryId})</h2>
     <p><strong>Resort:</strong> {$resortName}</p>
     <p><strong>Destination:</strong> {$destinationName}</p>
     <p><strong>Resort Code:</strong> {$resortCode}</p>
@@ -140,12 +222,29 @@ try {
     <p><strong>Has Passport:</strong> {$hasPassport}</p>
     <p><strong>Country:</strong> {$countryCode}</p>
     <hr>
-    <h3>Lead Details:</h3>
-    <p><strong>Lead Brand:</strong> demo</p>
-    <p><strong>Lead Sub Brand:</strong> demo int</p>
-    <p><strong>Lead Source:</strong> web enquiry</p>
+    <h3>LeadSquared Details:</h3>
+    <p><strong>Lead Source:</strong> {$leadSource}</p>
+    <p><strong>Lead Brand:</strong> {$leadBrand}</p>
+    <p><strong>Lead Sub Brand:</strong> {$leadSubBrand}</p>
     <p><strong>Lead Source Description:</strong> {$leadSourceDescription}</p>
-    <p><strong>Lead Location:</strong> {$countryCode}</p>
+    <p><strong>Lead Location:</strong> {$leadLocation}</p>
+    <p><strong>Is Partner Hotel:</strong> " . ($isPartner ? 'Yes' : 'No') . "</p>
+    ";
+
+    // Add LeadSquared API response to email
+    $body .= "<hr><h3>LeadSquared API Response:</h3>";
+    if ($leadSquaredResponse['status'] === 'success') {
+        $body .= "<p style='color:green'><strong>Status:</strong> Success</p>";
+        if (isset($leadSquaredResponse['data']['Message']['Id'])) {
+            $body .= "<p><strong>LeadSquared ID:</strong> " . $leadSquaredResponse['data']['Message']['Id'] . "</p>";
+        }
+    } else {
+        $body .= "<p style='color:red'><strong>Status:</strong> Error</p>";
+        $body .= "<p><strong>Error Message:</strong> " . $leadSquaredResponse['message'] . "</p>";
+    }
+
+    $body .= "<hr>
+    <p>To view all enquiries, please <a href='" . (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://{$_SERVER['HTTP_HOST']}/view_enquiries.php'>click here</a>.</p>
     ";
     
     $mail->Body = $body;
@@ -153,13 +252,85 @@ try {
 
     $mail->send();
     
-    // Set success message
-    $_SESSION['success_message'] = "Thank you for your enquiry. We will contact you soon.";
+    // Send confirmation email to customer
+    $customerMail = new PHPMailer(true);
+    
+    // Server settings
+    $customerMail->isSMTP();
+    $customerMail->Host = $env['SMTP_HOST'];
+    $customerMail->SMTPAuth = true;
+    $customerMail->Username = $env['SMTP_USERNAME'];
+    $customerMail->Password = $env['SMTP_PASSWORD'];
+    $customerMail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+    $customerMail->Port = $env['SMTP_PORT'];
+
+    // Recipients
+    $customerMail->setFrom($env['MAIL_FROM_ADDRESS'], $env['MAIL_FROM_NAME']);
+    $customerMail->addAddress($email, $firstName . ' ' . $lastName);
+
+    // Content
+    $customerMail->isHTML(true);
+    $customerMail->Subject = "Thank you for your enquiry about {$resortName}";
+    
+    // Customer email body with resort information
+    $customerBody = "
+    <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+        <div style='background-color: #f8f8f8; padding: 20px; text-align: center;'>
+            <img src='" . (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://{$_SERVER['HTTP_HOST']}/assets/images/logo/KE-Gold.png' alt='Karma Experience' style='max-width: 200px;'>
+        </div>
+        
+        <div style='padding: 20px; background-color: #ffffff;'>
+            <h2 style='color: #2c3e50;'>Thank you for your enquiry, {$firstName}!</h2>
+            
+            <p>We have received your enquiry about <strong>{$resortName}</strong> in {$destinationName}.</p>
+            
+            <p>Our team will review your enquiry and contact you shortly to discuss your interest in this beautiful destination.</p>
+            
+            <div style='background-color: #f8f8f8; padding: 15px; margin: 20px 0; border-left: 4px solid #007bff;'>
+                <p style='margin: 0; padding: 0;'><strong>Reference Number:</strong> EQ{$enquiryId}</p>
+                <p style='margin: 5px 0 0 0; padding: 0;'>Please keep this reference number for future communications.</p>
+            </div>
+            
+            <p>If you have any questions in the meantime, please don't hesitate to contact us.</p>
+            
+            <p>Best regards,<br>The Karma Experience Team</p>
+        </div>
+        
+        <div style='padding: 20px; background-color: #2c3e50; color: #ffffff; text-align: center; font-size: 12px;'>
+            <p>&copy; " . date('Y') . " Karma Experience. All rights reserved.</p>
+            <p>This is an automated email, please do not reply directly to this message.</p>
+        </div>
+    </div>
+    ";
+    
+    $customerMail->Body = $customerBody;
+    $customerMail->AltBody = strip_tags($customerBody);
+
+    try {
+        $customerMail->send();
+    } catch (Exception $e) {
+        // Log error but continue with the process
+        error_log("Error sending customer confirmation email: " . $e->getMessage());
+    }
+    
+    // Set success message and redirect to thank you page
+    $_SESSION['success_message'] = "Thank you for your enquiry! We will contact you soon.";
+    
+    // Add the resort name and email to the session for display on thank you page
+    $_SESSION['enquiry_resort'] = $resortName;
+    $_SESSION['enquiry_email'] = $email;
+    $_SESSION['enquiry_name'] = $firstName . ' ' . $lastName;
+    
+    // Redirect to thank you page instead of referring page
+    header('Location: thank-you.php');
+    exit();
     
 } catch (Exception $e) {
-    $_SESSION['error_message'] = "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
-}
-
-// Redirect back
-header('Location: ' . $_SERVER['HTTP_REFERER']);
-exit(); 
+    // Log the error
+    error_log("Error in resort enquiry: " . $e->getMessage());
+    
+    // Set error message and redirect
+    $_SESSION['error_message'] = "We're sorry, but there was a problem processing your enquiry. Please try again later.";
+    header('Location: ' . $_SERVER['HTTP_REFERER']);
+    exit();
+} 

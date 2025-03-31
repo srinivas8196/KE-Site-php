@@ -473,39 +473,7 @@ if (file_exists('bheader.php')) {
 <body class="bg-gray-100">
   <div class="flex min-h-screen">
     <!-- Sidebar -->
-    <aside id="sidebar" class="w-64 bg-white shadow-lg transition-all duration-300">
-      <div class="p-6 border-b flex justify-between items-center">
-        <h1 class="text-2xl font-bold text-gray-800 sidebar-item-text">Admin Dashboard</h1>
-        <button id="toggleSidebar" class="text-gray-700 focus:outline-none">
-          <i class="fas fa-bars"></i>
-        </button>
-      </div>
-      <nav class="mt-6">
-        <a href="dashboard.php" class="block py-3 px-6 text-gray-700 hover:bg-blue-500 hover:text-white transition-colors flex items-center">
-          <i class="fas fa-tachometer-alt mr-2 sidebar-icon"></i> <span class="sidebar-item-text">Dashboard</span>
-        </a>
-       
-          <a href="manage_users.php" class="block py-3 px-6 text-gray-700 hover:bg-blue-500 hover:text-white transition-colors flex items-center">
-            <i class="fas fa-users mr-2 sidebar-icon"></i> <span class="sidebar-item-text">Manage Users</span>
-          </a>
-      
-        <a href="destination_list.php" class="block py-3 px-6 text-gray-700 hover:bg-blue-500 hover:text-white transition-colors flex items-center">
-          <i class="fas fa-map-marker-alt mr-2 sidebar-icon"></i> <span class="sidebar-item-text">Manage Destinations</span>
-        </a>
-        <a href="resort_list.php" class="block py-3 px-6 text-gray-700 hover:bg-blue-500 hover:text-white transition-colors flex items-center">
-          <i class="fas fa-hotel mr-2 sidebar-icon"></i> <span class="sidebar-item-text">Manage Resorts</span>
-        </a>
-        <a href="marketing_template_list.php" class="block py-3 px-6 text-gray-700 hover:bg-blue-500 hover:text-white transition-colors flex items-center">
-          <i class="fas fa-envelope-open-text mr-2 sidebar-icon"></i> <span class="sidebar-item-text">Marketing Templates</span>
-        </a>
-        <a href="campaign_dashboard.php" class="block py-3 px-6 text-gray-700 hover:bg-blue-500 hover:text-white transition-colors flex items-center">
-          <i class="fas fa-bullhorn mr-2 sidebar-icon"></i> <span class="sidebar-item-text">Campaign Dashboard</span>
-        </a>
-        <a href="logout.php" class="block py-3 px-6 text-red-500 hover:bg-red-500 hover:text-white transition-colors flex items-center">
-          <i class="fas fa-sign-out-alt mr-2 sidebar-icon"></i> <span class="sidebar-item-text">Logout</span>
-        </a>
-      </nav>
-    </aside>
+    <?php include 'sidebar.php'; ?>
     <!-- Main Content -->
     <main class="flex-1 p-8 pb-32">
 
@@ -579,16 +547,31 @@ if (file_exists('bheader.php')) {
                   <div class="form-group">
                       <label for="resort_type">Resort Type</label>
                       <select id="resort_type" name="resort_type" class="form-select" required>
-                          <option value="" selected disabled>Select Type</option>
-                          <option value="resort" <?php if ($resort && $resort['is_partner'] == 0) echo 'selected'; ?>>Resort</option>
-                          <option value="partner" <?php if ($resort && $resort['is_partner'] == 1) echo 'selected'; ?>>Partner Hotel</option>
+                          <option value="hotel" <?php echo (isset($resort['resort_type']) && $resort['resort_type'] == 'hotel') ? 'selected' : ''; ?>>Hotel</option>
+                          <option value="villa" <?php echo (isset($resort['resort_type']) && $resort['resort_type'] == 'villa') ? 'selected' : ''; ?>>Villa</option>
+                          <option value="resort" <?php echo (isset($resort['resort_type']) && $resort['resort_type'] == 'resort') ? 'selected' : ''; ?>>Resort</option>
+                          <option value="apartment" <?php echo (isset($resort['resort_type']) && $resort['resort_type'] == 'apartment') ? 'selected' : ''; ?>>Apartment</option>
                       </select>
                   </div>
-                  <div class="form-group">
-                      <label class="flex items-center">
-                          <input type="checkbox" id="is_active" name="is_active" class="mr-2" <?php echo ($resort && $resort['is_active'] == 1) ? 'checked' : ''; ?>>
-                          <span>Active Status</span>
-                      </label>
+                  
+                  <div class="form-group mt-4">
+                      <div class="form-check">
+                          <input class="form-check-input" type="checkbox" id="is_partner" name="is_partner" value="1" <?php echo (isset($resort['is_partner']) && $resort['is_partner'] == 1) ? 'checked' : ''; ?>>
+                          <label class="form-check-label" for="is_partner">
+                              Is Partner Hotel (for LeadSquared integration)
+                          </label>
+                      </div>
+                      <small class="text-gray-500">Check this if the resort is a partner hotel (KEPH prefix will be added for LeadSquared)</small>
+                  </div>
+                  
+                  <div class="form-group mt-4">
+                      <div class="form-check">
+                          <input class="form-check-input" type="checkbox" id="is_active" name="is_active" value="1" <?php echo (!$resort || (isset($resort['is_active']) && $resort['is_active'] == 1)) ? 'checked' : ''; ?>>
+                          <label class="form-check-label" for="is_active">
+                              Active
+                          </label>
+                      </div>
+                      <small class="text-gray-500">Inactive resorts will not be visible on the website</small>
                   </div>
               </div>
 

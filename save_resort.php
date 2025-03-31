@@ -52,6 +52,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     } else {
         $is_active = 1;
     }
+    
+    // Process is_partner checkbox
+    $is_partner = isset($_POST['is_partner']) ? 1 : 0;
 
     // Use existing slug if editing; otherwise, generate a new one from the resort name.
     if (isset($_POST['resort_id']) && !empty($_POST['resort_id']) && !empty($resort['resort_slug'])) {
@@ -213,7 +216,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     if (isset($_POST['resort_id']) && !empty($_POST['resort_id'])) {
         // Update existing resort record
-        $stmt = $pdo->prepare("UPDATE resorts SET destination_id = ?, resort_name = ?, resort_code = ?, resort_description = ?, banner_title = ?, is_active = ?, amenities = ?, room_details = ?, gallery = ?, testimonials = ?, resort_slug = ?, banner_image = ?, file_path = ? WHERE id = ?");
+        $stmt = $pdo->prepare("UPDATE resorts SET destination_id = ?, resort_name = ?, resort_code = ?, resort_description = ?, banner_title = ?, is_active = ?, amenities = ?, room_details = ?, gallery = ?, testimonials = ?, resort_slug = ?, banner_image = ?, file_path = ?, is_partner = ? WHERE id = ?");
         $success = $stmt->execute([
             $destination_id,
             $resort_name,
@@ -228,6 +231,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $resort_slug,
             $banner_image,
             $resortPage,
+            $is_partner,
             $_POST['resort_id']
         ]);
         
@@ -238,7 +242,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
     } else {
         // Insert new resort record
-        $stmt = $pdo->prepare("INSERT INTO resorts (resort_name, resort_code, resort_slug, resort_description, banner_title, is_active, amenities, room_details, gallery, testimonials, destination_id, banner_image, file_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt = $pdo->prepare("INSERT INTO resorts (resort_name, resort_code, resort_slug, resort_description, banner_title, is_active, amenities, room_details, gallery, testimonials, destination_id, banner_image, file_path, is_partner) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         $success = $stmt->execute([
             $resort_name,
             $resort_code,
@@ -252,7 +256,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $testimonials_json,
             $destination_id,
             $banner_image,
-            $resortPage
+            $resortPage,
+            $is_partner
         ]);
         
         if ($success) {
@@ -466,11 +471,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $pageContent .= "<div class=\"resort-form-container\">\n";
     $pageContent .= "<h3>Enquire Now</h3>\n";
     $pageContent .= "<form id=\"resortEnquiryForm\" method=\"POST\" action=\"process_resort_enquiry.php\">\n";
-    $pageContent .= "<input type=\"hidden\" name=\"csrf_token\" value=\"<?php echo \$_SESSION['csrf_token']; ?>\">\n";
+    $pageContent .= "<input type=\"hidden\" name=\"csrf_token\" value=\"<?php echo \$_SESSION['csrf_token'] ?? bin2hex(random_bytes(32)); ?>\">\n";
     $pageContent .= "<input type=\"hidden\" name=\"resort_id\" value=\"<?php echo htmlspecialchars(\$resort['id']); ?>\">\n";
     $pageContent .= "<input type=\"hidden\" name=\"resort_name\" value=\"<?php echo htmlspecialchars(\$resort['resort_name']); ?>\">\n";
     $pageContent .= "<input type=\"hidden\" name=\"destination_name\" value=\"<?php echo htmlspecialchars(\$destination['destination_name']); ?>\">\n";
     $pageContent .= "<input type=\"hidden\" name=\"resort_code\" value=\"<?php echo htmlspecialchars(\$resort['resort_code']); ?>\">\n";
+    $pageContent .= "<input type=\"hidden\" name=\"destination_id\" value=\"<?php echo htmlspecialchars(\$destination['id']); ?>\">\n";
+    $pageContent .= "<input type=\"hidden\" name=\"full_phone\" id=\"full_phone\">\n";
 
     $pageContent .= "<div class=\"form-grid\">\n";
     $pageContent .= "<div class=\"form-group\">\n";
@@ -495,9 +502,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $pageContent .= "</div>\n";
 
     $pageContent .= "<div class=\"form-group\">\n";
-    $pageContent .= "<label for=\"dob\">Date of Birth * (Must be 27 years or older)</label>\n";
-    $pageContent .= "<input type=\"date\" id=\"dob\" name=\"dob\" class=\"form-control\" required>\n";
-    $pageContent .= "<div id=\"dob-error\" class=\"error-message\">You must be at least 27 years old</div>\n";
+    $pageContent .= "<label for=\"dob\">Date of Birth * (Must be born in 1997 or earlier)</label>\n";
+    $pageContent .= "<input type=\"date\" id=\"dob\" name=\"dob\" class=\"form-control\" required max=\"1997-01-01\">\n";
+    $pageContent .= "<div id=\"dob-error\" class=\"error-message\">You must be born in 1997 or earlier</div>\n";
     $pageContent .= "</div>\n";
 
     $pageContent .= "<div class=\"form-group\">\n";
@@ -553,18 +560,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     // Add form styles
     $pageContent .= "<style>\n";
-    $pageContent .= ".resort-details-container { padding: 40px 0; position: relative; }\n";
-    $pageContent .= ".sticky-form-container { position: sticky; top: 100px; margin-bottom: 20px; z-index: 100; }\n";
-    $pageContent .= ".resort-form-container { background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }\n";
-    $pageContent .= ".resort-content-left { padding-right: 30px; }\n";
+    $pageContent .= ".resort-details-container { padding: 30px 0; position: relative; }\n";
+    $pageContent .= ".sticky-form-container { position: sticky; top: 120px; margin-bottom: 15px; z-index: 100; }\n";
+    $pageContent .= ".resort-form-container { background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }\n";
+    $pageContent .= ".resort-form-container h3 { margin-top: 0; margin-bottom: 10px; font-size: 20px; }\n";
+    $pageContent .= ".resort-content-left { padding-right: 35px; }\n";
     $pageContent .= "@media (max-width: 991px) { .sticky-form-container { position: relative; top: 0; margin-top: 30px; } .resort-content-left { padding-right: 15px; } }\n";
-    $pageContent .= ".form-grid { display: grid; grid-template-columns: 1fr; gap: 20px; margin-bottom: 20px; }\n";
-    $pageContent .= ".form-group { margin-bottom: 15px; position: relative; }\n";
-    $pageContent .= ".form-group label { display: block; margin-bottom: 5px; font-weight: 600; color: #333; }\n";
-    $pageContent .= ".form-control { width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }\n";
-    $pageContent .= ".btn-submit { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; width: 100%; }\n";
+    $pageContent .= ".form-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 15px; }\n";
+    $pageContent .= ".form-group { margin-bottom: 8px; position: relative; }\n";
+    $pageContent .= ".form-group label { display: block; margin-bottom: 3px; font-weight: 600; color: #333; font-size: 13px; }\n";
+    $pageContent .= ".form-control { width: 100%; padding: 6px 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }\n";
+    $pageContent .= ".btn-submit { background: #007bff; color: white; padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; font-size: 15px; width: 100%; margin-top: 5px; }\n";
     $pageContent .= ".btn-submit:hover { background: #0056b3; }\n";
-    $pageContent .= ".error-message { color: #dc3545; font-size: 12px; margin-top: 5px; display: none; }\n";
+    $pageContent .= ".error-message { color: #dc3545; font-size: 11px; margin-top: 2px; display: none; }\n";
     $pageContent .= ".error-message.show { display: block; }\n";
     $pageContent .= "</style>\n";
 
@@ -583,6 +591,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $pageContent .= "<script>\n";
     $pageContent .= "window.addEventListener('load', function() {\n";
     $pageContent .= "    var phoneInput = document.querySelector('#phone');\n";
+    $pageContent .= "    var fullPhoneInput = document.querySelector('#full_phone');\n";
+    $pageContent .= "    var form = document.querySelector('#resortEnquiryForm');\n";
+    $pageContent .= "    \n";
     $pageContent .= "    if (phoneInput) {\n";
     $pageContent .= "        var iti = window.intlTelInput(phoneInput, {\n";
     $pageContent .= "            utilsScript: 'assets/int-tel-input/js/utils.js',\n";
@@ -593,6 +604,41 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $pageContent .= "        });\n";
     $pageContent .= "        // Store the instance for later use\n";
     $pageContent .= "        window.iti = iti;\n";
+    $pageContent .= "        \n";
+    $pageContent .= "        // Update hidden full_phone field with international format before submit\n";
+    $pageContent .= "        if (form) {\n";
+    $pageContent .= "            form.addEventListener('submit', function(e) {\n";
+    $pageContent .= "                if (fullPhoneInput) {\n";
+    $pageContent .= "                    fullPhoneInput.value = iti.getNumber();\n";
+    $pageContent .= "                }\n";
+    $pageContent .= "                \n";
+    $pageContent .= "                // Validate phone number\n";
+    $pageContent .= "                if (!iti.isValidNumber()) {\n";
+    $pageContent .= "                    e.preventDefault();\n";
+    $pageContent .= "                    document.getElementById('phone-error').classList.add('show');\n";
+    $pageContent .= "                    return false;\n";
+    $pageContent .= "                }\n";
+    $pageContent .= "                \n";
+    $pageContent .= "                // Validate date of birth (27+ years old)\n";
+    $pageContent .= "                var dobInput = document.getElementById('dob');\n";
+    $pageContent .= "                if (dobInput) {\n";
+    $pageContent .= "                    var dob = new Date(dobInput.value);\n";
+    $pageContent .= "                    var today = new Date();\n";
+    $pageContent .= "                    var age = today.getFullYear() - dob.getFullYear();\n";
+    $pageContent .= "                    var monthDiff = today.getMonth() - dob.getMonth();\n";
+    $pageContent .= "                    \n";
+    $pageContent .= "                    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {\n";
+    $pageContent .= "                        age--;\n";
+    $pageContent .= "                    }\n";
+    $pageContent .= "                    \n";
+    $pageContent .= "                    if (age < 27) {\n";
+    $pageContent .= "                        e.preventDefault();\n";
+    $pageContent .= "                        document.getElementById('dob-error').classList.add('show');\n";
+    $pageContent .= "                        return false;\n";
+    $pageContent .= "                    }\n";
+    $pageContent .= "                }\n";
+    $pageContent .= "            });\n";
+    $pageContent .= "        }\n";
     $pageContent .= "    }\n";
     $pageContent .= "});\n";
     $pageContent .= "</script>\n";
