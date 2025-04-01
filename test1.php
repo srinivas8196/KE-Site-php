@@ -1,5 +1,26 @@
 <?php
+// Set session parameters BEFORE session_start
+ini_set('session.cookie_httponly', 1);
+ini_set('session.use_only_cookies', 1);
+ini_set('session.cookie_secure', 0);
+
+// Create sessions directory if it doesn't exist
+if (!file_exists(dirname(__FILE__) . '/sessions')) {
+    mkdir(dirname(__FILE__) . '/sessions', 0777, true);
+}
+
+// Set session save path BEFORE session_start
+$sessionPath = dirname(__FILE__) . '/sessions';
+session_save_path($sessionPath);
+
+// Start session
 session_start();
+
+// Generate CSRF token if needed
+if (!isset($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 require 'db.php';
 $stmt = $pdo->prepare("SELECT * FROM resorts WHERE resort_slug = ?");
 $stmt->execute(['test1']);
@@ -192,8 +213,26 @@ if(is_array($gallery) && count($gallery) > 0): ?>
 <div class="sticky-form-container">
 <div class="resort-form-container">
 <h3>Enquire Now</h3>
+<?php if(isset($_SESSION['success_message'])): ?>
+<div class="alert alert-success">
+    <?php 
+    echo htmlspecialchars($_SESSION['success_message']);
+    unset($_SESSION['success_message']);
+    ?>
+</div>
+<?php endif; ?>
+
+<?php if(isset($_SESSION['error_message'])): ?>
+<div class="alert alert-danger">
+    <?php 
+    echo htmlspecialchars($_SESSION['error_message']);
+    unset($_SESSION['error_message']);
+    ?>
+</div>
+<?php endif; ?>
+
 <form id="resortEnquiryForm" method="POST" action="process_resort_enquiry.php">
-<input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token'] ?? bin2hex(random_bytes(32)); ?>">
+<input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>">
 <input type="hidden" name="resort_id" value="<?php echo htmlspecialchars($resort['id']); ?>">
 <input type="hidden" name="resort_name" value="<?php echo htmlspecialchars($resort['resort_name']); ?>">
 <input type="hidden" name="destination_name" value="<?php echo htmlspecialchars($destination['destination_name']); ?>">
@@ -202,30 +241,30 @@ if(is_array($gallery) && count($gallery) > 0): ?>
 <input type="hidden" name="full_phone" id="full_phone">
 <div class="form-grid">
 <div class="form-group">
-<label for="firstName">First Name *</label>
-<input type="text" id="firstName" name="firstName" class="form-control" required>
+<label for="first_name">First Name *</label>
+<input type="text" id="first_name" name="first_name" class="form-control" required>
 </div>
 <div class="form-group">
-<label for="lastName">Last Name *</label>
-<input type="text" id="lastName" name="lastName" class="form-control" required>
+<label for="last_name">Last Name *</label>
+<input type="text" id="last_name" name="last_name" class="form-control" required>
 </div>
-<div class="form-group">
+<div class="form-group email-field">
 <label for="email">Email *</label>
 <input type="email" id="email" name="email" class="form-control" required>
 </div>
-<div class="form-group">
+<div class="form-group phone-field">
 <label for="phone">Phone Number *</label>
 <input type="tel" id="phone" name="phone" class="form-control" required>
 <div id="phone-error" class="error-message">Please enter a valid phone number</div>
 </div>
-<div class="form-group">
+<div class="form-group dob-field">
 <label for="dob">Date of Birth * (Must be born in 1997 or earlier)</label>
-<input type="date" id="dob" name="dob" class="form-control" required max="1997-01-01">
+<input type="date" id="dob" name="dob" class="form-control" required max="1997-12-31">
 <div id="dob-error" class="error-message">You must be born in 1997 or earlier</div>
 </div>
-<div class="form-group">
-<label for="hasPassport">Do you have a passport? *</label>
-<select id="hasPassport" name="hasPassport" class="form-control" required>
+<div class="form-group passport-field">
+<label for="has_passport">Do you have a passport? *</label>
+<select id="has_passport" name="has_passport" class="form-control" required>
 <option value="">Select an option</option>
 <option value="yes">Yes</option>
 <option value="no">No</option>
@@ -269,19 +308,53 @@ document.addEventListener('DOMContentLoaded', function() {
 </style>
 <style>
 .resort-details-container { padding: 30px 0; position: relative; }
-.sticky-form-container { position: sticky; top: 120px; margin-bottom: 15px; z-index: 100; }
-.resort-form-container { background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-.resort-form-container h3 { margin-top: 0; margin-bottom: 10px; font-size: 20px; }
+.sticky-form-container { position: sticky; top: 80px; margin-bottom: 20px; z-index: 100; }
+.resort-form-container { background: #fff; padding: 18px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+.resort-form-container h3 { margin-top: 0; margin-bottom: 15px; font-size: 22px; font-weight: 600; }
 .resort-content-left { padding-right: 35px; }
-@media (max-width: 991px) { .sticky-form-container { position: relative; top: 0; margin-top: 30px; } .resort-content-left { padding-right: 15px; } }
-.form-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 15px; }
+/* Improve form appearance */
+.form-grid { display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 15px; }
 .form-group { margin-bottom: 8px; position: relative; }
-.form-group label { display: block; margin-bottom: 3px; font-weight: 600; color: #333; font-size: 13px; }
-.form-control { width: 100%; padding: 6px 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
-.btn-submit { background: #007bff; color: white; padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; font-size: 15px; width: 100%; margin-top: 5px; }
+.form-group label { display: block; margin-bottom: 5px; font-weight: 600; color: #333; font-size: 13px; }
+.form-control { width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; transition: border-color 0.2s; }
+.form-control:focus { border-color: #007bff; outline: none; box-shadow: 0 0 0 2px rgba(0,123,255,0.15); }
+.btn-submit { background: #007bff; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; font-weight: 500; width: 100%; margin-top: 8px; transition: background-color 0.2s; }
 .btn-submit:hover { background: #0056b3; }
 .error-message { color: #dc3545; font-size: 11px; margin-top: 2px; display: none; }
 .error-message.show { display: block; }
+/* Alert styling */
+.alert { padding: 12px 15px; margin-bottom: 20px; border-radius: 4px; font-size: 14px; }
+.alert-success { background-color: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+.alert-danger { background-color: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+/* Phone input styling */
+.iti { width: 100%; }
+.iti__flag-container { position: absolute; top: 0; bottom: 0; right: 0; padding: 1px; }
+.iti__selected-flag { padding: 0 6px 0 8px; }
+.iti__country-list { z-index: 999999; background-color: white; border: 1px solid #CCC; max-height: 200px; overflow-y: auto; }
+.iti__flag { background-image: url('assets/int-tel-input/img/flags.png'); }
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) { .iti__flag { background-image: url('assets/int-tel-input/img/flags@2x.png'); } }
+.phone-field { position: relative; }
+/* Responsive adjustments */
+@media (max-width: 991px) { 
+    .resort-details-container { display: flex; flex-direction: column; }
+    .resort-content-left { order: 1; width: 100%; margin-bottom: 30px; }
+    .sticky-form-container { order: 0; position: relative; top: 0; margin-bottom: 30px; width: 100%; }
+}
+@media (min-width: 992px) { 
+    .resort-details-container .row { display: flex; }
+    .resort-content-left { flex: 0 0 66.666667%; max-width: 66.666667%; }
+    .resort-details-container .col-lg-4 { flex: 0 0 33.333333%; max-width: 33.333333%; }
+}
+/* Form grid responsiveness for larger screens */
+@media (min-width: 768px) {
+    .form-grid { grid-template-columns: 1fr 1fr; }
+    .form-group.email-field,
+    .form-group.phone-field,
+    .form-group.dob-field,
+    .form-group.passport-field {
+        grid-column: 1 / -1; /* Make these fields full width */
+    }
+}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.js"></script>
 <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
@@ -307,8 +380,6 @@ window.addEventListener('load', function() {
             formatOnDisplay: true,
             autoPlaceholder: 'aggressive'
         });
-        // Store the instance for later use
-        window.iti = iti;
         
         // Update hidden full_phone field with international format before submit
         if (form) {

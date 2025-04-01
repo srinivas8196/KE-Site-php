@@ -1,5 +1,26 @@
 <?php
+// Set session parameters BEFORE session_start
+ini_set('session.cookie_httponly', 1);
+ini_set('session.use_only_cookies', 1);
+ini_set('session.cookie_secure', 0);
+
+// Create sessions directory if it doesn't exist
+if (!file_exists(dirname(__FILE__) . '/sessions')) {
+    mkdir(dirname(__FILE__) . '/sessions', 0777, true);
+}
+
+// Set session save path BEFORE session_start
+$sessionPath = dirname(__FILE__) . '/sessions';
+session_save_path($sessionPath);
+
+// Start session
 session_start();
+
+// Generate CSRF token if needed
+if (!isset($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
@@ -270,7 +291,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     // Generate resort landing page file (e.g., abc.php)
     $pageContent  = "<?php\n";
-    $pageContent .= "session_start();\n";
+    $pageContent .= "// Set session parameters BEFORE session_start\n";
+    $pageContent .= "ini_set('session.cookie_httponly', 1);\n";
+    $pageContent .= "ini_set('session.use_only_cookies', 1);\n";
+    $pageContent .= "ini_set('session.cookie_secure', 0);\n\n";
+    $pageContent .= "// Create sessions directory if it doesn't exist\n";
+    $pageContent .= "if (!file_exists(dirname(__FILE__) . '/sessions')) {\n";
+    $pageContent .= "    mkdir(dirname(__FILE__) . '/sessions', 0777, true);\n";
+    $pageContent .= "}\n\n";
+    $pageContent .= "// Set session save path BEFORE session_start\n";
+    $pageContent .= "\$sessionPath = dirname(__FILE__) . '/sessions';\n";
+    $pageContent .= "session_save_path(\$sessionPath);\n\n";
+    $pageContent .= "// Start session\n";
+    $pageContent .= "session_start();\n\n";
+    $pageContent .= "// Generate CSRF token if needed\n";
+    $pageContent .= "if (!isset(\$_SESSION['csrf_token'])) {\n";
+    $pageContent .= "    \$_SESSION['csrf_token'] = bin2hex(random_bytes(32));\n";
+    $pageContent .= "}\n\n";
     $pageContent .= "require 'db.php';\n";
     $pageContent .= "\$stmt = \$pdo->prepare(\"SELECT * FROM resorts WHERE resort_slug = ?\");\n";
     $pageContent .= "\$stmt->execute(['$resort_slug']);\n";
@@ -486,8 +523,29 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $pageContent .= "<div class=\"sticky-form-container\">\n";
     $pageContent .= "<div class=\"resort-form-container\">\n";
     $pageContent .= "<h3>Enquire Now</h3>\n";
+
+    // Add success/error message containers
+    $pageContent .= "<?php if(isset(\$_SESSION['success_message'])): ?>\n";
+    $pageContent .= "<div class=\"alert alert-success\">\n";
+    $pageContent .= "    <?php \n";
+    $pageContent .= "    echo htmlspecialchars(\$_SESSION['success_message']);\n";
+    $pageContent .= "    unset(\$_SESSION['success_message']);\n";
+    $pageContent .= "    ?>\n";
+    $pageContent .= "</div>\n";
+    $pageContent .= "<?php endif; ?>\n\n";
+
+    $pageContent .= "<?php if(isset(\$_SESSION['error_message'])): ?>\n";
+    $pageContent .= "<div class=\"alert alert-danger\">\n";
+    $pageContent .= "    <?php \n";
+    $pageContent .= "    echo htmlspecialchars(\$_SESSION['error_message']);\n";
+    $pageContent .= "    unset(\$_SESSION['error_message']);\n";
+    $pageContent .= "    ?>\n";
+    $pageContent .= "</div>\n";
+    $pageContent .= "<?php endif; ?>\n\n";
+
+    // Update form to use snake_case names
     $pageContent .= "<form id=\"resortEnquiryForm\" method=\"POST\" action=\"process_resort_enquiry.php\">\n";
-    $pageContent .= "<input type=\"hidden\" name=\"csrf_token\" value=\"<?php echo \$_SESSION['csrf_token'] ?? bin2hex(random_bytes(32)); ?>\">\n";
+    $pageContent .= "<input type=\"hidden\" name=\"csrf_token\" value=\"<?php echo htmlspecialchars(\$_SESSION['csrf_token']); ?>\">\n";
     $pageContent .= "<input type=\"hidden\" name=\"resort_id\" value=\"<?php echo htmlspecialchars(\$resort['id']); ?>\">\n";
     $pageContent .= "<input type=\"hidden\" name=\"resort_name\" value=\"<?php echo htmlspecialchars(\$resort['resort_name']); ?>\">\n";
     $pageContent .= "<input type=\"hidden\" name=\"destination_name\" value=\"<?php echo htmlspecialchars(\$destination['destination_name']); ?>\">\n";
@@ -497,35 +555,35 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     $pageContent .= "<div class=\"form-grid\">\n";
     $pageContent .= "<div class=\"form-group\">\n";
-    $pageContent .= "<label for=\"firstName\">First Name *</label>\n";
-    $pageContent .= "<input type=\"text\" id=\"firstName\" name=\"firstName\" class=\"form-control\" required>\n";
+    $pageContent .= "<label for=\"first_name\">First Name *</label>\n";
+    $pageContent .= "<input type=\"text\" id=\"first_name\" name=\"first_name\" class=\"form-control\" required>\n";
     $pageContent .= "</div>\n";
 
     $pageContent .= "<div class=\"form-group\">\n";
-    $pageContent .= "<label for=\"lastName\">Last Name *</label>\n";
-    $pageContent .= "<input type=\"text\" id=\"lastName\" name=\"lastName\" class=\"form-control\" required>\n";
+    $pageContent .= "<label for=\"last_name\">Last Name *</label>\n";
+    $pageContent .= "<input type=\"text\" id=\"last_name\" name=\"last_name\" class=\"form-control\" required>\n";
     $pageContent .= "</div>\n";
 
-    $pageContent .= "<div class=\"form-group\">\n";
+    $pageContent .= "<div class=\"form-group email-field\">\n";
     $pageContent .= "<label for=\"email\">Email *</label>\n";
     $pageContent .= "<input type=\"email\" id=\"email\" name=\"email\" class=\"form-control\" required>\n";
     $pageContent .= "</div>\n";
 
-    $pageContent .= "<div class=\"form-group\">\n";
+    $pageContent .= "<div class=\"form-group phone-field\">\n";
     $pageContent .= "<label for=\"phone\">Phone Number *</label>\n";
     $pageContent .= "<input type=\"tel\" id=\"phone\" name=\"phone\" class=\"form-control\" required>\n";
     $pageContent .= "<div id=\"phone-error\" class=\"error-message\">Please enter a valid phone number</div>\n";
     $pageContent .= "</div>\n";
 
-    $pageContent .= "<div class=\"form-group\">\n";
+    $pageContent .= "<div class=\"form-group dob-field\">\n";
     $pageContent .= "<label for=\"dob\">Date of Birth * (Must be born in 1997 or earlier)</label>\n";
-    $pageContent .= "<input type=\"date\" id=\"dob\" name=\"dob\" class=\"form-control\" required max=\"1997-01-01\">\n";
+    $pageContent .= "<input type=\"date\" id=\"dob\" name=\"dob\" class=\"form-control\" required max=\"1997-12-31\">\n";
     $pageContent .= "<div id=\"dob-error\" class=\"error-message\">You must be born in 1997 or earlier</div>\n";
     $pageContent .= "</div>\n";
 
-    $pageContent .= "<div class=\"form-group\">\n";
-    $pageContent .= "<label for=\"hasPassport\">Do you have a passport? *</label>\n";
-    $pageContent .= "<select id=\"hasPassport\" name=\"hasPassport\" class=\"form-control\" required>\n";
+    $pageContent .= "<div class=\"form-group passport-field\">\n";
+    $pageContent .= "<label for=\"has_passport\">Do you have a passport? *</label>\n";
+    $pageContent .= "<select id=\"has_passport\" name=\"has_passport\" class=\"form-control\" required>\n";
     $pageContent .= "<option value=\"\">Select an option</option>\n";
     $pageContent .= "<option value=\"yes\">Yes</option>\n";
     $pageContent .= "<option value=\"no\">No</option>\n";
@@ -577,21 +635,65 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Add form styles
     $pageContent .= "<style>\n";
     $pageContent .= ".resort-details-container { padding: 30px 0; position: relative; }\n";
-    $pageContent .= ".sticky-form-container { position: sticky; top: 120px; margin-bottom: 15px; z-index: 100; }\n";
-    $pageContent .= ".resort-form-container { background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }\n";
-    $pageContent .= ".resort-form-container h3 { margin-top: 0; margin-bottom: 10px; font-size: 20px; }\n";
+    $pageContent .= ".sticky-form-container { position: sticky; top: 80px; margin-bottom: 20px; z-index: 100; }\n";
+    $pageContent .= ".resort-form-container { background: #fff; padding: 18px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }\n";
+    $pageContent .= ".resort-form-container h3 { margin-top: 0; margin-bottom: 15px; font-size: 22px; font-weight: 600; }\n";
     $pageContent .= ".resort-content-left { padding-right: 35px; }\n";
-    $pageContent .= "@media (max-width: 991px) { .sticky-form-container { position: relative; top: 0; margin-top: 30px; } .resort-content-left { padding-right: 15px; } }\n";
-    $pageContent .= ".form-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 15px; }\n";
+
+    $pageContent .= "/* Improve form appearance */\n";
+    $pageContent .= ".form-grid { display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 15px; }\n";
     $pageContent .= ".form-group { margin-bottom: 8px; position: relative; }\n";
-    $pageContent .= ".form-group label { display: block; margin-bottom: 3px; font-weight: 600; color: #333; font-size: 13px; }\n";
-    $pageContent .= ".form-control { width: 100%; padding: 6px 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }\n";
-    $pageContent .= ".btn-submit { background: #007bff; color: white; padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; font-size: 15px; width: 100%; margin-top: 5px; }\n";
+    $pageContent .= ".form-group label { display: block; margin-bottom: 5px; font-weight: 600; color: #333; font-size: 13px; }\n";
+    $pageContent .= ".form-control { width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; transition: border-color 0.2s; }\n";
+    $pageContent .= ".form-control:focus { border-color: #007bff; outline: none; box-shadow: 0 0 0 2px rgba(0,123,255,0.15); }\n";
+    $pageContent .= ".btn-submit { background: #007bff; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; font-weight: 500; width: 100%; margin-top: 8px; transition: background-color 0.2s; }\n";
     $pageContent .= ".btn-submit:hover { background: #0056b3; }\n";
     $pageContent .= ".error-message { color: #dc3545; font-size: 11px; margin-top: 2px; display: none; }\n";
     $pageContent .= ".error-message.show { display: block; }\n";
+
+    $pageContent .= "/* Alert styling */\n";
+    $pageContent .= ".alert { padding: 12px 15px; margin-bottom: 20px; border-radius: 4px; font-size: 14px; }\n";
+    $pageContent .= ".alert-success { background-color: #d4edda; border: 1px solid #c3e6cb; color: #155724; }\n";
+    $pageContent .= ".alert-danger { background-color: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }\n";
+    
+    // Fix for phone input flag duplication and layout
+    $pageContent .= "/* Phone input styling */\n";
+    $pageContent .= ".iti { width: 100%; }\n";
+    $pageContent .= ".iti__flag-container { position: absolute; top: 0; bottom: 0; right: 0; padding: 1px; }\n";
+    $pageContent .= ".iti__selected-flag { padding: 0 6px 0 8px; }\n";
+    $pageContent .= ".iti__country-list { z-index: 999999; background-color: white; border: 1px solid #CCC; max-height: 200px; overflow-y: auto; }\n";
+    $pageContent .= ".iti__flag { background-image: url('assets/int-tel-input/img/flags.png'); }\n";
+    $pageContent .= "@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) { .iti__flag { background-image: url('assets/int-tel-input/img/flags@2x.png'); } }\n";
+    $pageContent .= ".phone-field { position: relative; }\n";
+
+    // Fix layout and responsive behavior
+    $pageContent .= "/* Responsive adjustments */\n";
+    $pageContent .= "@media (max-width: 991px) { \n";
+    $pageContent .= "    .resort-details-container { display: flex; flex-direction: column; }\n";
+    $pageContent .= "    .resort-content-left { order: 1; width: 100%; margin-bottom: 30px; }\n";
+    $pageContent .= "    .sticky-form-container { order: 0; position: relative; top: 0; margin-bottom: 30px; width: 100%; }\n";
+    $pageContent .= "}\n";
+
+    // Fix row structure in responsive view
+    $pageContent .= "@media (min-width: 992px) { \n";
+    $pageContent .= "    .resort-details-container .row { display: flex; }\n";
+    $pageContent .= "    .resort-content-left { flex: 0 0 66.666667%; max-width: 66.666667%; }\n";
+    $pageContent .= "    .resort-details-container .col-lg-4 { flex: 0 0 33.333333%; max-width: 33.333333%; }\n";
+    $pageContent .= "}\n";
+
+    $pageContent .= "/* Form grid responsiveness for larger screens */\n";
+    $pageContent .= "@media (min-width: 768px) {\n";
+    $pageContent .= "    .form-grid { grid-template-columns: 1fr 1fr; }\n";
+    $pageContent .= "    .form-group.email-field,\n";
+    $pageContent .= "    .form-group.phone-field,\n";
+    $pageContent .= "    .form-group.dob-field,\n";
+    $pageContent .= "    .form-group.passport-field {\n";
+    $pageContent .= "        grid-column: 1 / -1; /* Make these fields full width */\n";
+    $pageContent .= "    }\n";
+    $pageContent .= "}\n";
     $pageContent .= "</style>\n";
 
+   
     // Include JS Libraries
     $pageContent .= "<script src=\"https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.js\"></script>\n";
     $pageContent .= "<script src=\"https://unpkg.com/swiper/swiper-bundle.min.js\"></script>\n";
@@ -621,8 +723,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $pageContent .= "            formatOnDisplay: true,\n";
     $pageContent .= "            autoPlaceholder: 'aggressive'\n";
     $pageContent .= "        });\n";
-    $pageContent .= "        // Store the instance for later use\n";
-    $pageContent .= "        window.iti = iti;\n";
     $pageContent .= "        \n";
     $pageContent .= "        // Update hidden full_phone field with international format before submit\n";
     $pageContent .= "        if (form) {\n";

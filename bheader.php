@@ -35,7 +35,7 @@ if (!isset($_SESSION['CREATED'])) {
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Cormorant+Garamond:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -66,19 +66,21 @@ if (!isset($_SESSION['CREATED'])) {
         }
         
         body {
-            font-family: 'Poppins', sans-serif;
+            font-family: 'Inter', sans-serif;
             background-color: #f5f5f5;
             color: var(--text-dark);
             padding-top: 70px;
             min-height: 100vh;
-            font-weight: 300;
+            font-weight: 400;
             line-height: 1.6;
+            letter-spacing: -0.01em;
         }
         
         h1, h2, h3, h4, h5, h6 {
-            font-family: 'Cormorant Garamond', serif;
+            font-family: 'Sora', sans-serif;
             font-weight: 600;
-            letter-spacing: 0.5px;
+            letter-spacing: -0.02em;
+            line-height: 1.3;
         }
         
         p {
@@ -86,8 +88,9 @@ if (!isset($_SESSION['CREATED'])) {
         }
         
         .btn {
-            font-family: 'Poppins', sans-serif;
+            font-family: 'Inter', sans-serif;
             font-weight: 500;
+            letter-spacing: -0.01em;
         }
         
         .card {
@@ -98,7 +101,7 @@ if (!isset($_SESSION['CREATED'])) {
         }
         
         .card-header {
-            font-family: 'Cormorant Garamond', serif;
+            font-family: 'Sora', sans-serif;
             font-weight: 600;
             font-size: 1.2rem;
             background-color: white;
@@ -151,10 +154,9 @@ if (!isset($_SESSION['CREATED'])) {
         .admin-nav a {
             color: var(--text-light);
             text-decoration: none;
-            font-weight: 400;
+            font-weight: 500;
             position: relative;
-            font-size: 0.92rem;
-            letter-spacing: 0.3px;
+            font-size: 0.875rem;
             transition: all 0.3s ease;
             padding: 6px 0;
         }
@@ -308,10 +310,10 @@ if (!isset($_SESSION['CREATED'])) {
             padding: 15px;
             color: white;
             text-decoration: none;
-            font-weight: 400;
+            font-weight: 500;
             border-bottom: 1px solid rgba(255,255,255,0.1);
             transition: all 0.3s ease;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
         }
         
         .mobile-menu a:hover {
@@ -360,46 +362,51 @@ if (!isset($_SESSION['CREATED'])) {
         
         /* Dashboard Specific Styles */
         .dashboard-card {
-            border-radius: 12px;
+            border-radius: 14px;
             overflow: hidden;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.04);
             transition: all 0.3s ease;
             height: 100%;
+            border: 1px solid rgba(0,0,0,0.03);
         }
         
         .dashboard-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.08);
         }
         
         .dashboard-card .card-body {
-            padding: 1.5rem;
+            padding: 1.75rem;
         }
         
         .dashboard-card .card-title {
             color: var(--secondary);
-            font-size: 1.5rem;
+            font-size: 1.25rem;
             margin-bottom: 0.75rem;
+            font-weight: 600;
         }
         
         .dashboard-card .card-text {
             color: #6c757d;
-            margin-bottom: 1.25rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
         }
         
         .dashboard-stats {
-            font-family: 'Poppins', sans-serif;
-            font-weight: 600;
-            font-size: 2rem;
+            font-family: 'Inter', sans-serif;
+            font-weight: 700;
+            font-size: 2.5rem;
             color: var(--primary);
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.75rem;
+            line-height: 1.1;
         }
         
         .dashboard-stats-label {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
+            font-weight: 500;
             color: #6c757d;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.03em;
         }
         
         .table {
@@ -409,7 +416,7 @@ if (!isset($_SESSION['CREATED'])) {
         }
         
         .table th {
-            font-family: 'Poppins', sans-serif;
+            font-family: 'Inter', sans-serif;
             font-weight: 500;
             font-size: 0.85rem;
             text-transform: uppercase;
@@ -443,7 +450,7 @@ if (!isset($_SESSION['CREATED'])) {
             border-radius: 8px;
             padding: 0.6rem 1rem;
             border: 1px solid rgba(0,0,0,0.1);
-            font-family: 'Poppins', sans-serif;
+            font-family: 'Inter', sans-serif;
             font-size: 0.9rem;
         }
         
@@ -457,7 +464,7 @@ if (!isset($_SESSION['CREATED'])) {
             border-radius: 8px;
             padding: 0.6rem 1rem;
             border: 1px solid rgba(0,0,0,0.1);
-            font-family: 'Poppins', sans-serif;
+            font-family: 'Inter', sans-serif;
             font-size: 0.9rem;
         }
     </style>

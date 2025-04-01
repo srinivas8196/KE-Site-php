@@ -1,4 +1,26 @@
 <?php
+// Set session parameters BEFORE session_start
+ini_set('session.cookie_httponly', 1);
+ini_set('session.use_only_cookies', 1);
+ini_set('session.cookie_secure', 0);
+
+// Create sessions directory if it doesn't exist
+if (!file_exists(dirname(__FILE__) . '/sessions')) {
+    mkdir(dirname(__FILE__) . '/sessions', 0777, true);
+}
+
+// Set session save path BEFORE session_start
+$sessionPath = dirname(__FILE__) . '/sessions';
+session_save_path($sessionPath);
+
+// Start session
+session_start();
+
+// Generate CSRF token if needed
+if (!isset($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 include_once('kheader.php');
 $pdo = require 'db.php';
 
@@ -37,10 +59,7 @@ if ($stmt) {
     }
 }
 
-// Generate CSRF token
-if (!isset($_SESSION['csrf_token'])) {
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-}
+// CSRF token already set at the top of the file
 $csrf_token = $_SESSION['csrf_token'];
 ?>
 
@@ -1079,6 +1098,61 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     align-items: flex-start;
 }
 
+/* Alert styling */
+.alert {
+    padding: 15px;
+    margin: 0 20px 20px;
+    border-radius: 5px;
+    position: relative;
+}
+
+.alert-success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.alert-danger {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.spinner-container {
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    margin: 0 auto 15px;
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #8b734b;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
 .form-check-input {
     min-width: 20px !important;
     min-height: 20px !important;
@@ -1123,7 +1197,21 @@ input[type="date"]::-webkit-calendar-picker-indicator {
                 <h2>Start Your Dream Vacation</h2>
                 <p>Our luxury destinations await. Complete this form and our team will contact you within 24 hours.</p>
             </div>
-            
+
+            <?php if(isset($_SESSION['success_message'])): ?>
+            <div class="alert alert-success">
+                <?php echo htmlspecialchars($_SESSION['success_message']); ?>
+                <?php unset($_SESSION['success_message']); ?>
+            </div>
+            <?php endif; ?>
+
+            <?php if(isset($_SESSION['error_message'])): ?>
+            <div class="alert alert-danger">
+                <?php echo htmlspecialchars($_SESSION['error_message']); ?>
+                <?php unset($_SESSION['error_message']); ?>
+            </div>
+            <?php endif; ?>
+
             <div class="enquiry-content-wrapper">
                 <!-- Left Sidebar -->
                 <div class="enquiry-sidebar">
@@ -1925,13 +2013,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // Submit form handling
     document.getElementById('enquiryForm').addEventListener('submit', function(e) {
         e.preventDefault();
-        
+
         if (validateForm()) {
             // Set the full international phone number before submission
             if (phoneInput && phoneInput.isValidNumber()) {
                 document.getElementById('full_phone').value = phoneInput.getNumber();
             }
-            
+
             // Create a loading overlay
             const loadingOverlay = document.createElement('div');
             loadingOverlay.className = 'loading-overlay';
@@ -1942,9 +2030,52 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             `;
             document.body.appendChild(loadingOverlay);
+
+            // Submit the form programmatically (not using this.submit() to allow proper data validation)
+            const formData = new FormData(this);
             
-            // Submit the form
-            this.submit();
+            fetch('process_resort_enquiry.php', {
+                method: 'POST',
+                body: formData,
+                credentials: 'same-origin'
+            })
+            .then(response => {
+                // Remove loading overlay
+                document.body.removeChild(loadingOverlay);
+                
+                if (response.redirected) {
+                    // If the server redirected us, follow that redirect
+                    window.location.href = response.url;
+                } else {
+                    // If no redirect, parse the response to check for errors
+                    return response.text().then(text => {
+                        if (text.includes('error_message')) {
+                            // Display error message on the page
+                            const errorDiv = document.createElement('div');
+                            errorDiv.className = 'alert alert-danger';
+                            errorDiv.innerHTML = text;
+                            document.querySelector('.enquiry-header').after(errorDiv);
+                        } else {
+                            // Submit the form traditionally as fallback
+                            this.submit();
+                        }
+                    });
+                }
+            })
+            .catch(error => {
+                // Remove loading overlay
+                if (document.querySelector('.loading-overlay')) {
+                    document.body.removeChild(loadingOverlay);
+                }
+                
+                // Create an error message
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'alert alert-danger';
+                errorDiv.textContent = 'An error occurred while submitting your enquiry. Please try again.';
+                document.querySelector('.enquiry-header').after(errorDiv);
+                
+                console.error('Error submitting form:', error);
+            });
         }
     });
     

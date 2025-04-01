@@ -1,7 +1,36 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+// Set session parameters BEFORE session_start
+ini_set('session.cookie_httponly', 1);
+ini_set('session.use_only_cookies', 1);
+ini_set('session.cookie_secure', 0);
+
+// Create sessions directory if it doesn't exist
+if (!file_exists(dirname(__FILE__) . '/sessions')) {
+    mkdir(dirname(__FILE__) . '/sessions', 0777, true);
 }
+
+// Set session save path BEFORE session_start
+$sessionPath = dirname(__FILE__) . '/sessions';
+session_save_path($sessionPath);
+
+// Start session
+session_start();
+
+// Enable error reporting
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+// Debug log
+$logFile = fopen('resort_enquiry_production.log', 'a');
+fwrite($logFile, "\n\n=== " . date('Y-m-d H:i:s') . " ===\n");
+fwrite($logFile, "Form submission process started\n");
+fwrite($logFile, "Session ID: " . session_id() . "\n");
+fwrite($logFile, "REQUEST_METHOD: " . $_SERVER['REQUEST_METHOD'] . "\n");
+fwrite($logFile, "REQUEST_URI: " . $_SERVER['REQUEST_URI'] . "\n");
+fwrite($logFile, "POST data: " . print_r($_POST, true) . "\n");
+fwrite($logFile, "SESSION data: " . print_r($_SESSION, true) . "\n");
+
+// Include required libraries and helpers
 $pdo = require 'db.php';
 require 'vendor/autoload.php';
 require 'leadsquared_helper.php'; // Add LeadSquared helper functions
@@ -13,14 +42,32 @@ use libphonenumber\NumberParseException;
 // Load environment variables
 $env = parse_ini_file('.env');
 
-// Verify CSRF token
-if (!isset($_POST['csrf_token']) || !isset($_SESSION['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
-    $_SESSION['error_message'] = 'Invalid request. Security token mismatch.';
-    header('Location: ' . $_SERVER['HTTP_REFERER']);
+// Check if form was submitted via POST
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    fwrite($logFile, "Error: Not submitted via POST\n");
+    fclose($logFile);
+    header('Location: index.php');
     exit;
 }
 
-// Get form data
+// Check CSRF token
+if (!isset($_POST['csrf_token']) || !isset($_SESSION['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+    fwrite($logFile, "CSRF token mismatch or missing\n");
+    fwrite($logFile, "Posted token: " . ($_POST['csrf_token'] ?? 'not set') . "\n");
+    fwrite($logFile, "Session token: " . ($_SESSION['csrf_token'] ?? 'not set') . "\n");
+    fclose($logFile);
+    
+    $_SESSION['error_message'] = "Security validation failed. Please try again.";
+    
+    if (isset($_SERVER['HTTP_REFERER'])) {
+        header('Location: ' . $_SERVER['HTTP_REFERER']);
+    } else {
+        header('Location: index.php');
+    }
+    exit;
+}
+
+// Get form data - using snake_case field names
 $firstName = $_POST['first_name'] ?? '';
 $lastName = $_POST['last_name'] ?? '';
 $email = $_POST['email'] ?? '';
@@ -36,6 +83,8 @@ $destinationId = $_POST['destination_id'] ?? '';
 
 // Basic validation
 if (empty($firstName) || empty($lastName) || empty($email) || empty($phone)) {
+    fwrite($logFile, "Missing required fields\n");
+    fclose($logFile);
     $_SESSION['error_message'] = 'Please fill in all required fields.';
     header('Location: ' . $_SERVER['HTTP_REFERER']);
     exit;
@@ -57,6 +106,7 @@ if (!empty($destinationId)) {
         
         // If still no valid destination_id, log error and set to NULL
         if (empty($destinationId)) {
+            fwrite($logFile, "Warning: Invalid destination_id submitted. Setting to NULL\n");
             error_log("Warning: Invalid destination_id submitted in resort enquiry form. Setting to NULL.");
             $destinationId = NULL;
         }
@@ -149,8 +199,14 @@ try {
         $leadLocation
     ]);
     
+    // Log the database operation
+    fwrite($logFile, "Executing database insert\n");
+    
     // Execute with proper parameters
     $stmt->execute($params);
+    
+    // Log success
+    fwrite($logFile, "Database insert successful\n");
 
     // Get the last inserted ID
     $enquiryId = $pdo->lastInsertId();
@@ -177,8 +233,10 @@ try {
     ];
 
     // Send to LeadSquared API
+    fwrite($logFile, "Sending to LeadSquared API\n");
     $formattedData = formatLeadSquaredData($leadSquaredData);
     $leadSquaredResponse = createLeadSquaredLead($formattedData);
+    fwrite($logFile, "LeadSquared response: " . print_r($leadSquaredResponse, true) . "\n");
 
     // Update database with LeadSquared response
     if ($leadSquaredResponse['status'] === 'success' && isset($leadSquaredResponse['data']['Message'])) {
@@ -186,10 +244,12 @@ try {
         if ($leadId) {
             $updateStmt = $pdo->prepare("UPDATE resort_enquiries SET leadsquared_id = ? WHERE id = ?");
             $updateStmt->execute([$leadId, $enquiryId]);
+            fwrite($logFile, "Updated database with LeadSquared ID: $leadId\n");
         }
     }
     
     // Send email notification
+    fwrite($logFile, "Preparing to send email notification\n");
     $mail = new PHPMailer(true);
     
     // Server settings
@@ -254,7 +314,9 @@ try {
     $mail->Body = $body;
     $mail->AltBody = strip_tags($body);
 
+    fwrite($logFile, "Sending admin notification email\n");
     $mail->send();
+    fwrite($logFile, "Admin email sent successfully\n");
     
     // Send confirmation email to customer
     $customerMail = new PHPMailer(true);
@@ -310,10 +372,13 @@ try {
     $customerMail->Body = $customerBody;
     $customerMail->AltBody = strip_tags($customerBody);
 
+    fwrite($logFile, "Sending customer confirmation email\n");
     try {
         $customerMail->send();
+        fwrite($logFile, "Customer email sent successfully\n");
     } catch (Exception $e) {
         // Log error but continue with the process
+        fwrite($logFile, "Error sending customer confirmation email: " . $e->getMessage() . "\n");
         error_log("Error sending customer confirmation email: " . $e->getMessage());
     }
     
@@ -325,16 +390,23 @@ try {
     $_SESSION['enquiry_email'] = $email;
     $_SESSION['enquiry_name'] = $firstName . ' ' . $lastName;
     
+    fwrite($logFile, "Process completed successfully. Redirecting to thank-you page\n");
+    fclose($logFile);
+    
     // Redirect to thank you page instead of referring page
     header('Location: thank-you.php');
     exit();
     
 } catch (Exception $e) {
     // Log the error
+    fwrite($logFile, "Error in resort enquiry: " . $e->getMessage() . "\n");
     error_log("Error in resort enquiry: " . $e->getMessage());
     
     // Set error message and redirect
     $_SESSION['error_message'] = "We're sorry, but there was a problem processing your enquiry. Please try again later.";
+    
+    fclose($logFile);
     header('Location: ' . $_SERVER['HTTP_REFERER']);
     exit();
 } 
+?> 
