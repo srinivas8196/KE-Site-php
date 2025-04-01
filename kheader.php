@@ -6,6 +6,11 @@
     error_reporting(E_ALL);
     ini_set('display_errors', 1);
 
+    // Add cache control headers to prevent caching
+    header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+    header("Cache-Control: post-check=0, pre-check=0", false);
+    header("Pragma: no-cache");
+
     // Include database connection
     require_once 'db.php';
     $pdo = require 'db.php';
@@ -43,6 +48,11 @@
                     'slug' => $row['resort_slug']
                 ];
             }
+            
+            // Only return destinations that have active resorts
+            $menuDestinations = array_filter($menuDestinations, function($destination) {
+                return !empty($destination['resorts']);
+            });
             
             return array_values($menuDestinations);
         } catch (PDOException $e) {
@@ -268,6 +278,7 @@
             transform: translateX(0);
             transition: transform 0.3s ease;
             width: 100%;
+            padding-right: 5px; /* Add small padding to ensure text has room */
         }
 
         .mega-menu .resort-link {
@@ -275,12 +286,14 @@
             text-decoration: none;
             font-size: 0.95rem;
             padding: 0; /* Remove padding */
-            display: inline; /* Ensure it appears as normal text */
+            display: inline-block; /* Changed from inline to inline-block */
             font-weight: 500;
-            white-space: nowrap;
+            white-space: normal; /* Changed from nowrap to normal to allow text wrapping */
             background: none !important; /* Remove background */
             border: none; /* Remove any border */
             box-shadow: none !important; /* Remove any shadow */
+            line-height: 1.4; /* Add proper line height for multi-line text */
+            width: 100%; /* Ensure it takes full width of parent */
         }
 
         .mega-menu .resort-link:hover {

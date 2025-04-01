@@ -30,75 +30,548 @@ if (!isset($_SESSION['CREATED'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Karma Experience</title>
+    <title>Karma Experience Admin</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Cormorant+Garamond:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="assets/css/styles.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Custom Admin Styles -->
+    <style>
+        :root {
+            --primary: #B4975A;
+            --primary-dark: #96793D;
+            --secondary: #2A3950;
+            --secondary-dark: #1A2537;
+            --accent: #E8D7B0;
+            --text-light: #F8F9FA;
+            --text-dark: #212529;
+            --success: #28a745;
+            --danger: #dc3545;
+            --warning: #ffc107;
+            --info: #17a2b8;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f5f5f5;
+            color: var(--text-dark);
+            padding-top: 70px;
+            min-height: 100vh;
+            font-weight: 300;
+            line-height: 1.6;
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Cormorant Garamond', serif;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        
+        p {
+            font-size: 0.95rem;
+        }
+        
+        .btn {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 500;
+        }
+        
+        .card {
+            border-radius: 12px;
+            overflow: hidden;
+            border: none;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        
+        .card-header {
+            font-family: 'Cormorant Garamond', serif;
+            font-weight: 600;
+            font-size: 1.2rem;
+            background-color: white;
+            border-bottom: 1px solid rgba(180, 151, 90, 0.2);
+            padding: 1rem 1.25rem;
+        }
+        
+        /* Admin Header */
+        .admin-header {
+            background: var(--secondary);
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 70px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 24px;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .admin-header.scrolled {
+            background: rgba(42, 57, 80, 0.98);
+            backdrop-filter: blur(10px);
+            height: 60px;
+        }
+        
+        .logo-container {
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo-container img {
+            height: 40px;
+            transition: all 0.3s ease;
+        }
+        
+        .admin-header.scrolled .logo-container img {
+            height: 35px;
+        }
+        
+        .admin-nav {
+            display: flex;
+            gap: 30px;
+        }
+        
+        .admin-nav a {
+            color: var(--text-light);
+            text-decoration: none;
+            font-weight: 400;
+            position: relative;
+            font-size: 0.92rem;
+            letter-spacing: 0.3px;
+            transition: all 0.3s ease;
+            padding: 6px 0;
+        }
+        
+        .admin-nav a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: 0;
+            left: 0;
+            background: var(--primary);
+            transition: width 0.3s ease;
+        }
+        
+        .admin-nav a:hover {
+            color: var(--primary);
+        }
+        
+        .admin-nav a:hover::after {
+            width: 100%;
+        }
+        
+        .user-menu {
+            position: relative;
+        }
+        
+        .user-button {
+            background: var(--primary);
+            border: none;
+            border-radius: 50px;
+            color: white;
+            padding: 8px 18px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .user-button:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .user-button i {
+            font-size: 1rem;
+        }
+        
+        .user-dropdown {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            width: 200px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.1);
+            padding: 10px 0;
+            transform: translateY(10px);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+        
+        .user-dropdown.active {
+            transform: translateY(0);
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .user-dropdown::before {
+            content: '';
+            position: absolute;
+            top: -5px;
+            right: 20px;
+            width: 10px;
+            height: 10px;
+            background: white;
+            transform: rotate(45deg);
+        }
+        
+        .user-dropdown a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 18px;
+            color: var(--text-dark);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+        
+        .user-dropdown a:hover {
+            background: rgba(180, 151, 90, 0.1);
+            color: var(--primary);
+        }
+        
+        .user-dropdown a i {
+            font-size: 1rem;
+            color: var(--primary);
+        }
+        
+        .divider {
+            height: 1px;
+            background: rgba(0,0,0,0.1);
+            margin: 8px 0;
+        }
+        
+        /* Mobile Menu Styles */
+        .mobile-menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .mobile-menu-toggle:hover {
+            color: var(--primary);
+        }
+        
+        .mobile-menu {
+            position: fixed;
+            top: 70px;
+            left: 0;
+            width: 100%;
+            background: var(--secondary-dark);
+            padding: 20px;
+            z-index: 999;
+            transform: translateY(-100%);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        
+        .mobile-menu.active {
+            transform: translateY(0);
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .mobile-menu a {
+            display: block;
+            padding: 15px;
+            color: white;
+            text-decoration: none;
+            font-weight: 400;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+        }
+        
+        .mobile-menu a:hover {
+            background: rgba(180, 151, 90, 0.1);
+            color: var(--primary);
+            padding-left: 20px;
+        }
+        
+        .mobile-menu a i {
+            width: 24px;
+            margin-right: 8px;
+            color: var(--primary);
+        }
+        
+        .mobile-menu a:last-child {
+            border-bottom: none;
+        }
+        
+        @media (max-width: 991px) {
+            .admin-nav {
+                display: none;
+            }
+            
+            .mobile-menu-toggle {
+                display: block;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .admin-header {
+                padding: 0 16px;
+            }
+            
+            .logo-container img {
+                height: 35px;
+            }
+            
+            .user-button {
+                padding: 7px 14px;
+            }
+            
+            .user-button span {
+                display: none;
+            }
+        }
+        
+        /* Dashboard Specific Styles */
+        .dashboard-card {
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            height: 100%;
+        }
+        
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .dashboard-card .card-body {
+            padding: 1.5rem;
+        }
+        
+        .dashboard-card .card-title {
+            color: var(--secondary);
+            font-size: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        .dashboard-card .card-text {
+            color: #6c757d;
+            margin-bottom: 1.25rem;
+        }
+        
+        .dashboard-stats {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .dashboard-stats-label {
+            font-size: 0.85rem;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .table {
+            border-collapse: separate;
+            border-spacing: 0;
+            width: 100%;
+        }
+        
+        .table th {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 500;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 1rem;
+            background-color: rgba(180, 151, 90, 0.05);
+            border-bottom: 1px solid rgba(180, 151, 90, 0.2);
+        }
+        
+        .table td {
+            padding: 1rem;
+            vertical-align: middle;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+        
+        .table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            border-color: var(--primary);
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            border-color: var(--primary-dark);
+        }
+        
+        .form-control {
+            border-radius: 8px;
+            padding: 0.6rem 1rem;
+            border: 1px solid rgba(0,0,0,0.1);
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.9rem;
+        }
+        
+        .form-label {
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+        
+        .form-select {
+            border-radius: 8px;
+            padding: 0.6rem 1rem;
+            border: 1px solid rgba(0,0,0,0.1);
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.9rem;
+        }
+    </style>
 </head>
-<body class="bg-gray-100">
+<body>
 
-<header class="bg-gray-900 text-white p-4 flex justify-between items-center shadow-md fixed top-0 left-0 w-full z-50">
+<header class="admin-header">
     <!-- Logo -->
-    <a href="dashboard.php" class="text-lg font-bold">
-        <img src="assets/images/logo/KE-Gold.png" alt="Karma Experience" class="h-10">
-    </a>
+    <div class="logo-container">
+        <a href="dashboard.php">
+            <img src="assets/images/logo/KE-Gold.png" alt="Karma Experience">
+        </a>
+    </div>
 
-    <!-- Navigation Menu -->
-    <nav class="hidden md:flex space-x-6">
-        <a href="dashboard.php" class="hover:text-yellow-400">Dashboard</a>
-        <a href="destination_list.php" class="hover:text-yellow-400">Destinations</a>
-        <a href="manage-users.php" class="hover:text-yellow-400">Users</a>
-        <!-- <a href="settings.php" class="hover:text-yellow-400">Settings</a> -->
+    <!-- Desktop Navigation Menu -->
+    <nav class="admin-nav">
+        <a href="dashboard.php"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a>
+        <a href="destination_list.php"><i class="fas fa-map-marker-alt me-2"></i>Destinations</a>
+        <a href="resort_list.php"><i class="fas fa-hotel me-2"></i>Resorts</a>
+        <a href="view_enquiries.php"><i class="fas fa-envelope me-2"></i>Enquiries</a>
+        <a href="manage_users.php"><i class="fas fa-users me-2"></i>Users</a>
     </nav>
 
-    <!-- Profile Dropdown -->
-    <div class="relative">
-        <button id="profileBtn" class="flex items-center space-x-2 bg-gray-800 px-4 py-2 rounded focus:outline-none">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M20 21a8 8 0 0 0-16 0"></path>
-                <circle cx="12" cy="7" r="4"></circle>
-            </svg>
-            <span>Admin</span>
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle" id="mobileMenuToggle">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- User Menu -->
+    <div class="user-menu">
+        <button class="user-button" id="userMenuButton">
+            <i class="fas fa-user-circle"></i>
+            <span>
+                <?php 
+                    echo isset($_SESSION['admin_name']) ? htmlspecialchars($_SESSION['admin_name']) : 'Admin'; 
+                ?>
+            </span>
+            <i class="fas fa-chevron-down"></i>
         </button>
-        <div id="profileDropdown" class="absolute right-0 mt-2 w-40 bg-white text-gray-900 shadow-lg rounded hidden">
-            <a href="profile.php" class="block px-4 py-2 hover:bg-gray-200">My Profile</a>
-            <a href="logout.php" class="block px-4 py-2 hover:bg-gray-200">Logout</a>
+        <div class="user-dropdown" id="userDropdown">
+            <a href="profile.php">
+                <i class="fas fa-user"></i>
+                My Profile
+            </a>
+            <a href="settings.php">
+                <i class="fas fa-cog"></i>
+                Settings
+            </a>
+            <div class="divider"></div>
+            <a href="logout.php">
+                <i class="fas fa-sign-out-alt"></i>
+                Logout
+            </a>
         </div>
     </div>
 </header>
 
-<!-- JavaScript for Profile Dropdown -->
-<script>
-    document.getElementById("profileBtn").addEventListener("click", function() {
-        document.getElementById("profileDropdown").classList.toggle("hidden");
-    });
+<!-- Mobile Navigation Menu -->
+<nav class="mobile-menu" id="mobileMenu">
+    <a href="dashboard.php"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a>
+    <a href="destination_list.php"><i class="fas fa-map-marker-alt me-2"></i>Destinations</a>
+    <a href="resort_list.php"><i class="fas fa-hotel me-2"></i>Resorts</a>
+    <a href="view_enquiries.php"><i class="fas fa-envelope me-2"></i>Enquiries</a>
+    <a href="manage_users.php"><i class="fas fa-users me-2"></i>Users</a>
+</nav>
 
-    document.addEventListener("click", function(event) {
-        if (!document.getElementById("profileBtn").contains(event.target)) {
-            document.getElementById("profileDropdown").classList.add("hidden");
+<!-- JavaScript -->
+<script>
+    // Header scroll effect
+    window.addEventListener('scroll', function() {
+        const header = document.querySelector('.admin-header');
+        if (window.scrollY > 30) {
+            header.classList.add('scrolled');
+        } else {
+            header.classList.remove('scrolled');
         }
     });
 
-    // Initialize Lucide Icons
-    lucide.createIcons();
+    // User dropdown toggle
+    const userMenuButton = document.getElementById('userMenuButton');
+    const userDropdown = document.getElementById('userDropdown');
+    
+    userMenuButton.addEventListener('click', function() {
+        userDropdown.classList.toggle('active');
+    });
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(event) {
+        if (!userMenuButton.contains(event.target) && !userDropdown.contains(event.target)) {
+            userDropdown.classList.remove('active');
+        }
+    });
+    
+    // Mobile menu toggle
+    const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+    const mobileMenu = document.getElementById('mobileMenu');
+    
+    mobileMenuToggle.addEventListener('click', function() {
+        mobileMenu.classList.toggle('active');
+        
+        // Change icon based on menu state
+        const icon = mobileMenuToggle.querySelector('i');
+        if (mobileMenu.classList.contains('active')) {
+            icon.classList.remove('fa-bars');
+            icon.classList.add('fa-times');
+        } else {
+            icon.classList.remove('fa-times');
+            icon.classList.add('fa-bars');
+        }
+    });
 </script>
 
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-<!-- CSS to prevent content overlap -->
-<style>
-    body {
-        padding-top: 75px; /* Adjust to match header height */
-    }
-</style>
 
 </body>
 </html>

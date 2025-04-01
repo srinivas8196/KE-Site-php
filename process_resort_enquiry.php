@@ -21,12 +21,13 @@ if (!isset($_POST['csrf_token']) || !isset($_SESSION['csrf_token']) || $_POST['c
 }
 
 // Get form data
-$firstName = $_POST['firstName'] ?? '';
-$lastName = $_POST['lastName'] ?? '';
+$firstName = $_POST['first_name'] ?? '';
+$lastName = $_POST['last_name'] ?? '';
 $email = $_POST['email'] ?? '';
 $phone = $_POST['full_phone'] ?? $_POST['phone'] ?? ''; // Prefer the full_phone field if available
 $dob = $_POST['dob'] ?? '';
-$hasPassport = $_POST['hasPassport'] ?? '';
+$hasPassport = $_POST['has_passport'] ?? '';
+$additionalRequirements = $_POST['additional_requirements'] ?? '';
 $resortName = $_POST['resort_name'] ?? '';
 $destinationName = $_POST['destination_name'] ?? '';
 $resortCode = $_POST['resort_code'] ?? '';
@@ -120,9 +121,9 @@ try {
     // Prepare the SQL statement with proper NULL handling for destination_id
     $stmt = $pdo->prepare("INSERT INTO resort_enquiries 
         (resort_id, destination_id, first_name, last_name, email, phone, date_of_birth, has_passport, 
-        resort_name, destination_name, resort_code, status, country_code, lead_source, lead_brand, 
+        additional_requirements, resort_name, destination_name, resort_code, status, country_code, lead_source, lead_brand, 
         lead_sub_brand, lead_source_description, lead_location) 
-        VALUES (?, " . (is_null($destinationId) ? "NULL" : "?") . ", ?, ?, ?, ?, ?, ?, ?, ?, ?, 'new', ?, ?, ?, ?, ?, ?)");
+        VALUES (?, " . (is_null($destinationId) ? "NULL" : "?") . ", ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'new', ?, ?, ?, ?, ?, ?)");
     
     // Build parameters array based on destination_id being NULL or not
     $params = [$resortId];
@@ -136,6 +137,7 @@ try {
         $phone,
         $dob,
         $hasPassport,
+        $additionalRequirements,
         $resortName,
         $destinationName,
         $resortCode,
@@ -161,6 +163,7 @@ try {
         'phone' => $phone,
         'date_of_birth' => $dob,
         'has_passport' => $hasPassport,
+        'additional_requirements' => $additionalRequirements,
         'resort_name' => $resortName,
         'destination_name' => $destinationName,
         'resort_code' => $resortCode,
@@ -221,6 +224,7 @@ try {
     <p><strong>Date of Birth:</strong> {$dob}</p>
     <p><strong>Has Passport:</strong> {$hasPassport}</p>
     <p><strong>Country:</strong> {$countryCode}</p>
+    <p><strong>Additional Requirements:</strong> {$additionalRequirements}</p>
     <hr>
     <h3>LeadSquared Details:</h3>
     <p><strong>Lead Source:</strong> {$leadSource}</p>

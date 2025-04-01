@@ -14,7 +14,7 @@ if (!isset($pdo)) {
     <meta name="description" content="Karma Experience - Delivering unmatched holiday experiences at unbeatable prices">
     <meta name="keywords" content="Karma Experience - Delivering unmatched holiday experiences at unbeatable prices">
     <meta name="robots" content="INDEX,FOLLOW">
-    <meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="apple-touch-icon" sizes="57x57" href="assets/images/logo/K-logo.png">
     <link rel="apple-touch-icon" sizes="60x60" href="assets/images/logo/K-logo.png">
     <link rel="apple-touch-icon" sizes="72x72" href="assets/images/logo/K-logo.png">
@@ -178,6 +178,7 @@ if (!isset($pdo)) {
         transition: all 0.3s ease;
         padding: 0;
         border-radius: 4px;
+        margin-left: 15px;
     }
 
     .th-header.scrolled .th-menu-toggle {
@@ -196,13 +197,222 @@ if (!isset($pdo)) {
         transform: scale(1.1);
     }
 
-    @media (max-width: 991px) {
+    /* Mobile Menu Styles */
+    .th-mobile-menu {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: -100%;
+        width: 90%;
+        max-width: 350px;
+        height: 100%;
+        background: white;
+        z-index: 9999;
+        overflow-y: auto;
+        padding: 2rem;
+        transition: left 0.3s ease;
+        box-shadow: 0 0 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .th-mobile-menu.active {
+        left: 0;
+        display: block;
+    }
+
+    .mobile-menu-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 9998;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .mobile-menu-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .mobile-menu-close {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: none;
+        border: none;
+        font-size: 20px;
+        color: #333;
+        cursor: pointer;
+    }
+
+    .mobile-menu-logo {
+        margin-bottom: 2rem;
+    }
+
+    .mobile-menu-logo img {
+        max-height: 40px;
+    }
+
+    .mobile-menu-nav {
+        margin-top: 2rem;
+    }
+
+    .mobile-menu-nav ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .mobile-menu-nav ul li {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .mobile-menu-nav ul li a {
+        color: #333;
+        text-decoration: none;
+        font-size: 1rem;
+        font-weight: 500;
+        display: block;
+        padding: 0.75rem 0;
+        transition: all 0.3s ease;
+    }
+
+    .mobile-menu-nav ul li a:hover {
+        color: #B4975A;
+    }
+    
+    /* Dropdown styling */
+    .mobile-menu-nav .has-dropdown {
+        position: relative;
+    }
+    
+    .mobile-menu-nav .has-dropdown > a {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .mobile-menu-nav .has-dropdown > a:after {
+        content: '\f107';
+        font-family: "Font Awesome 5 Pro", "Font Awesome 5 Free";
+        font-weight: 900;
+        transition: transform 0.3s ease;
+    }
+    
+    .mobile-menu-nav .has-dropdown.active > a:after {
+        transform: rotate(180deg);
+    }
+    
+    .mobile-menu-nav .dropdown-menu {
+        display: none;
+        padding-left: 1rem;
+        margin-top: 0.5rem;
+        width: 100%;
+        max-width: 100%;
+    }
+    
+    .mobile-menu-nav .dropdown-menu.active {
+        display: block;
+    }
+    
+    .mobile-menu-nav .dropdown-menu .destination-label {
+        display: flex;
+        align-items: center;
+        font-weight: 600;
+        color: #B4975A;
+        margin: 0.75rem 0 0.5rem;
+        padding-bottom: 0.25rem;
+        border-bottom: 1px dashed rgba(180, 151, 90, 0.3);
+    }
+    
+    .mobile-menu-nav .dropdown-menu .destination-label i {
+        margin-right: 0.5rem;
+        font-size: 0.9rem;
+    }
+    
+    .mobile-menu-nav .dropdown-menu ul {
+        padding-left: 1rem;
+        margin-bottom: 1rem;
+        width: 100%;
+    }
+    
+    .mobile-menu-nav .dropdown-menu ul li {
+        border-bottom: none;
+        padding: 0.25rem 0;
+        width: 100%;
+    }
+    
+    .mobile-menu-nav .dropdown-menu ul li a {
+        font-size: 0.95rem;
+        padding: 0.5rem 0;
+        white-space: normal;
+        word-wrap: break-word;
+        width: 100%;
+        display: inline-block;
+    }
+
+    @media (max-width: 1199px) {
         .main-menu {
             display: none;
         }
         
         .th-menu-toggle {
             display: flex !important;
+        }
+        
+        .col-auto {
+            width: auto;
+            flex: 0 0 auto;
+        }
+        
+        .col-auto.d-none.d-xl-block {
+            display: none !important;
+        }
+        
+        .header-right-flex {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+        
+        .ml-3 {
+            margin-left: 0.75rem;
+        }
+        
+        .ml-4 {
+            margin-left: 1rem;
+        }
+    }
+
+    /* Responsive Banner */
+    @media (max-width: 767px) {
+        .banner {
+            height: 50vh;
+        }
+        
+        .banner .banner-title {
+            font-size: 1.5rem;
+        }
+        
+        .container {
+            padding-left: 15px;
+            padding-right: 15px;
+            width: 100%;
+            max-width: 100%;
+        }
+        
+        .row {
+            margin-left: -15px;
+            margin-right: -15px;
+        }
+        
+        [class*="col-"] {
+            padding-left: 15px;
+            padding-right: 15px;
         }
     }
 
@@ -345,6 +555,7 @@ if (!isset($pdo)) {
         overflow: hidden;
         border: 1px solid rgba(180, 151, 90, 0.1);
         min-width: 250px;
+        width: 100%;
     }
 
     .mega-menu .destination-section:hover {
@@ -401,8 +612,11 @@ if (!isset($pdo)) {
         padding: 0; /* Remove padding */
         display: inline-block; /* Ensure it appears as normal text */
         font-weight: 500;
-            background: transparent !important;
-        white-space: nowrap;
+        background: transparent !important;
+        white-space: normal;
+        word-wrap: break-word;
+        width: 100%;
+        line-height: 1.4;
         border: none; /* Remove any border */
         box-shadow: none !important; /* Remove any shadow */
     }
@@ -410,104 +624,6 @@ if (!isset($pdo)) {
     .mega-menu .resort-link:hover {
         color: #B4975A;
         background: none !important; /* Ensure no background on hover */
-    }
-
-    /* Mobile Menu Styles */
-    .th-mobile-menu {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: -100%;
-        width: 320px;
-        height: 100%;
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.99) 0%, rgba(255, 255, 255, 0.97) 100%);
-        backdrop-filter: blur(20px);
-        z-index: 9999;
-        overflow-y: auto;
-        padding: 2rem;
-        transition: left 0.3s ease;
-        box-shadow: 5px 0 30px rgba(0, 0, 0, 0.1);
-    }
-
-    .th-mobile-menu.active {
-        left: 0;
-        display: block;
-    }
-
-    .mobile-menu-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.5);
-        opacity: 0;
-        visibility: hidden;
-        transition: all 0.3s ease;
-        z-index: 9998;
-    }
-
-    .mobile-menu-overlay.active {
-        opacity: 1;
-        visibility: visible;
-    }
-
-    .mobile-menu-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 2rem;
-        padding-bottom: 1rem;
-        border-bottom: 1px solid rgba(180, 151, 90, 0.1);
-    }
-
-    .mobile-menu-close {
-        font-size: 24px;
-        color: #B4975A;
-        background: none;
-        border: none;
-        cursor: pointer;
-        width: 40px;
-        height: 40px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 50%;
-        transition: all 0.3s ease;
-        position: relative;
-        z-index: 10001;
-    }
-
-    .mobile-menu-nav {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-    }
-
-    .mobile-menu-nav > li {
-        margin-bottom: 1rem;
-    }
-
-    .mobile-menu-nav > li > a {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 1rem 0;
-        color: #333;
-        text-decoration: none;
-        font-weight: 500;
-        font-size: 1.1rem;
-        border-bottom: 1px solid rgba(180, 151, 90, 0.1);
-        transition: all 0.3s ease;
-    }
-
-    .mobile-submenu {
-        display: none;
-        padding: 1rem 0;
-    }
-
-    .mobile-submenu.active {
-        display: block;
     }
 
     /* Destination Form Styles */
@@ -778,30 +894,31 @@ if (!isset($pdo)) {
             </div>
         <ul class="mobile-menu-nav">
             <li><a href="index.php">Home</a></li>
-                    <li class="menu-item-has-children">
-                <a href="#" class="mobile-menu-toggle">Destinations</a>
-                <div class="mobile-submenu">
-                            <?php foreach ($menuDestinations as $destination): ?>
-                        <div class="destination-section">
-                            <h3 class="destination-title">
-                            <i class="fas fa-map-marker-alt"></i> 
-                                <?php echo htmlspecialchars($destination['name']); ?>
-                            </h3>
-                            <ul class="resort-list">
-                                <?php foreach ($destination['resorts'] as $resort): 
-                                    $isActive = ($resort['slug'] === $menuCurrentSlug);
-                                ?>
-                                    <li class="resort-item">
-                                        <a href="<?php echo $resort['slug']; ?>.php" 
-                                           class="resort-link <?php echo $isActive ? 'active' : ''; ?>">
-                                            <?php echo htmlspecialchars($resort['name']); ?>
-                                        </a>
-                                    </li>
-                                <?php endforeach; ?>
-                </ul>
-            </div>
-                    <?php endforeach; ?>
-        </div>
+                    <li class="has-dropdown">
+                <a href="javascript:void(0);">Destinations</a>
+                <div class="dropdown-menu">
+                    <?php 
+                    if (isset($menuDestinations)) {
+                        foreach ($menuDestinations as $destination): 
+                            if (empty($destination['resorts'])) continue; 
+                    ?>
+                        <div class="destination-label">
+                            <i class="fas fa-map-marker-alt"></i> <?php echo htmlspecialchars($destination['name']); ?>
+                        </div>
+                        <ul>
+                            <?php foreach ($destination['resorts'] as $resort): ?>
+                                <li>
+                                    <a href="<?php echo $resort['slug']; ?>.php">
+                                        <?php echo htmlspecialchars($resort['name']); ?>
+                                    </a>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
+                    <?php 
+                        endforeach; 
+                    }
+                    ?>
+                </div>
             </li>
             <li><a href="about.php">About Us</a></li>
                     <li><a href="Blogs.php">Our Blogs</a></li>
@@ -860,27 +977,74 @@ if (!isset($pdo)) {
                                 </a>
                             </div>
                         </div>
-                        <div class="col-auto">
+                        <div class="col-auto d-flex align-items-center">
                             <nav class="main-menu d-none d-xl-block">
                                 <ul>
                                     <li><a href="Blogs.php">Our Blogs</a></li>
                                     <li><a href="enquire-now.php">Enquire Now</a></li>
+                                    <li class="d-xl-none d-lg-block d-md-block d-sm-block"><a href="pay-now.php">Pay Now</a></li>
                                 </ul>
                             </nav>
-                            <button type="button" class="th-menu-toggle d-block d-xl-none">
-                                <i class="fas fa-bars"></i>
-                            </button>
-                        </div>
-                        <div class="col-auto d-none d-xl-block">
-                            <div class="header-button">
+                            <div class="header-button d-none d-xl-flex ml-4">
                                 <a href="pay-now.php" class="th-btn style3 th-icon">Pay Now</a>
                             </div>
+                            <button type="button" class="th-menu-toggle d-block d-xl-none ml-3">
+                                <i class="fas fa-bars"></i>
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </header>
+
+    <!-- Mobile menu overlay -->
+    <div class="mobile-menu-overlay"></div>
+    
+    <!-- Mobile menu -->
+    <div class="th-mobile-menu">
+        <button class="mobile-menu-close"><i class="fas fa-times"></i></button>
+        <div class="mobile-menu-logo">
+            <a href="index.php">
+                <img src="assets/images/logo/K-logo.png" alt="Karma Experience">
+            </a>
+        </div>
+        <div class="mobile-menu-nav">
+            <ul>
+                <li><a href="index.php">Home</a></li>
+                <li class="has-dropdown">
+                    <a href="javascript:void(0);">Destinations</a>
+                    <div class="dropdown-menu">
+                        <?php 
+                        if (isset($menuDestinations)) {
+                            foreach ($menuDestinations as $destination): 
+                                if (empty($destination['resorts'])) continue; 
+                        ?>
+                            <div class="destination-label">
+                                <i class="fas fa-map-marker-alt"></i> <?php echo htmlspecialchars($destination['name']); ?>
+                            </div>
+                            <ul>
+                                <?php foreach ($destination['resorts'] as $resort): ?>
+                                    <li>
+                                        <a href="<?php echo $resort['slug']; ?>.php">
+                                            <?php echo htmlspecialchars($resort['name']); ?>
+                                        </a>
+                                    </li>
+                                <?php endforeach; ?>
+                            </ul>
+                        <?php 
+                            endforeach; 
+                        }
+                        ?>
+                    </div>
+                </li>
+                <li><a href="about.php">About Us</a></li>
+                <li><a href="Blogs.php">Our Blogs</a></li>
+                <li><a href="enquire-now.php">Enquire Now</a></li>
+                <li><a href="pay-now.php">Pay Now</a></li>
+            </ul>
+        </div>
+    </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -890,7 +1054,7 @@ if (!isset($pdo)) {
             const mobileMenu = document.querySelector('.th-mobile-menu');
             const mobileMenuClose = document.querySelector('.mobile-menu-close');
             const overlay = document.querySelector('.mobile-menu-overlay');
-            const submenuToggles = document.querySelectorAll('.mobile-menu-toggle');
+            const dropdownToggles = document.querySelectorAll('.mobile-menu-nav .has-dropdown > a');
 
             window.addEventListener('scroll', function() {
                 if (window.scrollY > 50) {
@@ -911,54 +1075,61 @@ if (!isset($pdo)) {
                 mobileMenu.classList.remove('active');
                 overlay.classList.remove('active');
                 document.body.style.overflow = '';
+                
+                // Close all dropdowns when closing menu
+                document.querySelectorAll('.mobile-menu-nav .has-dropdown').forEach(item => {
+                    item.classList.remove('active');
+                });
+                document.querySelectorAll('.mobile-menu-nav .dropdown-menu').forEach(menu => {
+                    menu.classList.remove('active');
+                });
             }
 
             // Mobile menu toggle
             if (menuToggle) {
-            menuToggle.addEventListener('click', openMobileMenu);
+                menuToggle.addEventListener('click', openMobileMenu);
             }
             
             if (mobileMenuClose) {
-            mobileMenuClose.addEventListener('click', closeMobileMenu);
+                mobileMenuClose.addEventListener('click', closeMobileMenu);
             }
             
             if (overlay) {
-            overlay.addEventListener('click', closeMobileMenu);
+                overlay.addEventListener('click', closeMobileMenu);
             }
 
-            // Handle submenu toggles
-            if (submenuToggles) {
-            submenuToggles.forEach(toggle => {
-                toggle.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const submenu = this.nextElementSibling;
+            // Handle dropdown toggles
+            if (dropdownToggles) {
+                dropdownToggles.forEach(toggle => {
+                    toggle.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const parent = this.parentElement;
+                        const dropdown = this.nextElementSibling;
                         
-                        if (submenu && submenu.classList.contains('mobile-submenu')) {
-                    const isActive = submenu.classList.contains('active');
-                    
-                    // Close all other submenus
-                    document.querySelectorAll('.mobile-submenu').forEach(sub => {
-                        if (sub !== submenu) {
-                            sub.classList.remove('active');
-                                    if (sub.previousElementSibling) {
-                            sub.previousElementSibling.classList.remove('active');
-                                    }
-                        }
+                        // Close other dropdowns
+                        document.querySelectorAll('.mobile-menu-nav .has-dropdown').forEach(item => {
+                            if (item !== parent) {
+                                item.classList.remove('active');
+                            }
+                        });
+                        document.querySelectorAll('.mobile-menu-nav .dropdown-menu').forEach(menu => {
+                            if (menu !== dropdown) {
+                                menu.classList.remove('active');
+                            }
+                        });
+                        
+                        // Toggle current dropdown
+                        parent.classList.toggle('active');
+                        dropdown.classList.toggle('active');
                     });
-                    
-                    // Toggle clicked submenu
-                    submenu.classList.toggle('active');
-                    this.classList.toggle('active');
-                        }
                 });
-            });
             }
 
-            // Prevent clicks inside mobile menu from closing it
+            // Prevent clicks inside mobile menu from closing the menu
             if (mobileMenu) {
-            mobileMenu.addEventListener('click', function(e) {
-                e.stopPropagation();
-            });
+                mobileMenu.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                });
             }
         });
     </script>

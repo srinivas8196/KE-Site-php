@@ -5,7 +5,13 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 $user = $_SESSION['user'];
-require 'db.php';
+
+// Fix database connection
+$pdo = require 'db.php';
+if (!$pdo) {
+    die("Database connection failed");
+}
+
 $stmt = $pdo->query("SELECT r.*, d.destination_name FROM resorts r JOIN destinations d ON r.destination_id = d.id ORDER BY d.destination_name, r.resort_name");
 $resorts = $stmt->fetchAll();
 
@@ -251,24 +257,28 @@ if (file_exists('bheader.php')) {
       // Show loading spinner
       const spinner = document.createElement('div');
       spinner.className = 'loading-spinner';
-      switchContainer.style.position = 'relative';
       switchContainer.appendChild(spinner);
 
       try {
-        const response = await fetch('update_resort_status.php', {
+        // Use FormData instead of JSON to avoid potential issues
+        const formData = new FormData();
+        formData.append('resort_id', resortId);
+        formData.append('is_active', newStatus);
+
+        const response = await fetch('update_resort_status_direct.php', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ resort_id: resortId, is_active: newStatus })
+          body: formData
         });
 
-        if (!response.ok) throw new Error('Network response was not ok');
-        const data = await response.json();
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
 
-        if (!data.success) throw new Error(data.message || 'Failed to update status');
-
-        // Update view button
+        // Update view button without page reload
         if (newStatus === 1) {
-          viewButton.href = data.resort_slug;
+          viewButton.href = row.querySelector('.resort-link') ? 
+                            row.querySelector('.resort-link').getAttribute('href') : 
+                            `${row.querySelector('td:first-child').textContent.trim().toLowerCase().replace(/\s+/g, '-')}.php`;
           viewButton.classList.remove('bg-gray-400');
           viewButton.classList.add('bg-blue-500');
         } else {
@@ -281,19 +291,23 @@ if (file_exists('bheader.php')) {
         Swal.fire({
           icon: 'success',
           title: 'Success!',
-          text: 'Resort status updated successfully',
+          text: newStatus === 1 ? 'Resort activated successfully' : 'Resort deactivated successfully',
           toast: true,
           position: 'top-end',
           showConfirmButton: false,
-          timer: 3000
+          timer: 2000
         });
       } catch (error) {
         console.error('Error:', error);
+        
+        // Revert checkbox state
         checkbox.checked = !checkbox.checked;
+        
+        // Show error notification
         Swal.fire({
           icon: 'error',
           title: 'Error',
-          text: error.message,
+          text: 'Failed to update resort status',
           toast: true,
           position: 'top-end',
           showConfirmButton: false,
@@ -304,7 +318,7 @@ if (file_exists('bheader.php')) {
         switchContainer.removeChild(spinner);
       }
     }
-    <?php echo "<!-- Line 115 Test -->"; ?>
+
     document.querySelectorAll('.toggle-active').forEach(function(checkbox) {
       checkbox.addEventListener('change', function() {
         updateResortStatus(this);
@@ -380,6 +394,7 @@ if (file_exists('bheader.php')) {
     });
   </script>
 
+<?php
 // Bottom of file - include footer with error checking
 if (file_exists('bfooter.php')) {
     include 'bfooter.php';
@@ -394,3 +409,4 @@ if (file_exists('bfooter.php')) {
     </body>
     </html>';
 }
+?>

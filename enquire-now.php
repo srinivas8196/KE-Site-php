@@ -21,12 +21,18 @@ if ($stmt) {
 }
 
 // Fetch all destinations
-$sql = "SELECT id, destination_name FROM destinations";
+$sql = "SELECT id, destination_name, banner_image, 
+               CONCAT('assets/destinations/', COALESCE(banner_image, 'default-destination.jpg')) AS destination_image 
+       FROM destinations";
 $stmt = $pdo->query($sql);
 
 $destinations = [];
 if ($stmt) {
     while($row = $stmt->fetch()) {
+        // If banner_image is empty, use a fallback image
+        if (empty($row['destination_image'])) {
+            $row['destination_image'] = 'assets/img/normal/cta-img-6.jpg';
+        }
         $destinations[] = $row;
     }
 }
@@ -406,28 +412,31 @@ body {
 
 .destination-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 15px;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
 }
 
 .destination-card {
     background-color: var(--white);
-    border: 1px solid var(--border-color);
+    border: 2px solid var(--border-color);
     border-radius: 10px;
-    padding: 20px;
+    padding: 15px;
     cursor: pointer;
     transition: var(--transition);
     position: relative;
     overflow: hidden;
+    box-shadow: var(--shadow-sm);
 }
 
 .destination-card:hover, .destination-card.selected {
     border-color: var(--primary-color);
-    box-shadow: var(--shadow);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-5px);
 }
 
 .destination-card.selected {
-    background-color: rgba(30, 95, 116, 0.08);
+    background-color: rgba(139, 115, 75, 0.08);
 }
 
 .destination-card.selected::after {
@@ -443,29 +452,58 @@ body {
 }
 
 .destination-icon {
-    width: 55px;
-    height: 55px;
-    border-radius: 10px;
-    background-color: rgba(30, 95, 116, 0.1);
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: rgba(139, 115, 75, 0.1);
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 15px;
+    margin-bottom: 12px;
     color: var(--primary-color);
-    font-size: 1.3rem;
+    font-size: 1.2rem;
+    transition: var(--transition);
+}
+
+.destination-card:hover .destination-icon {
+    background-color: var(--primary-color);
+    color: var(--white);
+    transform: scale(1.1);
 }
 
 .destination-card h4 {
-    font-size: 1.2rem;
-    font-weight: 600;
-    margin: 0 0 5px;
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin: 0 0 8px;
     color: var(--dark-color);
+    transition: var(--transition);
+}
+
+.destination-card:hover h4 {
+    color: var(--primary-color);
 }
 
 .destination-card p {
     font-size: 0.95rem;
     color: var(--gray-color);
     margin: 0;
+}
+
+.destination-badge {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background-color: var(--primary-color);
+    color: var(--white);
+    font-size: 0.8rem;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-weight: 600;
+    z-index: 2;
+}
+
+.destination-card.selected .destination-badge {
+    display: none;
 }
 
 .resort-grid {
@@ -993,6 +1031,74 @@ input[type="date"]::-webkit-calendar-picker-indicator {
         max-width: 450px;
     }
 }
+
+.change-destination-btn {
+    margin: 20px 0;
+    display: block;
+    width: 100%;
+    text-align: center;
+    font-weight: 600;
+    padding: 15px 20px;
+    border-radius: 8px;
+    background-color: #8b734b;
+    color: white;
+    border: 2px solid #8b734b;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1.1rem;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    position: relative;
+    z-index: 10;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(139, 115, 75, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(139, 115, 75, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(139, 115, 75, 0);
+    }
+}
+
+.change-destination-btn:hover {
+    background-color: #a08759;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+    border-color: #a08759;
+}
+
+/* Custom styling for checkboxes */
+.form-check {
+    margin-bottom: 20px;
+    display: flex;
+    align-items: flex-start;
+}
+
+.form-check-input {
+    min-width: 20px !important;
+    min-height: 20px !important;
+    margin-right: 10px !important;
+    position: relative !important;
+    top: 3px !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    cursor: pointer !important;
+    appearance: auto !important;
+    -webkit-appearance: checkbox !important;
+}
+
+.form-check-label {
+    font-size: 1rem;
+    color: var(--dark-color);
+    cursor: pointer;
+    user-select: none;
+    line-height: 1.5;
+}
 </style>
 
 <!--banner section start-->
@@ -1121,6 +1227,16 @@ input[type="date"]::-webkit-calendar-picker-indicator {
                                     </div>
                                     <h4><?php echo htmlspecialchars($destination['destination_name']); ?></h4>
                                     <p>Luxury Destination</p>
+                                    <?php 
+                                    // Count how many resorts are available for this destination
+                                    $count = 0;
+                                    foreach($resorts as $resort) {
+                                        if($resort['destination_id'] == $destination['id']) {
+                                            $count++;
+                                        }
+                                    }
+                                    ?>
+                                    <span class="destination-badge"><?php echo $count; ?> Resort<?php echo $count != 1 ? 's' : ''; ?></span>
                                 </div>
                                 <?php endforeach; ?>
                             </div>
@@ -1225,16 +1341,10 @@ input[type="date"]::-webkit-calendar-picker-indicator {
                     </div>
 
                                 <div class="terms-privacy-section">
-                                    <div class="form-check">
-                                        <input type="checkbox" class="form-check-input" id="termsAgree" name="terms_agree" required>
-                                        <label class="form-check-label" for="termsAgree">
-                                            I agree to the <a href="terms-and-conditions.php" target="_blank">Terms and Conditions</a> and <a href="privacy-policy.php" target="_blank">Privacy Policy</a>
-                                        </label>
-                                        <div id="terms-error" class="field-error">You must agree to the terms</div>
-                                    </div>
+                                    <!-- Removed the Terms and Conditions checkbox -->
                                     
                                     <div class="form-check mt-3">
-                                        <input type="checkbox" class="form-check-input" id="communicationAgree" name="communication_agree" required>
+                                        <input type="checkbox" class="form-check-input" id="communicationAgree" name="communication_agree" required style="width: 20px; height: 20px; margin-right: 10px; visibility: visible; opacity: 1;">
                                         <label class="form-check-label" for="communicationAgree">
                                             Allow Karma Experience/Karma Group related brands to communicate with me via SMS/Email/Call during and after my submission on this promotional offer.
                                         </label>
@@ -1242,7 +1352,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
                                     </div>
                                     
                                     <div class="form-check mt-3">
-                                        <input type="checkbox" class="form-check-input" id="dndAgree" name="dnd_agree" required>
+                                        <input type="checkbox" class="form-check-input" id="dndAgree" name="dnd_agree" required style="width: 20px; height: 20px; margin-right: 10px; visibility: visible; opacity: 1;">
                                         <label class="form-check-label" for="dndAgree">
                                             Should I be a registered DND subscriber, I agree that I have requested to be contacted about this contest/promotional offer.
                                         </label>
@@ -1489,15 +1599,6 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('hasPassport-error').style.display = 'none';
         }
         
-        // Validate Terms Agreement
-        const termsAgree = document.getElementById('termsAgree').checked;
-        if (!termsAgree) {
-            document.getElementById('terms-error').style.display = 'block';
-            isValid = false;
-        } else {
-            document.getElementById('terms-error').style.display = 'none';
-        }
-        
         // Validate Communication Agreement
         const communicationAgree = document.getElementById('communicationAgree').checked;
         if (!communicationAgree) {
@@ -1614,33 +1715,53 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
             
-            // Add a "Change Selection" button
+            // Add a "Change Destination" button if it doesn't exist
             if (!document.getElementById('change-destination')) {
                 const changeBtn = document.createElement('button');
                 changeBtn.id = 'change-destination';
-                changeBtn.className = 'btn btn-secondary mt-3';
-                changeBtn.innerHTML = '<i class="fas fa-rotate"></i> Change Destination';
+                changeBtn.className = 'change-destination-btn';
+                changeBtn.innerHTML = '<i class="fas fa-exchange-alt"></i> Change Destination';
+                
+                // Clear previous change button if it exists
+                const existingBtn = document.getElementById('change-destination');
+                if (existingBtn) {
+                    existingBtn.remove();
+                }
+                
+                // Insert the button right before the form-actions div to make it more visible
+                const formActions = document.querySelector("#step1-content .form-actions");
+                formActions.parentNode.insertBefore(changeBtn, formActions);
+                
                 changeBtn.addEventListener('click', function(e) {
                     e.preventDefault();
+                    e.stopPropagation();
+                    
                     // Show all destination cards again
                     destinationCards.forEach(c => {
                         c.style.display = 'block';
                         c.classList.remove('selected');
                     });
+                    
                     // Remove this button
                     this.remove();
+                    
                     // Reset progress
                     updateProgress(0);
-                    // Hide resort preview
+                    
+                    // Hide destination and resort previews
+                    destinationPreview.classList.remove('active');
                     resortPreview.classList.remove('active');
-                    // Clear resort selection
+                    
+                    // Clear selections
+                    destinationIdInput.value = '';
+                    destinationNameHidden.value = '';
                     resortIdInput.value = '';
                     resortNameHidden.value = '';
                     resortCodeHidden.value = '';
+                    
                     // Reset selectedDestinationId
                     selectedDestinationId = null;
                 });
-                destinationGrid.appendChild(changeBtn);
             }
             
             // Load resorts for this destination
@@ -1839,13 +1960,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    document.getElementById('termsAgree').addEventListener('change', function() {
-        const error = document.getElementById('terms-error');
-        if (this.checked) {
-            error.style.display = 'none';
-        }
-    });
-    
     document.getElementById('communicationAgree').addEventListener('change', function() {
         const error = document.getElementById('communication-error');
         if (this.checked) {
