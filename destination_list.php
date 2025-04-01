@@ -69,36 +69,40 @@ include 'bheader.php';
       </div>
 
       <?php if(count($destinations) > 0): ?>
-        <div class="bg-white rounded-lg shadow overflow-hidden">
-          <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
-              <tr>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Destination Name</th>
-                <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-              <?php foreach($destinations as $destination): ?>
-              <tr class="hover:bg-gray-50 transition-colors">
-                <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
-                  <?php echo htmlspecialchars($destination['destination_name']); ?>
-                </td>
-                <td class="px-4 py-3 whitespace-nowrap text-right text-sm space-x-2">
-                  <a href="edit_destination.php?id=<?php echo $destination['id']; ?>" class="text-yellow-500 hover:text-yellow-700 transition-colors">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <?php foreach($destinations as $destination): ?>
+            <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+              <div class="relative h-48">
+                <?php if (!empty($destination['banner_image'])): ?>
+                  <img src="assets/destinations/<?php echo htmlspecialchars(strtolower(str_replace(' ', '-', $destination['destination_name'])) . '/' . $destination['banner_image']); ?>" 
+                       alt="<?php echo htmlspecialchars($destination['destination_name']); ?>"
+                       class="w-full h-full object-cover">
+                <?php else: ?>
+                  <div class="w-full h-full bg-gray-200 flex items-center justify-center">
+                    <i class="fas fa-map-marker-alt text-4xl text-gray-400"></i>
+                  </div>
+                <?php endif; ?>
+                <div class="absolute top-2 right-2 space-x-2">
+                  <a href="edit_destination.php?id=<?php echo $destination['id']; ?>" 
+                     class="bg-white p-2 rounded-full text-yellow-500 hover:text-yellow-700 transition-colors shadow-md">
                     <i class="fas fa-edit"></i>
                   </a>
-                  <a href="delete_destination.php?id=<?php echo $destination['id']; ?>" class="text-red-500 hover:text-red-700 transition-colors" onclick="return confirm('Are you sure you want to delete this destination?');">
+                  <a href="delete_destination.php?id=<?php echo $destination['id']; ?>" 
+                     onclick="return confirm('Are you sure you want to delete this destination?');"
+                     class="bg-white p-2 rounded-full text-red-500 hover:text-red-700 transition-colors shadow-md">
                     <i class="fas fa-trash"></i>
                   </a>
-                </td>
-              </tr>
-              <?php endforeach; ?>
-            </tbody>
-          </table>
+                </div>
+              </div>
+              <div class="p-4">
+                <h3 class="text-xl font-semibold text-gray-800"><?php echo htmlspecialchars($destination['destination_name']); ?></h3>
+              </div>
+            </div>
+          <?php endforeach; ?>
         </div>
 
         <!-- Pagination -->
-        <div class="mt-6 flex justify-between items-center">
+        <div class="mt-8 flex justify-between items-center">
           <div class="text-sm text-gray-500">
             Showing <?php echo ($offset + 1) . ' - ' . min($offset + $perPage, $totalDestinations); ?> of <?php echo $totalDestinations; ?> destinations
           </div>

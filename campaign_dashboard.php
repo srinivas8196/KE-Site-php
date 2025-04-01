@@ -1,20 +1,36 @@
 <?php
 session_start();
-if (!isset($_SESSION['user'])) {
+
+// Check if user is logged in and has valid session data
+if (!isset($_SESSION['user']) || !is_array($_SESSION['user'])) {
     header("Location: login.php");
     exit();
 }
+
 $user = $_SESSION['user'];
-require 'db.php';
+
+// Validate required user data
+if (!isset($user['id']) || !isset($user['user_type'])) {
+    session_destroy();
+    header("Location: login.php");
+    exit();
+}
+
+// Get database connection
+$pdo = require 'db.php';
+if (!$pdo) {
+    die("Database connection failed");
+}
 
 // For campaign_manager, show only their campaigns; for others, show all
-if ($user['user_type'] == 'campaign_manager') {
+if (isset($user['user_type']) && $user['user_type'] === 'campaign_manager') {
     $stmt = $pdo->prepare("SELECT c.*, d.destination_name, r.resort_name FROM campaigns c 
                            JOIN destinations d ON c.destination_id = d.id 
                            JOIN resorts r ON c.resort_id = r.id 
                            WHERE c.owner_id = ? ORDER BY c.created_at DESC");
     $stmt->execute([$user['id']]);
 } else {
+    // For super admin and other roles, show all campaigns
     $stmt = $pdo->query("SELECT c.*, d.destination_name, r.resort_name FROM campaigns c 
                          JOIN destinations d ON c.destination_id = d.id 
                          JOIN resorts r ON c.resort_id = r.id 

@@ -164,11 +164,18 @@
             padding: 0 30px;
         }
 
-        .mega-menu .row {
+        /* New style for grid layout */
+        .mega-menu .destination-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 30px;
-            margin: 0;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            width: 100%;
+        }
+
+        .mega-menu .destination-column {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
         }
 
         .mega-menu .destination-section {
@@ -179,32 +186,36 @@
             transition: all 0.3s ease;
             overflow: hidden;
             border: 1px solid rgba(180, 151, 90, 0.1);
-            min-width: 250px;
-        }
-
-        .mega-menu .destination-section::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
             height: 100%;
-            background: linear-gradient(45deg, rgba(180, 151, 90, 0.05) 0%, rgba(180, 151, 90, 0) 100%);
-            opacity: 0;
-            transition: all 0.3s ease;
         }
 
-        .mega-menu .destination-section:hover {
-            transform: translateY(-5px);
-            background: rgba(255, 255, 255, 0.9);
-            box-shadow: 0 15px 30px rgba(180, 151, 90, 0.1);
-            border-color: rgba(180, 151, 90, 0.2);
+        /* Add scroll for sections with many resorts */
+        .mega-menu .destination-section.large {
+            max-height: 400px;
         }
 
-        .mega-menu .destination-section:hover::before {
-            opacity: 1;
+        .mega-menu .destination-section.large .resort-list {
+            max-height: 310px;
+            overflow-y: auto;
+            padding-right: 5px;
+            /* Custom scrollbar */
+            scrollbar-width: thin;
+            scrollbar-color: rgba(180, 151, 90, 0.3) transparent;
         }
 
+        .mega-menu .destination-section.large .resort-list::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .mega-menu .destination-section.large .resort-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .mega-menu .destination-section.large .resort-list::-webkit-scrollbar-thumb {
+            background-color: rgba(180, 151, 90, 0.3);
+            border-radius: 10px;
+        }
+        
         .mega-menu .destination-title {
             font-size: 1.1rem;
             font-weight: 600;
@@ -736,34 +747,74 @@
                                         <a href="#">Destinations</a>
                                         <div class="mega-menu">
                                             <div class="container">
-                                                <div class="row">
+                                                <div class="destination-grid">
                                                     <?php
-                                                // Calculate optimal column distribution
-                                                $totalDestinations = count($menuDestinations);
-                                                $destinationsPerColumn = ceil($totalDestinations / 4);
-                                                
-                                                // Loop through destinations and create the menu structure
-                                                foreach ($menuDestinations as $index => $destination): 
-                                                ?>
-                                                    <div class="destination-section">
-                                                        <h3 class="destination-title">  
-                                                            <?php echo htmlspecialchars($destination['name']); ?>
-                                                        </h3>
-                                                        <ul class="resort-list">
-                                                            <?php foreach ($destination['resorts'] as $resort): 
-                                                                // Check if this resort is active based on URL
-                                                                $isActive = ($resort['slug'] === $menuCurrentSlug);
+                                                    // Sort destinations by number of resorts (descending)
+                                                    usort($menuDestinations, function($a, $b) {
+                                                        return count($b['resorts']) - count($a['resorts']);
+                                                    });
+                                                    
+                                                    // Distribute destinations into columns
+                                                    $totalDestinations = count($menuDestinations);
+                                                    $totalResorts = 0;
+                                                    foreach ($menuDestinations as $dest) {
+                                                        $totalResorts += count($dest['resorts']);
+                                                    }
+                                                    
+                                                    $resortsPerColumn = ceil($totalResorts / 4); // Aim for 4 columns
+                                                    $columns = [[], [], [], []];
+                                                    $columnResortsCount = [0, 0, 0, 0];
+                                                    
+                                                    // First pass: distribute large destinations
+                                                    foreach ($menuDestinations as $index => $destination) {
+                                                        $resortCount = count($destination['resorts']);
+                                                        if ($resortCount > 5) { // Large destination
+                                                            // Find column with lowest count
+                                                            $minColumn = array_search(min($columnResortsCount), $columnResortsCount);
+                                                            $columns[$minColumn][] = $destination;
+                                                            $columnResortsCount[$minColumn] += $resortCount;
+                                                            unset($menuDestinations[$index]);
+                                                        }
+                                                    }
+                                                    
+                                                    // Second pass: distribute remaining destinations
+                                                    foreach ($menuDestinations as $destination) {
+                                                        $resortCount = count($destination['resorts']);
+                                                        // Find column with lowest count
+                                                        $minColumn = array_search(min($columnResortsCount), $columnResortsCount);
+                                                        $columns[$minColumn][] = $destination;
+                                                        $columnResortsCount[$minColumn] += $resortCount;
+                                                    }
+                                                    
+                                                    // Render columns
+                                                    foreach ($columns as $columnDestinations):
+                                                        if (empty($columnDestinations)) continue;
+                                                    ?>
+                                                        <div class="destination-column">
+                                                            <?php foreach ($columnDestinations as $destination): 
+                                                                $isLarge = count($destination['resorts']) > 5;
                                                             ?>
-                                                                <li class="resort-item">
-                                                                    <a href="<?php echo $resort['slug']; ?>.php" 
-                                                                       class="resort-link <?php echo $isActive ? 'active' : ''; ?>">
-                                                                        <?php echo htmlspecialchars($resort['name']); ?>
-                                                                    </a>
-                                                                </li>
+                                                                <div class="destination-section <?php echo $isLarge ? 'large' : ''; ?>">
+                                                                    <h3 class="destination-title">  
+                                                                        <?php echo htmlspecialchars($destination['name']); ?>
+                                                                    </h3>
+                                                                    <ul class="resort-list">
+                                                                        <?php foreach ($destination['resorts'] as $resort): 
+                                                                            // Check if this resort is active based on URL
+                                                                            $isActive = ($resort['slug'] === $menuCurrentSlug);
+                                                                        ?>
+                                                                            <li class="resort-item">
+                                                                                <a href="<?php echo $resort['slug']; ?>.php" 
+                                                                                class="resort-link <?php echo $isActive ? 'active' : ''; ?>">
+                                                                                    <?php echo htmlspecialchars($resort['name']); ?>
+                                                                                </a>
+                                                                            </li>
+                                                                        <?php endforeach; ?>
+                                                                    </ul>
+                                                                </div>
                                                             <?php endforeach; ?>
-                                                        </ul>
-                                                    </div>
-                                                <?php endforeach; ?>
+                                                        </div>
+                                                    <?php endforeach; ?>
                                                 </div>
                                             </div>
                                         </div>

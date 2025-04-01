@@ -156,46 +156,46 @@ include 'bheader.php';
                 <div id="advancedFilters" class="bg-white rounded-lg shadow mb-6 p-4 hidden">
                     <h2 class="text-lg font-semibold mb-4">Advanced Filters</h2>
                     <form method="GET" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div>
-                            <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                            <select name="status" id="status" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <div>
+                                <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                                <select name="status" id="status" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                                 <option value="">All Statuses</option>
-                                <option value="new" <?php echo $status === 'new' ? 'selected' : ''; ?>>New</option>
-                                <option value="contacted" <?php echo $status === 'contacted' ? 'selected' : ''; ?>>Contacted</option>
-                                <option value="converted" <?php echo $status === 'converted' ? 'selected' : ''; ?>>Converted</option>
-                                <option value="closed" <?php echo $status === 'closed' ? 'selected' : ''; ?>>Closed</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="resort_id" class="block text-sm font-medium text-gray-700 mb-1">Resort</label>
-                            <select name="resort_id" id="resort_id" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    <option value="new" <?php echo $status === 'new' ? 'selected' : ''; ?>>New</option>
+                                    <option value="contacted" <?php echo $status === 'contacted' ? 'selected' : ''; ?>>Contacted</option>
+                                    <option value="converted" <?php echo $status === 'converted' ? 'selected' : ''; ?>>Converted</option>
+                                    <option value="closed" <?php echo $status === 'closed' ? 'selected' : ''; ?>>Closed</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="resort_id" class="block text-sm font-medium text-gray-700 mb-1">Resort</label>
+                                <select name="resort_id" id="resort_id" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                                 <option value="">All Resorts</option>
                                 <?php while ($resort = $resorts->fetch()): ?>
-                                    <option value="<?php echo $resort['id']; ?>" <?php echo $resort_id == $resort['id'] ? 'selected' : ''; ?>>
-                                        <?php echo htmlspecialchars($resort['resort_name']); ?>
-                                    </option>
-                                <?php endwhile; ?>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="destination_id" class="block text-sm font-medium text-gray-700 mb-1">Destination</label>
-                            <select name="destination_id" id="destination_id" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                        <option value="<?php echo $resort['id']; ?>" <?php echo $resort_id == $resort['id'] ? 'selected' : ''; ?>>
+                                            <?php echo htmlspecialchars($resort['resort_name']); ?>
+                                        </option>
+                                    <?php endwhile; ?>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="destination_id" class="block text-sm font-medium text-gray-700 mb-1">Destination</label>
+                                <select name="destination_id" id="destination_id" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                                 <option value="">All Destinations</option>
                                 <?php while ($destination = $destinations->fetch()): ?>
-                                    <option value="<?php echo $destination['id']; ?>" <?php echo $destination_id == $destination['id'] ? 'selected' : ''; ?>>
-                                        <?php echo htmlspecialchars($destination['destination_name']); ?>
-                                    </option>
-                                <?php endwhile; ?>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="date_from" class="block text-sm font-medium text-gray-700 mb-1">Date From</label>
-                            <input type="date" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" id="date_from" name="date_from" value="<?php echo $date_from; ?>">
-                        </div>
-                        <div>
-                            <label for="date_to" class="block text-sm font-medium text-gray-700 mb-1">Date To</label>
-                            <input type="date" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" id="date_to" name="date_to" value="<?php echo $date_to; ?>">
-                        </div>
+                                        <option value="<?php echo $destination['id']; ?>" <?php echo $destination_id == $destination['id'] ? 'selected' : ''; ?>>
+                                            <?php echo htmlspecialchars($destination['destination_name']); ?>
+                                        </option>
+                                    <?php endwhile; ?>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="date_from" class="block text-sm font-medium text-gray-700 mb-1">Date From</label>
+                                <input type="date" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" id="date_from" name="date_from" value="<?php echo $date_from; ?>">
+                            </div>
+                            <div>
+                                <label for="date_to" class="block text-sm font-medium text-gray-700 mb-1">Date To</label>
+                                <input type="date" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" id="date_to" name="date_to" value="<?php echo $date_to; ?>">
+                            </div>
                         <div>
                             <label for="country_code" class="block text-sm font-medium text-gray-700 mb-1">Country</label>
                             <select name="country_code" id="country_code" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
@@ -215,7 +215,7 @@ include 'bheader.php';
                                 <option value="1" <?php echo isset($_GET['is_partner']) && $_GET['is_partner'] === '1' ? 'selected' : ''; ?>>Partner Hotels</option>
                             </select>
                         </div>
-                        <div class="flex items-end gap-2">
+                            <div class="flex items-end gap-2">
                             <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md flex items-center">
                                 <i class="fas fa-search mr-2"></i> Apply Filters
                             </button>
@@ -327,7 +327,7 @@ include 'bheader.php';
                                             </select>
                                         </td>
                                         <td>
-                                            <button type="button" class="view-details bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-md text-sm"
+                                            <button type="button" class="view-details bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-md text-sm" 
                                                     data-enquiry-id="<?php echo $row['id']; ?>">
                                                 View Details
                                             </button>
@@ -350,7 +350,7 @@ include 'bheader.php';
                 <button type="button" class="text-gray-400 hover:text-gray-500" id="closeModal">
                     <i class="fas fa-times"></i>
                 </button>
-            </div>
+                </div>
             <div class="p-6" id="modal-content">
                 <!-- Loading state -->
                 <div class="text-center p-8">
@@ -397,23 +397,23 @@ include 'bheader.php';
             });
             
             // Status change handler
-            $('.status-select').change(function() {
-                const enquiryId = $(this).data('enquiry-id');
-                const newStatus = $(this).val();
-                
+        $('.status-select').change(function() {
+            const enquiryId = $(this).data('enquiry-id');
+            const newStatus = $(this).val();
+            
                 // Update row class
                 $(this).closest('tr').removeClass('status-new status-contacted status-converted status-closed');
                 $(this).closest('tr').addClass('status-' + newStatus);
                 
                 // Send AJAX request to update status
-                $.ajax({
-                    url: 'update_enquiry_status.php',
+            $.ajax({
+                url: 'update_enquiry_status.php',
                     type: 'POST',
-                    data: {
-                        enquiry_id: enquiryId,
-                        status: newStatus
-                    },
-                    success: function(response) {
+                data: {
+                    enquiry_id: enquiryId,
+                    status: newStatus
+                },
+                success: function(response) {
                         toastr.success('Status updated successfully');
                     },
                     error: function() {
@@ -572,8 +572,8 @@ include 'bheader.php';
                 if ($(event.target).is('#enquiryDetailModal')) {
                     $('#enquiryDetailModal').addClass('hidden');
                 }
-            });
         });
+    });
     </script>
 </body>
 </html>

@@ -1,36 +1,69 @@
 <?php
+// Start session
 session_start();
+
+// Include database
 require_once 'db.php';
 
+// Debug: Log the request method and session info
+error_log("Login page accessed via " . $_SERVER['REQUEST_METHOD'] . " method");
+if (isset($_SESSION['user'])) {
+    error_log("User already logged in, redirecting to dashboard");
+    header("Location: dashboard.php");
+    exit;
+}
+
+// Initialize error message
 $error = '';
 
+// Check if form is submitted
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    try {
-       
-
-        $username = $_POST['username']; // Changed from $_POST['email'] to $_POST['username']
-        $password = $_POST['password'];
-
-        // Fetch user from MySQL using username
-        $stmt = $pdo->prepare("SELECT * FROM users WHERE username = :username"); // Changed WHERE clause to use username
-        $stmt->execute(['username' => $username]); // Changed parameter to 'username'
-        $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        // Verify password
-        if ($user && password_verify($password, $user['password'])) {
-            $_SESSION['user'] = [
-                'id' => $user['id'],
-                'username' => $user['username'], // You might want to store username instead of email
-                'role' => $user['role'],
-                'user_type' => $user['user_type']
-            ];
-            header('Location: dashboard.php');
-            exit;
-        } else {
-            $error = 'Invalid credentials';
+    // Get form data
+    $username = isset($_POST['username']) ? trim($_POST['username']) : '';
+    $password = isset($_POST['password']) ? $_POST['password'] : '';
+    
+    // Validate input
+    if (empty($username) || empty($password)) {
+        $error = 'Please enter both username and password';
+    } else {
+        try {
+            // Get PDO connection
+            $pdo = require 'db.php';
+            
+            // Query the database
+            $stmt = $pdo->prepare("SELECT * FROM users WHERE username = ?");
+            $stmt->execute([$username]);
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            // Check password
+            if ($user && password_verify($password, $user['password'])) {
+                // Set session variables
+                $_SESSION['user'] = [
+                    'id' => $user['id'],
+                    'username' => $user['username'],
+                    'role' => $user['role'],
+                    'user_type' => $user['user_type']
+                ];
+                
+                // Set activity timestamps
+                $_SESSION['LAST_ACTIVITY'] = time();
+                $_SESSION['CREATED'] = time();
+                
+                // Debug: Log successful login
+                error_log("Login successful for user: {$username}, redirecting to dashboard.php");
+                
+                // Redirect to dashboard with absolute path
+                header("Location: " . $_SERVER['REQUEST_SCHEME'] . '://' . $_SERVER['HTTP_HOST'] . dirname($_SERVER['PHP_SELF']) . '/dashboard.php');
+                exit;
+            } else {
+                // Debug: Log failed login
+                error_log("Login failed for username: {$username}");
+                $error = 'Invalid username or password';
+            }
+        } catch (PDOException $e) {
+            error_log("Database error: " . $e->getMessage());
+            $error = 'Database error: ' . $e->getMessage();
         }
-    } catch (Exception $e) {
-        $error = 'Login error occurred';
     }
 }
 ?>
@@ -39,64 +72,97 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Login</title>
+    <title>Admin Login - Karma Experience</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        .gradient-bg {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        body {
+            background: linear-gradient(135deg, #1E5F74, #133B5C);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        .login-card {
-            border: none;
-            border-radius: 15px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-            overflow: hidden;
+        .login-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+            width: 90%;
+            max-width: 400px;
+            padding: 2rem;
+        }
+        .login-logo {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        .login-logo img {
+            max-height: 60px;
         }
         .form-control {
+            padding: 0.75rem 1rem;
             border-radius: 8px;
-            padding: 12px 15px;
         }
-        .form-control:focus {
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
-        }
-        .btn-primary {
-            background-color: #667eea;
+        .btn-login {
+            background: #1E5F74;
+            color: white;
+            padding: 0.75rem 1rem;
             border: none;
-            padding: 12px 20px;
             border-radius: 8px;
-            transition: all 0.3s ease;
+            width: 100%;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            transition: all 0.3s;
         }
-        .btn-primary:hover {
-            background-color: #5a6fd1;
-            transform: translateY(-1px);
+        .btn-login:hover {
+            background: #133B5C;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .error-message {
+            color: #e74c3c;
+            background: #fdf5f5;
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            border-left: 4px solid #e74c3c;
         }
     </style>
 </head>
-<body class="gradient-bg min-vh-100 d-flex align-items-center">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-6 col-lg-5">
-                <div class="login-card bg-white">
-                    <div class="card-body p-4 p-md-5">
-                        <h2 class="text-center mb-4" style="color: #667eea;">Welcome Back</h2>
-                        <?php if ($error): ?>
-                            <div class="alert alert-danger"><?php echo $error; ?></div>
-                        <?php endif; ?>
-                        <form method="post">
-                            <div class="mb-3">
-                                <label class="form-label">Username</label>
-                                <input type="text" name="username" class="form-control" required>
-                            </div>
-                            <div class="mb-4">
-                                <label class="form-label">Password</label>
-                                <input type="password" name="password" class="form-control" required>
-                            </div>
-                            <button type="submit" class="btn btn-primary w-100">Login</button>
-                        </form>
-                    </div>
-                </div>
+<body>
+    <div class="login-container">
+        <div class="login-logo">
+            <img src="assets/images/logo/KE-Gold.png" alt="Karma Experience">
+        </div>
+        
+        <h2 class="text-center mb-4">Admin Login</h2>
+        
+        <?php if ($error): ?>
+            <div class="error-message">
+                <?php echo $error; ?>
             </div>
+        <?php endif; ?>
+        
+        <form method="POST" action="login.php">
+            <div class="mb-3">
+                <label for="username" class="form-label">Username</label>
+                <input type="text" class="form-control" id="username" name="username" required>
+            </div>
+            
+            <div class="mb-4">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" class="form-control" id="password" name="password" required>
+            </div>
+            
+            <button type="submit" class="btn btn-login">Login</button>
+        </form>
+        
+        <div class="text-center mt-4">
+            <a href="index.php" class="text-decoration-none" style="font-size: 0.9rem; color: #666;">
+                Return to Website
+            </a>
         </div>
     </div>
+    
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

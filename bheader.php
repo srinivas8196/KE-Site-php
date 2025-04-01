@@ -22,11 +22,8 @@ if (!isset($_SESSION['CREATED'])) {
     $_SESSION['CREATED'] = time();
 }
 
-// Check if user is logged in (moved to the end for clarity)
-if (!isset($_SESSION['user'])) {
-    header("Location: login.php");
-    exit();
-}
+// The session check is now handled in each page before including bheader
+// So we don't need to check again here
 ?>
 <!DOCTYPE html>
 <html lang="en">

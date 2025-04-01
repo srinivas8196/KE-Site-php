@@ -1,26 +1,53 @@
 <?php
+// Start session
 session_start();
-require_once 'db.php'; // Include your db.php file to establish the database connection
-require_once 'bheader.php'; // Include bheader.php to handle session management
 
-// Get dashboard statistics
-$statsQuery = $pdo->query("
-    SELECT 
-        (SELECT COUNT(*) FROM destinations) AS total_destinations,
-        (SELECT COUNT(*) FROM resorts) AS total_resorts,
-        (SELECT COUNT(*) FROM campaigns WHERE status = 'active') AS active_campaigns
-");
-$dashboardStats = $statsQuery->fetch(PDO::FETCH_OBJ);
+// Debug: Log access to dashboard page
+error_log("Dashboard page accessed. Session status: " . (isset($_SESSION['user']) ? "User logged in" : "No user session"));
 
+// Check if user is logged in before anything else
 if (!isset($_SESSION['user'])) {
+    error_log("No user session found, redirecting to login.php");
     header("Location: login.php");
     exit();
 }
+
+// Include database connection
+require_once 'db.php';
+
+// Ensure we have a valid PDO connection
+if (!isset($pdo) || !$pdo) {
+    $pdo = require 'db.php'; // Get a fresh connection if needed
+}
+
+// Get user information from session
 $user = $_SESSION['user'];
+error_log("User logged in: " . $user['username'] . " (ID: " . $user['id'] . ")");
 
 // Ensure user_type is set
 if (!isset($user['user_type'])) {
     $user['user_type'] = 'user'; // Default to 'user' if not set
+}
+
+// Now include the bheader which has navigation elements
+require_once 'bheader.php'; 
+
+// Get dashboard statistics
+try {
+    $statsQuery = $pdo->query("
+        SELECT 
+            (SELECT COUNT(*) FROM destinations) AS total_destinations,
+            (SELECT COUNT(*) FROM resorts) AS total_resorts,
+            (SELECT COUNT(*) FROM campaigns WHERE status = 'active') AS active_campaigns
+    ");
+    $dashboardStats = $statsQuery->fetch(PDO::FETCH_OBJ);
+    error_log("Dashboard stats loaded successfully");
+} catch (PDOException $e) {
+    error_log("Error loading dashboard stats: " . $e->getMessage());
+    $dashboardStats = new stdClass();
+    $dashboardStats->total_destinations = 0;
+    $dashboardStats->total_resorts = 0;
+    $dashboardStats->active_campaigns = 0;
 }
 
 ?>
