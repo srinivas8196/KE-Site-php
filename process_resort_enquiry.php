@@ -132,16 +132,11 @@ $isPartner = $resortDetails['is_partner'] ?? 0;
 $leadSource = 'Web Enquiry';
 $leadBrand = 'Timeshare Marketing';
 
-// Set Lead Sub Brand based on country code
-$leadSubBrand = 'Karma Experience ROW'; // Default is Rest of World
-if ($countryCode == 'AU') {
-    $leadSubBrand = 'Karma Experience AU';
-} elseif ($countryCode == 'ID') {
-    $leadSubBrand = 'Karma Experience ID';
-} elseif ($countryCode == 'IN') {
-    $leadSubBrand = 'Karma Experience IND';
-} elseif ($countryCode == 'GB') {
-    $leadSubBrand = 'Karma Experience UK';
+// Set the lead sub brand based on destination
+if (strtolower($destinationName) === 'india') {
+    $leadSubBrand = 'Karma Experience IN';
+} else {
+    $leadSubBrand = 'Karma Experience INT';
 }
 
 // Generate Lead Source Description

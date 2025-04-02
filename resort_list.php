@@ -12,7 +12,25 @@ if (!$pdo) {
     die("Database connection failed");
 }
 
-$stmt = $pdo->query("SELECT r.*, d.destination_name FROM resorts r JOIN destinations d ON r.destination_id = d.id ORDER BY d.destination_name, r.resort_name");
+// Pagination settings
+$items_per_page = 10;
+$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$offset = ($page - 1) * $items_per_page;
+
+// Get total number of resorts for pagination
+$total_stmt = $pdo->query("SELECT COUNT(*) FROM resorts");
+$total_resorts = $total_stmt->fetchColumn();
+$total_pages = ceil($total_resorts / $items_per_page);
+
+// Get resorts with pagination
+$stmt = $pdo->prepare("SELECT r.*, d.destination_name 
+                       FROM resorts r 
+                       JOIN destinations d ON r.destination_id = d.id 
+                       ORDER BY d.destination_name, r.resort_name 
+                       LIMIT :limit OFFSET :offset");
+$stmt->bindValue(':limit', $items_per_page, PDO::PARAM_INT);
+$stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+$stmt->execute();
 $resorts = $stmt->fetchAll();
 
 // Include header with error checking
@@ -150,10 +168,16 @@ if (file_exists('bheader.php')) {
           <li class="text-gray-600">Resorts</li>
         </ol>
       </nav>
-      <h2 class="text-3xl font-bold mb-6">Resorts List</h2>
-      <div class="container mt-4">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-3xl font-bold">Resorts List</h2>
+        <a href="create_or_edit_resort.php" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg flex items-center">
+          <i class="fas fa-plus mr-2"></i> Create New Resort
+        </a>
+      </div>
+      
+      <div class="bg-white rounded-lg shadow-md p-6">
         <?php if (isset($_SESSION['success_message'])): ?>
-            <div class="alert alert-success">
+            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
                 <?php 
                 echo $_SESSION['success_message'];
                 unset($_SESSION['success_message']);
@@ -162,7 +186,7 @@ if (file_exists('bheader.php')) {
         <?php endif; ?>
 
         <?php if (isset($_SESSION['error_message'])): ?>
-            <div class="alert alert-danger">
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
                 <?php 
                 echo $_SESSION['error_message'];
                 unset($_SESSION['error_message']);
@@ -172,225 +196,410 @@ if (file_exists('bheader.php')) {
 
         <?php if (isset($_SESSION['new_resort_url'])): ?>
             <script>
-                // Open the new resort page in a new tab
                 window.open('<?php echo $_SESSION['new_resort_url']; ?>', '_blank');
                 <?php unset($_SESSION['new_resort_url']); ?>
             </script>
         <?php endif; ?>
+
+        <!-- Search and Filter Controls -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div class="flex items-center space-x-4">
+            <div class="flex-grow">
+              <input type="text" id="search" placeholder="Search resorts..." 
+                     class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+              <select id="filter-status" 
+                      class="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">All Statuses</option>
+                <option value="1">Active</option>
+                <option value="0">Inactive</option>
+              </select>
+            </div>
+          </div>
+          <div class="flex items-center space-x-4">
+            <select id="bulk-action" 
+                    class="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="">Bulk Actions</option>
+              <option value="activate">Activate</option>
+              <option value="deactivate">Deactivate</option>
+              <option value="delete">Delete</option>
+            </select>
+            <button id="apply-bulk-action" 
+                    class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition duration-200">
+              Apply
+            </button>
+          </div>
+        </div>
+
+        <?php if(count($resorts) > 0): ?>
+          <div class="overflow-x-auto">
+            <table id="resorts-table" class="min-w-full bg-white">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <input type="checkbox" id="select-all" class="rounded border-gray-300">
+                  </th>
+                  <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Resort Name</th>
+                  <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Destination</th>
+                  <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-200">
+                <?php foreach($resorts as $resort): ?>
+                <tr id="resort-row-<?php echo $resort['id']; ?>" class="hover:bg-gray-50">
+                  <td class="py-4 px-4">
+                    <input type="checkbox" class="resort-checkbox rounded border-gray-300" value="<?php echo $resort['id']; ?>">
+                  </td>
+                  <td class="py-4 px-4"><?php echo htmlspecialchars($resort['resort_name']); ?></td>
+                  <td class="py-4 px-4"><?php echo htmlspecialchars($resort['destination_name']); ?></td>
+                  <td class="py-4 px-4">
+                    <label class="switch">
+                      <input type="checkbox" class="toggle-active" data-resort-id="<?php echo $resort['id']; ?>" 
+                             <?php echo ($resort['is_active'] == 1) ? 'checked' : ''; ?>>
+                      <span class="slider"></span>
+                    </label>
+                  </td>
+                  <td class="py-4 px-4">
+                    <div class="flex space-x-2">
+                      <a href="create_or_edit_resort.php?destination_id=<?php echo $resort['destination_id']; ?>&resort_id=<?php echo $resort['id']; ?>" 
+                         class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-lg transition duration-200">
+                        <i class="fas fa-edit"></i>
+                      </a>
+                      <?php if ($resort['is_active'] == 1): ?>
+                        <a href="<?php echo htmlspecialchars($resort['resort_slug']); ?>" target="_blank" 
+                           class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-lg transition duration-200">
+                          <i class="fas fa-eye"></i>
+                        </a>
+                      <?php else: ?>
+                        <a href="404.php" target="_blank" 
+                           class="bg-gray-400 text-white px-3 py-1 rounded-lg cursor-not-allowed">
+                          <i class="fas fa-eye-slash"></i>
+                        </a>
+                      <?php endif; ?>
+                      <a href="delete_resort.php?id=<?php echo $resort['id']; ?>" 
+                         class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg transition duration-200"
+                         onclick="return confirm('Are you sure you want to delete this resort?');">
+                        <i class="fas fa-trash"></i>
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+                <?php endforeach; ?>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination -->
+          <?php if ($total_pages > 1): ?>
+          <div class="flex justify-center mt-6">
+            <div class="flex space-x-2">
+              <?php if ($page > 1): ?>
+                <a href="?page=1" class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+                  <i class="fas fa-angle-double-left"></i>
+                </a>
+                <a href="?page=<?php echo $page - 1; ?>" class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+                  <i class="fas fa-angle-left"></i>
+                </a>
+              <?php endif; ?>
+
+              <?php
+              $start_page = max(1, $page - 2);
+              $end_page = min($total_pages, $page + 2);
+
+              for ($i = $start_page; $i <= $end_page; $i++): ?>
+                <a href="?page=<?php echo $i; ?>" 
+                   class="px-4 py-2 <?php echo $i === $page ? 'bg-blue-500 text-white' : 'bg-white hover:bg-gray-50'; ?> border border-gray-300 rounded-lg">
+                  <?php echo $i; ?>
+                </a>
+              <?php endfor; ?>
+
+              <?php if ($page < $total_pages): ?>
+                <a href="?page=<?php echo $page + 1; ?>" class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+                  <i class="fas fa-angle-right"></i>
+                </a>
+                <a href="?page=<?php echo $total_pages; ?>" class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+                  <i class="fas fa-angle-double-right"></i>
+                </a>
+              <?php endif; ?>
+            </div>
+          </div>
+          <?php endif; ?>
+
+        <?php else: ?>
+          <div class="text-center py-8">
+            <p class="text-gray-500 mb-4">No resorts found.</p>
+            <a href="create_or_edit_resort.php" class="inline-block bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition duration-200">
+              Create Your First Resort
+            </a>
+          </div>
+        <?php endif; ?>
       </div>
-      <div class="mb-4 flex items-center space-x-4">
-        <input type="text" id="search" placeholder="Search resorts..." class="border rounded p-2 flex-grow">
-        <select id="filter-status" class="border rounded p-2">
-          <option value="">All Statuses</option>
-          <option value="1">Active</option>
-          <option value="0">Inactive</option>
-        </select>
-      </div>
-      <div class="mb-4 flex items-center space-x-4">
-        <select id="bulk-action" class="border rounded p-2">
-          <option value="">Bulk Actions</option>
-          <option value="activate">Activate</option>
-          <option value="deactivate">Deactivate</option>
-          <option value="delete">Delete</option>
-        </select>
-        <button id="apply-bulk-action" class="bg-blue-500 text-white px-4 py-2 rounded">Apply</button>
-      </div>
-      <?php if(count($resorts) > 0): ?>
-        <table id="resorts-table" class="min-w-full bg-white border border-gray-200">
-          <thead>
-            <tr>
-              <th class="py-2 px-4 border-b">Resort Name</th>
-              <th class="py-2 px-4 border-b">Destination</th>
-              <th class="py-2 px-4 border-b">Active</th>
-              <th class="py-2 px-4 border-b">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <?php foreach($resorts as $resort): ?>
-            <tr id="resort-row-<?php echo $resort['id']; ?>">
-              <td class="py-2 px-4 border-b">
-                <input type="checkbox" class="resort-checkbox" value="<?php echo $resort['id']; ?>">
-                <?php echo htmlspecialchars($resort['resort_name']); ?>
-              </td>
-              <td class="py-2 px-4 border-b"><?php echo htmlspecialchars($resort['destination_name']); ?></td>
-              <td class="py-2 px-4 border-b text-center">
-                <!-- Toggle switch for active status -->
-                <label class="switch">
-                  <input type="checkbox" class="toggle-active" data-resort-id="<?php echo $resort['id']; ?>" <?php echo ($resort['is_active'] == 1) ? 'checked' : ''; ?>>
-                  <span class="slider"></span>
-                </label>
-              </td>
-              <td class="py-2 px-4 border-b">
-                <a href="create_or_edit_resort.php?destination_id=<?php echo $resort['destination_id']; ?>&resort_id=<?php echo $resort['id']; ?>" class="bg-yellow-500 text-white px-2 py-1 rounded">Edit</a>
-                <?php if ($resort['is_active'] == 1): ?>
-                    <a href="<?php echo htmlspecialchars($resort['resort_slug']); ?>" target="_blank" class="bg-blue-500 text-white px-2 py-1 rounded view-button">View</a>
-                <?php else: ?>
-                    <a href="404.php" target="_blank" class="bg-gray-400 text-white px-2 py-1 rounded view-button">View</a>
-                <?php endif; ?>
-                <a href="delete_resort.php?id=<?php echo $resort['id']; ?>" class="bg-red-500 text-white px-2 py-1 rounded" onclick="return confirm('Are you sure you want to delete this resort?');">Delete</a>
-              </td>
-            </tr>
-            <?php endforeach; ?>
-          </tbody>
-        </table>
-      <?php else: ?>
-        <p>No resorts found.</p>
-      <?php endif; ?>
-      <br>
-      <a href="create_or_edit_resort.php" class="bg-blue-500 text-white px-4 py-2 rounded">Create New Resort</a>
     </main>
   </div>
+
   <script>
-    // Toggle sidebar collapse (if needed)
-    document.getElementById('toggleSidebar').addEventListener('click', function() {
-      var sidebar = document.getElementById('sidebar');
-      sidebar.classList.toggle('sidebar-collapsed');
-    });
-
-    async function updateResortStatus(checkbox) {
-      const resortId = checkbox.getAttribute('data-resort-id');
-      const newStatus = checkbox.checked ? 1 : 0;
-      const row = document.getElementById('resort-row-' + resortId);
-      const viewButton = row.querySelector('.view-button');
-      const switchContainer = checkbox.parentElement;
-
-      // Show loading spinner
-      const spinner = document.createElement('div');
-      spinner.className = 'loading-spinner';
-      switchContainer.appendChild(spinner);
-
-      try {
-        // Use FormData instead of JSON to avoid potential issues
-        const formData = new FormData();
-        formData.append('resort_id', resortId);
-        formData.append('is_active', newStatus);
-
-        const response = await fetch('update_resort_status_direct.php', {
-          method: 'POST',
-          body: formData
+    document.addEventListener('DOMContentLoaded', function() {
+      // Toggle sidebar
+      const toggleSidebar = document.getElementById('toggleSidebar');
+      if (toggleSidebar) {
+        toggleSidebar.addEventListener('click', function() {
+          document.getElementById('sidebar').classList.toggle('sidebar-collapsed');
         });
-
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-
-        // Update view button without page reload
-        if (newStatus === 1) {
-          viewButton.href = row.querySelector('.resort-link') ? 
-                            row.querySelector('.resort-link').getAttribute('href') : 
-                            `${row.querySelector('td:first-child').textContent.trim().toLowerCase().replace(/\s+/g, '-')}.php`;
-          viewButton.classList.remove('bg-gray-400');
-          viewButton.classList.add('bg-blue-500');
-        } else {
-          viewButton.href = '404.php';
-          viewButton.classList.remove('bg-blue-500');
-          viewButton.classList.add('bg-gray-400');
-        }
-
-        // Show success notification
-        Swal.fire({
-          icon: 'success',
-          title: 'Success!',
-          text: newStatus === 1 ? 'Resort activated successfully' : 'Resort deactivated successfully',
-          toast: true,
-          position: 'top-end',
-          showConfirmButton: false,
-          timer: 2000
-        });
-      } catch (error) {
-        console.error('Error:', error);
-        
-        // Revert checkbox state
-        checkbox.checked = !checkbox.checked;
-        
-        // Show error notification
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'Failed to update resort status',
-          toast: true,
-          position: 'top-end',
-          showConfirmButton: false,
-          timer: 3000
-        });
-      } finally {
-        // Remove loading spinner
-        switchContainer.removeChild(spinner);
-      }
-    }
-
-    document.querySelectorAll('.toggle-active').forEach(function(checkbox) {
-      checkbox.addEventListener('change', function() {
-        updateResortStatus(this);
-      });
-    });
-
-    document.getElementById('apply-bulk-action').addEventListener('click', async function() {
-      const selectedResorts = Array.from(document.querySelectorAll('.resort-checkbox:checked'))
-        .map(checkbox => checkbox.value);
-      const action = document.getElementById('bulk-action').value;
-
-      if (!action || selectedResorts.length === 0) {
-        Swal.fire('Error', 'Please select an action and at least one resort', 'error');
-        return;
       }
 
-      try {
-        const response = await fetch('bulk_action.php', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ resorts: selectedResorts, action })
+      // Select all checkbox functionality
+      const selectAll = document.getElementById('select-all');
+      if (selectAll) {
+        selectAll.addEventListener('change', function() {
+          document.querySelectorAll('.resort-checkbox').forEach(checkbox => {
+            checkbox.checked = this.checked;
+          });
+        });
+      }
+
+      // Bulk actions
+      const applyBulkAction = document.getElementById('apply-bulk-action');
+      if (applyBulkAction) {
+        applyBulkAction.addEventListener('click', async function() {
+          const action = document.getElementById('bulk-action').value;
+          if (!action) {
+            Swal.fire({
+              title: 'Error',
+              text: 'Please select an action',
+              icon: 'error'
+            });
+            return;
+          }
+
+          const selectedResorts = Array.from(document.querySelectorAll('.resort-checkbox:checked')).map(cb => cb.value);
+          if (selectedResorts.length === 0) {
+            Swal.fire({
+              title: 'Error',
+              text: 'Please select at least one resort',
+              icon: 'error'
+            });
+            return;
+          }
+
+          // Confirm action
+          const result = await Swal.fire({
+            title: 'Confirm Action',
+            text: `Are you sure you want to ${action} the selected resorts?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, proceed',
+            cancelButtonText: 'Cancel'
+          });
+
+          if (result.isConfirmed) {
+            // Show loading state
+            const loadingToast = Swal.fire({
+              title: 'Processing...',
+              text: 'Please wait while we process your request',
+              allowOutsideClick: false,
+              showConfirmButton: false,
+              willOpen: () => {
+                Swal.showLoading();
+              }
+            });
+
+            try {
+              const response = await fetch('bulk_resort_action.php', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                  action: action,
+                  resort_ids: selectedResorts
+                })
+              });
+
+              // Check if response is ok and is JSON
+              if (!response.ok) {
+                throw new Error('Network response was not ok');
+              }
+
+              const contentType = response.headers.get('content-type');
+              if (!contentType || !contentType.includes('application/json')) {
+                throw new Error('Invalid response format from server');
+              }
+
+              const data = await response.json();
+              
+              // Close loading toast
+              loadingToast.close();
+
+              if (data.success) {
+                await Swal.fire({
+                  title: 'Success',
+                  text: data.message,
+                  icon: 'success',
+                  timer: 2000,
+                  showConfirmButton: false
+                });
+                
+                // Reload the page to show updated data
+                window.location.reload();
+              } else {
+                throw new Error(data.message || 'Failed to process bulk action');
+              }
+            } catch (error) {
+              // Close loading toast
+              loadingToast.close();
+              
+              Swal.fire({
+                title: 'Error',
+                text: error.message || 'An error occurred while processing the request',
+                icon: 'error'
+              });
+            }
+          }
+        });
+      }
+
+      // Resort status toggle
+      document.querySelectorAll('.toggle-active').forEach(toggle => {
+        toggle.addEventListener('change', async function() {
+          const resortId = this.dataset.resortId;
+          const newStatus = this.checked ? 1 : 0;
+          const row = document.getElementById('resort-row-' + resortId);
+          const viewButton = row.querySelector('a[target="_blank"]');
+          
+          // Show loading state
+          const loadingToast = Swal.fire({
+            title: 'Updating...',
+            text: 'Please wait while we update the resort status',
+            allowOutsideClick: false,
+            showConfirmButton: false,
+            willOpen: () => {
+              Swal.showLoading();
+            }
+          });
+
+          try {
+            const response = await fetch('update_resort_status.php', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+              },
+              body: JSON.stringify({
+                resort_id: resortId,
+                status: newStatus
+              })
+            });
+
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+              throw new Error('Invalid response format from server');
+            }
+
+            const data = await response.json();
+            
+            // Close loading toast
+            loadingToast.close();
+
+            if (data.success) {
+              // Update view button
+              if (newStatus) {
+                viewButton.href = data.resort_slug;
+                viewButton.classList.remove('bg-gray-400', 'cursor-not-allowed');
+                viewButton.classList.add('bg-blue-500', 'hover:bg-blue-600');
+                viewButton.innerHTML = '<i class="fas fa-eye"></i>';
+              } else {
+                viewButton.href = '404.php';
+                viewButton.classList.remove('bg-blue-500', 'hover:bg-blue-600');
+                viewButton.classList.add('bg-gray-400', 'cursor-not-allowed');
+                viewButton.innerHTML = '<i class="fas fa-eye-slash"></i>';
+              }
+
+              // Show success message
+              Swal.fire({
+                title: 'Success',
+                text: data.message,
+                icon: 'success',
+                timer: 1500,
+                showConfirmButton: false
+              });
+            } else {
+              throw new Error(data.message || 'Failed to update resort status');
+            }
+          } catch (error) {
+            // Close loading toast
+            loadingToast.close();
+            
+            // Revert toggle state
+            this.checked = !this.checked;
+            
+            // Show error message
+            Swal.fire({
+              title: 'Error',
+              text: error.message || 'Failed to update resort status',
+              icon: 'error'
+            });
+          }
+        });
+      });
+
+      // Search and filter functionality
+      const searchInput = document.getElementById('search');
+      const statusFilter = document.getElementById('filter-status');
+      let searchTimeout;
+
+      function filterTable() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const statusValue = statusFilter.value;
+        const rows = document.querySelectorAll('#resorts-table tbody tr');
+
+        rows.forEach(row => {
+          const resortName = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+          const isActive = row.querySelector('.toggle-active').checked;
+          const matchesSearch = resortName.includes(searchTerm);
+          const matchesStatus = statusValue === '' || (statusValue === '1' && isActive) || (statusValue === '0' && !isActive);
+
+          row.style.display = matchesSearch && matchesStatus ? '' : 'none';
+        });
+      }
+
+      if (searchInput) {
+        searchInput.addEventListener('input', () => {
+          clearTimeout(searchTimeout);
+          searchTimeout = setTimeout(filterTable, 300);
+        });
+      }
+
+      if (statusFilter) {
+        statusFilter.addEventListener('change', filterTable);
+      }
+
+      // Table sorting
+      document.querySelectorAll('#resorts-table th').forEach((header, index) => {
+        if (index > 0 && index < 3) { // Only make Resort Name and Destination sortable
+          header.addEventListener('click', () => {
+            const isAsc = header.classList.toggle('asc');
+            header.classList.toggle('desc', !isAsc);
+            sortTable(index, isAsc);
+          });
+        }
+      });
+
+      function sortTable(column, isAsc) {
+        const tbody = document.querySelector('#resorts-table tbody');
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+
+        rows.sort((a, b) => {
+          const aValue = a.querySelector(`td:nth-child(${column + 1})`).textContent.trim();
+          const bValue = b.querySelector(`td:nth-child(${column + 1})`).textContent.trim();
+          return isAsc ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
         });
 
-        const data = await response.json();
-        if (data.success) {
-          Swal.fire('Success', 'Bulk action completed successfully', 'success');
-          location.reload(); // Refresh to show changes
-        } else {
-          throw new Error(data.message);
-        }
-      } catch (error) {
-        Swal.fire('Error', error.message, 'error');
+        tbody.innerHTML = '';
+        rows.forEach(row => tbody.appendChild(row));
       }
-    });
-
-    function filterTable() {
-      const search = document.getElementById('search').value.toLowerCase();
-      const status = document.getElementById('filter-status').value;
-
-      document.querySelectorAll('#resorts-table tbody tr').forEach(row => {
-        const name = row.querySelector('td:first-child').textContent.toLowerCase();
-        const rowStatus = row.querySelector('.toggle-active').checked ? '1' : '0';
-        const matchesSearch = name.includes(search);
-        const matchesStatus = status === '' || rowStatus === status;
-        row.style.display = matchesSearch && matchesStatus ? '' : 'none';
-      });
-    }
-
-    document.getElementById('search').addEventListener('input', filterTable);
-    document.getElementById('filter-status').addEventListener('change', filterTable);
-
-    function sortTable(columnIndex, isAsc) {
-      const table = document.getElementById('resorts-table');
-      const tbody = table.querySelector('tbody');
-      const rows = Array.from(tbody.querySelectorAll('tr'));
-
-      rows.sort((a, b) => {
-        const aText = a.querySelectorAll('td')[columnIndex].textContent.trim();
-        const bText = b.querySelectorAll('td')[columnIndex].textContent.trim();
-        return isAsc ? aText.localeCompare(bText) : bText.localeCompare(aText);
-      });
-
-      while (tbody.firstChild) tbody.removeChild(tbody.firstChild);
-      rows.forEach(row => tbody.appendChild(row));
-    }
-
-    document.querySelectorAll('#resorts-table th').forEach((th, index) => {
-      th.style.cursor = 'pointer';
-      th.addEventListener('click', () => {
-        const isAsc = th.classList.toggle('asc');
-        sortTable(index, isAsc);
-      });
     });
   </script>
 

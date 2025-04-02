@@ -53,7 +53,7 @@
                                     <li><a href="gallery.php">Gallery</a></li>
                                     <li><a href="terms-and-conditions.php">Terms & conditions</a></li>
                                     <li><a href="privacy-policy.php">Privacy Policy</a></li>
-                                    <li><a href="blogs.php">Blogs</a></li>
+                                    <li><a href="Blogs.php">Blogs</a></li>
                                 </ul>
                             </div>
                         </div>

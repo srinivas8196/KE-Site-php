@@ -261,7 +261,7 @@ function formatLeadSquaredData($enquiryData) {
         'mx_Lead_Sub_Brand' => $enquiryData['lead_sub_brand'] ?? '',
         'mx_Lead_Source_Description' => $enquiryData['lead_source_description'] ?? '',
         'mx_Lead_Location' => $enquiryData['lead_location'] ?? '',
-        'Source' => 'Website Resort Enquiry',
+        'Source' => 'Web Enquiry',
         'ProspectStage' => 'New'
     ];
 }

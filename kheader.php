@@ -15,6 +15,16 @@
     require_once 'db.php';
     $pdo = require 'db.php';
 
+    // Define base URL
+    $base_url = '/KE-Site-php';
+
+    // Determine if we're in a blog URL
+    $request_uri = $_SERVER['REQUEST_URI'];
+    $is_blog_url = strpos($request_uri, '/blogs/') !== false;
+
+    // Define the assets path based on the URL
+    $assets_path = $is_blog_url ? "$base_url/" : "";
+
     // Function to get all destinations with their active resorts - ONLY for mega menu display
     function getDestinationsForMenu() {
         global $pdo;
@@ -95,34 +105,35 @@
     <meta name="keywords" content="Karma Experience - Delivering unmatched holiday experiences at unbeatable prices">
     <meta name="robots" content="INDEX,FOLLOW">
     <meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no">
-    <link rel="apple-touch-icon" sizes="57x57" href="assets/images/logo/K-logo.png">
-    <link rel="apple-touch-icon" sizes="60x60" href="assets/images/logo/K-logo.png">
-    <link rel="apple-touch-icon" sizes="72x72" href="assets/images/logo/K-logo.png">
-    <link rel="apple-touch-icon" sizes="76x76" href="assets/images/logo/K-logo.png">
-    <link rel="apple-touch-icon" sizes="114x114" href="assets/images/logo/K-logo.png">
-    <link rel="apple-touch-icon" sizes="120x120" href="assets/images/logo/K-logo.png">
-    <link rel="apple-touch-icon" sizes="144x144" href="assets/images/logo/K-logo.png">
-    <link rel="apple-touch-icon" sizes="152x152" href="assets/images/logo/K-logo.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="assets/images/logo/K-logo.png">
-    <link rel="icon" type="image/png" sizes="192x192" href="assets/images/logo/K-logo.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="assets/images/logo/K-logo.png">
-    <link rel="icon" type="image/png" sizes="96x96" href="assets/images/logo/K-logo.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="assets/images/logo/K-logo.png">
-    <link rel="manifest" href="assets/img/favicons/manifest.json">
+    <link rel="apple-touch-icon" sizes="57x57" href="<?php echo $assets_path; ?>assets/images/logo/K-logo.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="<?php echo $assets_path; ?>assets/images/logo/K-logo.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="<?php echo $assets_path; ?>assets/images/logo/K-logo.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="<?php echo $assets_path; ?>assets/images/logo/K-logo.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="<?php echo $assets_path; ?>assets/images/logo/K-logo.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="<?php echo $assets_path; ?>assets/images/logo/K-logo.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="<?php echo $assets_path; ?>assets/images/logo/K-logo.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="<?php echo $assets_path; ?>assets/images/logo/K-logo.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="<?php echo $assets_path; ?>assets/images/logo/K-logo.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="<?php echo $assets_path; ?>assets/images/logo/K-logo.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="<?php echo $assets_path; ?>assets/images/logo/K-logo.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="<?php echo $assets_path; ?>assets/images/logo/K-logo.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="<?php echo $assets_path; ?>assets/images/logo/K-logo.png">
+    <link rel="manifest" href="<?php echo $assets_path; ?>assets/img/favicons/manifest.json">
     <meta name="msapplication-TileColor" content="#ffffff">
-    <meta name="msapplication-TileImage" content="assets/img/favicons/ms-icon-144x144.png">
+    <meta name="msapplication-TileImage" content="<?php echo $assets_path; ?>assets/img/favicons/ms-icon-144x144.png">
     <meta name="theme-color" content="#ffffff">
     <link rel="preconnect" href="https://fonts.googleapis.com/">
     <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Manrope:wght@200..800&family=Montez&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
-    <link rel="stylesheet" href="assets/css/fontawesome.min.css">
+    <link rel="stylesheet" href="<?php echo $assets_path; ?>assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="<?php echo $assets_path; ?>assets/css/fontawesome.min.css">
     <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.15.4/css/all.css">
     <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.15.4/css/fontawesome.css">
-    <link rel="stylesheet" href="assets/css/magnific-popup.min.css">
-    <link rel="stylesheet" href="assets/css/swiper-bundle.min.css">
-    <link rel="stylesheet" href="assets/css/style.css">
-    <!-- <link rel="stylesheet" href="assets/css/custom.css"> -->
+    <link rel="stylesheet" href="<?php echo $assets_path; ?>assets/css/magnific-popup.min.css">
+    <link rel="stylesheet" href="<?php echo $assets_path; ?>assets/css/swiper-bundle.min.css">
+    <link rel="stylesheet" href="<?php echo $assets_path; ?>assets/css/style.css">
+    <link rel="stylesheet" href="<?php echo $assets_path; ?>assets/css/blog.css">
+    <!-- <link rel="stylesheet" href="<?php echo $assets_path; ?>assets/css/custom.css"> -->
     <style>
         /* Main Menu Icon Fix */
         .main-menu > ul > li.menu-item-has-children > a {
@@ -132,7 +143,7 @@
         }
 
         .main-menu > ul > li.menu-item-has-children > a:after {
-            content: '\f107';  /* Changed to standard down arrow */
+            content: '\f107';
             font-family: "Font Awesome 5 Pro", "Font Awesome 5 Free";
             font-weight: 900;
             font-size: 14px;
@@ -150,16 +161,18 @@
             top: 80px;
             left: 0;
             width: 100%;
-            background: linear-gradient(180deg, rgba(255, 255, 255, 0.99) 0%, rgba(255, 255, 255, 0.97) 100%);
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.95) 100%);
             backdrop-filter: blur(20px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
             opacity: 0;
             visibility: hidden;
-            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            transition: all 0.3s ease;
             z-index: 1000;
             padding: 40px 0;
             transform: translateY(-10px);
             border-top: 1px solid rgba(180, 151, 90, 0.1);
+            max-height: 85vh;
+            overflow-y: auto;
         }
 
         .menu-item-has-children:hover .mega-menu {
@@ -169,174 +182,138 @@
         }
 
         .mega-menu .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             padding: 0 30px;
         }
 
-        /* New style for grid layout */
-        .mega-menu .destination-grid {
+        /* New Grid Layout */
+        .mega-menu .destinations-wrapper {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 20px;
-            width: 100%;
+            grid-template-columns: repeat(3, 1fr); /* Always 3 columns */
+            gap: 30px;
         }
 
-        .mega-menu .destination-column {
-            display: flex;
-            flex-direction: column;
+        /* Special handling for India (first/largest destination) */
+        .mega-menu .destination-section:first-child {
+            grid-column: 1 / -1; /* Span all columns */
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
             gap: 20px;
-        }
-
-        .mega-menu .destination-section {
-            position: relative;
+            background: linear-gradient(to right, #fff, #fcfaf5);
             padding: 25px;
-            background: rgba(255, 255, 255, 0.7);
-            border-radius: 16px;
-            transition: all 0.3s ease;
-            overflow: hidden;
-            border: 1px solid rgba(180, 151, 90, 0.1);
-            height: 100%;
+            margin-bottom: 10px;
         }
 
-        /* Add scroll for sections with many resorts */
-        .mega-menu .destination-section.large {
-            max-height: 400px;
-        }
-
-        .mega-menu .destination-section.large .resort-list {
-            max-height: 310px;
-            overflow-y: auto;
-            padding-right: 5px;
-            /* Custom scrollbar */
-            scrollbar-width: thin;
-            scrollbar-color: rgba(180, 151, 90, 0.3) transparent;
-        }
-
-        .mega-menu .destination-section.large .resort-list::-webkit-scrollbar {
-            width: 4px;
-        }
-
-        .mega-menu .destination-section.large .resort-list::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        .mega-menu .destination-section.large .resort-list::-webkit-scrollbar-thumb {
-            background-color: rgba(180, 151, 90, 0.3);
-            border-radius: 10px;
-        }
-        
-        .mega-menu .destination-title {
-            font-size: 1.1rem;
-            font-weight: 600;
+        .mega-menu .destination-section:first-child .destination-title {
+            grid-column: 1 / -1;
+            font-size: 20px;
+            margin-bottom: 20px;
             color: #B4975A;
-            margin-bottom: 25px;
+            border-bottom: 2px solid #B4975A;
             padding-bottom: 15px;
+        }
+
+        .mega-menu .destination-section:first-child .resort-list {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 8px;
+            margin: 0;
+            padding: 0;
+            max-height: none;
+        }
+
+        /* Regular destination sections */
+        .mega-menu .destination-section {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(180, 151, 90, 0.15);
+            transition: all 0.3s ease;
+        }
+
+        .mega-menu .destination-section:hover {
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .mega-menu .destination-title {
+            color: #B4975A;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(180, 151, 90, 0.2);
             text-transform: uppercase;
-            letter-spacing: 1.5px;
-            border-bottom: 1px solid rgba(180, 151, 90, 0.2);
-            position: relative;
+            letter-spacing: 1px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
 
         .mega-menu .destination-title::before {
-            content: '\f3c5';  /* Location icon */
+            content: '\f3c5';
             font-family: "Font Awesome 5 Pro", "Font Awesome 5 Free";
             font-weight: 900;
-            font-size: 16px;
-            color: #B4975A;
-        }
-
-        .mega-menu .destination-title::after {
-            content: '';
-            position: absolute;
-            bottom: -1px;
-            left: 0;
-            width: 50px;
-            height: 2px;
-            background: #B4975A;
-            transition: width 0.3s ease;
-        }
-
-        .mega-menu .destination-section:hover .destination-title::after {
-            width: 100%;
+            font-size: 14px;
         }
 
         .mega-menu .resort-list {
-            padding: 0;
-            list-style: none;
-            margin: 0;
-            position: relative;
-            width: 100%;
-        }
-
-        .mega-menu .resort-item {
-            margin-bottom: 12px;
-            position: relative;
-            transform: translateX(0);
-            transition: transform 0.3s ease;
-            width: 100%;
-            padding-right: 5px; /* Add small padding to ensure text has room */
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
         }
 
         .mega-menu .resort-link {
             color: #555;
+            font-size: 14px;
             text-decoration: none;
-            font-size: 0.95rem;
-            padding: 0; /* Remove padding */
-            display: inline-block; /* Changed from inline to inline-block */
-            font-weight: 500;
-            white-space: normal; /* Changed from nowrap to normal to allow text wrapping */
-            background: none !important; /* Remove background */
-            border: none; /* Remove any border */
-            box-shadow: none !important; /* Remove any shadow */
-            line-height: 1.4; /* Add proper line height for multi-line text */
-            width: 100%; /* Ensure it takes full width of parent */
+            padding: 10px 15px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            display: block;
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(180, 151, 90, 0.1);
         }
 
         .mega-menu .resort-link:hover {
+            background: rgba(180, 151, 90, 0.1);
             color: #B4975A;
-            background: none !important; /* Ensure no background on hover */
+            transform: translateX(5px);
         }
 
-        /* Add subtle animation for resort items */
-        .mega-menu .resort-item {
-            opacity: 0;
-            transform: translateY(10px);
-            animation: fadeInUp 0.3s ease forwards;
+        .mega-menu .resort-link.active {
+            background: #B4975A;
+            color: #fff;
         }
 
-        @keyframes fadeInUp {
-            to {
-                opacity: 1;
-                transform: translateY(0);
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .mega-menu .destinations-wrapper {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .mega-menu .destination-section:first-child {
+                grid-template-columns: repeat(2, 1fr);
             }
         }
 
-        .mega-menu .resort-item:nth-child(1) { animation-delay: 0.1s; }
-        .mega-menu .resort-item:nth-child(2) { animation-delay: 0.2s; }
-        .mega-menu .resort-item:nth-child(3) { animation-delay: 0.3s; }
-        .mega-menu .resort-item:nth-child(4) { animation-delay: 0.4s; }
-
-        /* Add decorative elements */
-        .mega-menu .destination-section::after {
-            content: '';
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            border: 2px solid rgba(180, 151, 90, 0.1);
-            opacity: 0.5;
-            transition: all 0.3s ease;
+        @media (max-width: 992px) {
+            .mega-menu .destinations-wrapper {
+                grid-template-columns: 1fr;
+            }
+            .mega-menu .destination-section:first-child {
+                grid-template-columns: 1fr;
+            }
         }
 
-        .mega-menu .destination-section:hover::after {
-            transform: scale(1.2);
-            opacity: 0.8;
+        @media (max-width: 768px) {
+            .mega-menu {
+                padding: 20px 0;
+            }
+            .mega-menu .container {
+                padding: 0 15px;
+            }
         }
 
         /* Enhanced Mobile Menu Styles */
@@ -702,13 +679,13 @@
     <!-- Mobile Menu -->
     <div class="th-mobile-menu">
         <div class="mobile-menu-header">
-                <a href="index.php">
-                <img src="assets/images/logo/KE-Gold.png" alt="Karma Experience" style="height: 40px;">
-                </a>
+            <a href="<?php echo $base_url; ?>/index.php">
+                <img src="<?php echo $assets_path; ?>assets/images/logo/KE-Gold.png" alt="Karma Experience" style="height: 40px;">
+            </a>
             <button class="mobile-menu-close">
                 <i class="fas fa-times"></i>
             </button>
-            </div>
+        </div>
         <ul class="mobile-menu-nav">
             <li><a href="index.php">Home</a></li>
                     <li class="menu-item-has-children">
@@ -740,6 +717,7 @@
         </div>
             </li>
             <li><a href="about.php">About Us</a></li>
+            <li><a href="Blogs.php">Our Blogs</a></li>
             <li><a href="redeem-voucher.php">Redeem Voucher</a></li>
             <li><a href="enquire-now.php">Enquire</a></li>
             <li><a href="pay-now.php">Pay Now</a></li>
@@ -760,72 +738,31 @@
                                         <a href="#">Destinations</a>
                                         <div class="mega-menu">
                                             <div class="container">
-                                                <div class="destination-grid">
-                                                    <?php
-                                                    // Sort destinations by number of resorts (descending)
+                                                <div class="destinations-wrapper">
+                                                    <?php 
+                                                    // Sort destinations by number of resorts
                                                     usort($menuDestinations, function($a, $b) {
                                                         return count($b['resorts']) - count($a['resorts']);
                                                     });
-                                                    
-                                                    // Distribute destinations into columns
-                                                    $totalDestinations = count($menuDestinations);
-                                                    $totalResorts = 0;
-                                                    foreach ($menuDestinations as $dest) {
-                                                        $totalResorts += count($dest['resorts']);
-                                                    }
-                                                    
-                                                    $resortsPerColumn = ceil($totalResorts / 4); // Aim for 4 columns
-                                                    $columns = [[], [], [], []];
-                                                    $columnResortsCount = [0, 0, 0, 0];
-                                                    
-                                                    // First pass: distribute large destinations
-                                                    foreach ($menuDestinations as $index => $destination) {
-                                                        $resortCount = count($destination['resorts']);
-                                                        if ($resortCount > 5) { // Large destination
-                                                            // Find column with lowest count
-                                                            $minColumn = array_search(min($columnResortsCount), $columnResortsCount);
-                                                            $columns[$minColumn][] = $destination;
-                                                            $columnResortsCount[$minColumn] += $resortCount;
-                                                            unset($menuDestinations[$index]);
-                                                        }
-                                                    }
-                                                    
-                                                    // Second pass: distribute remaining destinations
-                                                    foreach ($menuDestinations as $destination) {
-                                                        $resortCount = count($destination['resorts']);
-                                                        // Find column with lowest count
-                                                        $minColumn = array_search(min($columnResortsCount), $columnResortsCount);
-                                                        $columns[$minColumn][] = $destination;
-                                                        $columnResortsCount[$minColumn] += $resortCount;
-                                                    }
-                                                    
-                                                    // Render columns
-                                                    foreach ($columns as $columnDestinations):
-                                                        if (empty($columnDestinations)) continue;
+
+                                                    foreach ($menuDestinations as $destination): 
+                                                        $isIndia = strtolower($destination['name']) === 'india';
                                                     ?>
-                                                        <div class="destination-column">
-                                                            <?php foreach ($columnDestinations as $destination): 
-                                                                $isLarge = count($destination['resorts']) > 5;
-                                                            ?>
-                                                                <div class="destination-section <?php echo $isLarge ? 'large' : ''; ?>">
-                                                                    <h3 class="destination-title">  
-                                                                        <?php echo htmlspecialchars($destination['name']); ?>
-                                                                    </h3>
-                                                                    <ul class="resort-list">
-                                                                        <?php foreach ($destination['resorts'] as $resort): 
-                                                                            // Check if this resort is active based on URL
-                                                                            $isActive = ($resort['slug'] === $menuCurrentSlug);
-                                                                        ?>
-                                                                            <li class="resort-item">
-                                                                                <a href="<?php echo $resort['slug']; ?>.php" 
-                                                                                class="resort-link <?php echo $isActive ? 'active' : ''; ?>">
-                                                                                    <?php echo htmlspecialchars($resort['name']); ?>
-                                                                                </a>
-                                                                            </li>
-                                                                        <?php endforeach; ?>
-                                                                    </ul>
-                                                                </div>
-                                                            <?php endforeach; ?>
+                                                        <div class="destination-section <?php echo $isIndia ? 'india-section' : ''; ?>">
+                                                            <h3 class="destination-title">
+                                                                <?php echo htmlspecialchars($destination['name']); ?>
+                                                                <?php if ($isIndia): ?>
+                                                                    <span class="resort-count">(<?php echo count($destination['resorts']); ?> Resorts)</span>
+                                                                <?php endif; ?>
+                                                            </h3>
+                                                            <div class="resort-list">
+                                                                <?php foreach ($destination['resorts'] as $resort): ?>
+                                                                    <a href="<?php echo $base_url; ?>/resorts/<?php echo htmlspecialchars($resort['slug']); ?>" 
+                                                                       class="resort-link <?php echo ($resort['slug'] === $menuCurrentSlug) ? 'active' : ''; ?>">
+                                                                        <?php echo htmlspecialchars($resort['name']); ?>
+                                                                    </a>
+                                                                <?php endforeach; ?>
+                                                            </div>
                                                         </div>
                                                     <?php endforeach; ?>
                                                 </div>
@@ -838,8 +775,8 @@
                         </div>
                         <div class="col-auto">
                             <div class="header-logo">
-                                <a href="index.php">
-                                    <img src="assets/images/logo/KE-white.png" alt="Karma Experience">
+                                <a href="<?php echo $base_url; ?>/index.php">
+                                    <img src="<?php echo $assets_path; ?>assets/images/logo/KE-white.png" alt="Karma Experience">
                                 </a>
                             </div>
                         </div>
@@ -878,8 +815,12 @@
             window.addEventListener('scroll', function() {
                 if (window.scrollY > 50) {
                     header.classList.add('scrolled');
+                    // Update the logo path when scrolled
+                    document.querySelector('.header-logo img').setAttribute('src', '<?php echo $assets_path; ?>assets/images/logo/KE-white.png');
                 } else {
                     header.classList.remove('scrolled');
+                    // Update the logo path when at top
+                    document.querySelector('.header-logo img').setAttribute('src', '<?php echo $assets_path; ?>assets/images/logo/KE-white.png');
                 }
             });
 

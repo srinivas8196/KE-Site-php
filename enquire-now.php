@@ -216,13 +216,27 @@ body {
 /* Form Layout */
 .enquiry-content-wrapper {
     display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+}
+
+@media (min-width: 992px) {
+    .enquiry-content-wrapper {
     grid-template-columns: 5fr 7fr;
+    }
 }
 
 .enquiry-sidebar {
-    padding: 40px;
+    padding: 20px;
     background-color: rgba(30, 95, 116, 0.05);
     border-right: 1px solid var(--border-color);
+}
+
+@media (max-width: 991px) {
+    .enquiry-sidebar {
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+    }
 }
 
 .sidebar-progress {
@@ -395,7 +409,13 @@ body {
 }
 
 .enquiry-form-container {
+    padding: 20px;
+}
+
+@media (min-width: 768px) {
+.enquiry-form-container {
     padding: 40px;
+    }
 }
 
 .form-content {
@@ -431,9 +451,16 @@ body {
 
 .destination-grid {
     display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+@media (min-width: 768px) {
+    .destination-grid {
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 20px;
-    margin-bottom: 30px;
+    }
 }
 
 .destination-card {
@@ -448,62 +475,22 @@ body {
     box-shadow: var(--shadow-sm);
 }
 
-.destination-card:hover, .destination-card.selected {
-    border-color: var(--primary-color);
-    box-shadow: var(--shadow-md);
-    transform: translateY(-5px);
-}
-
-.destination-card.selected {
-    background-color: rgba(139, 115, 75, 0.08);
-}
-
-.destination-card.selected::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 0;
-    height: 0;
-    border-style: solid;
-    border-width: 0 30px 30px 0;
-    border-color: transparent var(--primary-color) transparent transparent;
-}
-
-.destination-icon {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    background-color: rgba(139, 115, 75, 0.1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 12px;
-    color: var(--primary-color);
-    font-size: 1.2rem;
-    transition: var(--transition);
-}
-
-.destination-card:hover .destination-icon {
-    background-color: var(--primary-color);
-    color: var(--white);
-    transform: scale(1.1);
+.destination-card img {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 10px;
 }
 
 .destination-card h4 {
-    font-size: 1.3rem;
-    font-weight: 700;
-    margin: 0 0 8px;
+    font-size: 1rem;
+    margin: 0 0 5px;
     color: var(--dark-color);
-    transition: var(--transition);
-}
-
-.destination-card:hover h4 {
-    color: var(--primary-color);
 }
 
 .destination-card p {
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     color: var(--gray-color);
     margin: 0;
 }
@@ -641,8 +628,21 @@ body {
 }
 
 /* Form Controls */
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+@media (min-width: 768px) {
+    .form-row {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
 .form-group {
-    margin-bottom: 25px;
+    margin-bottom: 20px;
 }
 
 .form-label {
@@ -655,32 +655,21 @@ body {
 
 .form-control {
     width: 100%;
-    padding: 14px 16px;
+    padding: 12px;
     border: 1px solid var(--border-color);
     border-radius: 8px;
     font-size: 1rem;
     transition: var(--transition);
-    background-color: var(--white);
-    color: var(--dark-color);
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
 }
 
 .form-control:focus {
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(30, 95, 116, 0.2);
+    box-shadow: 0 0 0 2px rgba(139, 115, 75, 0.1);
     outline: none;
 }
 
 .form-control::placeholder {
     color: var(--muted);
-}
-
-.form-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
 }
 
 input[type="date"].form-control {
@@ -713,28 +702,33 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 .form-actions {
     display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 30px;
+}
+
+@media (min-width: 768px) {
+    .form-actions {
+        flex-direction: row;
     justify-content: space-between;
-    margin-top: 35px;
-    gap: 15px;
+    }
 }
 
 .btn {
-    padding: 14px 28px;
+    width: 100%;
+    padding: 12px 24px;
     border: none;
     border-radius: 8px;
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
     transition: var(--transition);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
 }
 
-.btn i {
-    margin-right: 10px;
-    font-size: 1.1rem;
+@media (min-width: 768px) {
+    .btn {
+        width: auto;
+    }
 }
 
 .btn-primary {
@@ -745,31 +739,23 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .btn-primary:hover {
     background-color: var(--primary-hover);
     transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    box-shadow: var(--shadow-md);
 }
 
 .btn-secondary {
-    background-color: var(--white);
-    color: var(--gray-color);
-    border: 1px solid var(--border-color);
-}
-
-.btn-secondary:hover {
-    background-color: var(--light-color);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-    color: var(--dark-color);
+    background-color: var(--gray-color);
+    color: var(--white);
 }
 
 .btn-submit {
-    background-color: var(--secondary-color);
+    background-color: var(--primary-color);
     color: var(--white);
 }
 
 .btn-submit:hover {
-    background-color: var(--secondary-hover);
+    background-color: var(--primary-hover);
     transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    box-shadow: var(--shadow-md);
 }
 
 .field-error {
@@ -1571,9 +1557,9 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 <!-- Contact Information Section End -->
 
 <!-- Hidden Admin Link (only visible to admins, hidden from regular users) -->
-<div style="text-align:center; margin-top:30px; padding:10px; font-size:11px; opacity:0.6;">
+<!-- <div style="text-align:center; margin-top:30px; padding:10px; font-size:11px; opacity:0.6;">
     <a href="login.php" style="color:#999; text-decoration:none;">Administrative Access</a>
-</div>
+</div> -->
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {

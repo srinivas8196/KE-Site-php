@@ -484,6 +484,7 @@ if (!isset($_SESSION['CREATED'])) {
         <a href="dashboard.php"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a>
         <a href="destination_list.php"><i class="fas fa-map-marker-alt me-2"></i>Destinations</a>
         <a href="resort_list.php"><i class="fas fa-hotel me-2"></i>Resorts</a>
+        <a href="admin_blog.php"><i class="fas fa-blog me-2"></i>Blog</a>
         <a href="view_enquiries.php"><i class="fas fa-envelope me-2"></i>Enquiries</a>
         <a href="manage_users.php"><i class="fas fa-users me-2"></i>Users</a>
     </nav>
@@ -527,6 +528,7 @@ if (!isset($_SESSION['CREATED'])) {
     <a href="dashboard.php"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a>
     <a href="destination_list.php"><i class="fas fa-map-marker-alt me-2"></i>Destinations</a>
     <a href="resort_list.php"><i class="fas fa-hotel me-2"></i>Resorts</a>
+    <a href="admin_blog.php"><i class="fas fa-blog me-2"></i>Blog</a>
     <a href="view_enquiries.php"><i class="fas fa-envelope me-2"></i>Enquiries</a>
     <a href="manage_users.php"><i class="fas fa-users me-2"></i>Users</a>
 </nav>

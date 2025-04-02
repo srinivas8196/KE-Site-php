@@ -1,4 +1,5 @@
 <?php
+ob_start(); // Start output buffering
 session_start();
 if (!isset($_SESSION['user'])) {
     header('Content-Type: application/json');
@@ -6,9 +7,10 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 
-// Enable error reporting for debugging
+// Enable error reporting for debugging but capture it
 error_reporting(E_ALL);
-ini_set('display_errors', 1);
+ini_set('display_errors', 0); // Disable direct output of errors
+ini_set('log_errors', 1); // Enable error logging
 
 try {
     $pdo = require 'db.php';
@@ -71,11 +73,17 @@ try {
     // Add success flag
     $enquiry['success'] = true;
     
+    // Clear any previous output
+    ob_clean();
+    
     // Send response
     header('Content-Type: application/json');
     echo json_encode($enquiry);
     
 } catch (Exception $e) {
+    // Clear any previous output
+    ob_clean();
+    
     error_log("Error in get_enquiry_details.php: " . $e->getMessage());
     header('Content-Type: application/json');
     echo json_encode([
@@ -83,4 +91,6 @@ try {
         'message' => $e->getMessage(),
         'error_details' => $e->getTraceAsString()
     ]);
+} finally {
+    ob_end_flush(); // End output buffering and flush
 } 

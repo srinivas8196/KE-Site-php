@@ -26,6 +26,12 @@
         <a href="campaign_dashboard.php" class="block py-3 px-6 text-gray-700 hover:bg-blue-500 hover:text-white transition-colors flex items-center">
             <i class="fas fa-bullhorn mr-2 sidebar-icon"></i> <span class="sidebar-item-text">Campaign Dashboard</span>
         </a>
+        <a href="admin_blog.php" class="block py-3 px-6 text-gray-700 hover:bg-blue-500 hover:text-white transition-colors flex items-center">
+            <i class="fas fa-blog mr-2 sidebar-icon"></i> <span class="sidebar-item-text">Blog Posts</span>
+        </a>
+        <a href="admin_blog_categories.php" class="block py-3 px-6 text-gray-700 hover:bg-blue-500 hover:text-white transition-colors flex items-center">
+            <i class="fas fa-folder mr-2 sidebar-icon"></i> <span class="sidebar-item-text">Blog Categories</span>
+        </a>
         <a href="view_enquiries.php" class="block py-3 px-6 text-gray-700 hover:bg-blue-500 hover:text-white transition-colors flex items-center">
             <i class="fas fa-envelope mr-2 sidebar-icon"></i> <span class="sidebar-item-text">Resort Enquiries</span>
         </a>

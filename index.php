@@ -11,12 +11,13 @@ include_once('kheader.php');
                     <div class="th-hero-bg" data-bg-src="assets/images/slider/India-Banner.webp"></div>
                     <div class="container">
                         <div class="hero-style1"><span class="sub-title style1" data-ani="slideinup"
-                                data-ani-delay="0.2s">Get unforgetable pleasure with us</span><br>
-                            <h1 class="hero-title" data-ani="slideinup" data-ani-delay="0.4s">Natural Wonder of the
-                                world</h1>
-                            <div class="btn-group" data-ani="slideinup" data-ani-delay="0.6s"><a href="tour.html"
-                                    class="th-btn th-icon">Explore Tours</a> <a href="service.html"
-                                    class="th-btn style2 th-icon">Our Services</a></div>
+                                data-ani-delay="0.2s">Delivering Unmatched Holiday Experiences At Ubeatable Prices</span><br>
+                            <h1 class="hero-title" data-ani="slideinup" data-ani-delay="0.4s">Crafting Unforgettable Family Holidays!</h1>
+                            <div class="btn-group" data-ani="slideinup" data-ani-delay="0.6s"><a href="our-destinations.php"
+                                    class="th-btn th-icon">Our Destinations</a> 
+                                    <!-- <a href="our-destinations.php"
+                                    class="th-btn style2 th-icon">Our Services</a> -->
+                                </div>
                         </div>
                     </div>
                 </div>
@@ -26,12 +27,13 @@ include_once('kheader.php');
                     <div class="th-hero-bg" data-bg-src="assets/images/slider/Germany-Banner.webp"></div>
                     <div class="container">
                         <div class="hero-style1"><span class="sub-title style1" data-ani="slideinup"
-                                data-ani-delay="0.2s">Get unforgetable pleasure with us</span><br>
-                            <h1 class="hero-title" data-ani="slideinup" data-ani-delay="0.4s">Let’s make your best
-                                trip with us</h1>
-                            <div class="btn-group" data-ani="slideinup" data-ani-delay="0.6s"><a href="tour.html"
-                                    class="th-btn th-icon">Explore Tours</a> <a href="service.html"
-                                    class="th-btn style2 th-icon">Our Services</a></div>
+                                data-ani-delay="0.2s">Delivering Unmatched Holiday Experiences At Ubeatable Prices</span><br>
+                            <h1 class="hero-title" data-ani="slideinup" data-ani-delay="0.4s">Exclusive Offers, Exceptional Value!</h1>
+                            <div class="btn-group" data-ani="slideinup" data-ani-delay="0.6s"><a href="our-destinations.php"
+                                    class="th-btn th-icon">Our Destinations</a> 
+                                    <!-- <a href="our-destinations.php"
+                                    class="th-btn style2 th-icon">Our Services</a> -->
+                                </div>
                         </div>
                     </div>
                 </div>
@@ -41,12 +43,13 @@ include_once('kheader.php');
                     <div class="th-hero-bg" data-bg-src="assets/images/slider/Spain-Banner.webp"></div>
                     <div class="container">
                         <div class="hero-style1"><span class="sub-title style1" data-ani="slideinup"
-                                data-ani-delay="0.2s">Get unforgetable pleasure with us</span> <br>
-                            <h1 class="hero-title" data-ani="slideinup" data-ani-delay="0.4s">Explore beauty of the
-                                whole world</h1>
-                            <div class="btn-group" data-ani="slideinup" data-ani-delay="0.6s"><a href="tour.html"
-                                    class="th-btn th-icon">Explore Tours</a> <a href="service.html"
-                                    class="th-btn style2 th-icon">Our Services</a></div>
+                                data-ani-delay="0.2s">Delivering Unmatched Holiday Experiences At Ubeatable Prices</span> <br>
+                            <h1 class="hero-title" data-ani="slideinup" data-ani-delay="0.4s">Scenic Views, Timeless Moments!</h1>
+                            <div class="btn-group" data-ani="slideinup" data-ani-delay="0.6s"><a href="our-destinations.php"
+                                    class="th-btn th-icon">Our Destinations</a> 
+                                    <!-- <a href="our-destinations.php"
+                                    class="th-btn style2 th-icon">Our Services</a> -->
+                                </div>
                         </div>
                     </div>
                 </div>
@@ -79,88 +82,90 @@ include_once('kheader.php');
                 </div> -->
                 <div class="swiper-slide">
                     <div class="category-card single">
-                        <div class="box-img global-img"><a href="our-destinations.php"><img src="assets/images/destination/Thailand.webp" alt="Image"></a>
+                        <div class="box-img global-img"><a href="destination-resorts.php?dest_id=9"><img src="assets/images/destination/Thailand.webp" alt="Image"></a>
                         </div>
-                        <h3 class="box-title"><a href="our-destinations.php">Thailand</a></h3>
+                        <h3 class="box-title"><a href="destination-resorts.php?dest_id=9">Thailand</a></h3>
                     </div>
                 </div>
                 <div class="swiper-slide">
                     <div class="category-card single">
-                        <div class="box-img global-img"><a href="our-destinations.php"><img src="assets/images/destination/Cambodia.webp" alt="Image"></a>
+                        <div class="box-img global-img"><a href="destination-resorts.php?dest_id=7"><img src="assets/images/destination/Cambodia.webp" alt="Image"></a>
                         </div>
-                        <h3 class="box-title"><a href="our-destinations.php">Cambodia</a></h3>
+                        <h3 class="box-title"><a href="destination-resorts.php?dest_id=7">Cambodia</a></h3>
                     </div>
                 </div>
                 <div class="swiper-slide">
                     <div class="category-card single">
-                        <div class="box-img global-img"><a href="our-destinations.php"><img src="assets/images/destination/India.webp" alt="Image"> </a>
+                        <div class="box-img global-img"><a href="destination-resorts.php?dest_id=1"><img src="assets/images/destination/India.webp" alt="Image"> </a>
                         </div>
-                        <h3 class="box-title"><a href="our-destinations.php">India</a></h3>
+                        <h3 class="box-title"><a href="destination-resorts.php?dest_id=1">India</a></h3>
                     </div>
                 </div>
                 <div class="swiper-slide">
                     <div class="category-card single">
-                        <div class="box-img global-img"><a href="our-destinations.php"><img src="assets/images/destination/Egypt.webp" alt="Image"></a>
+                        <div class="box-img global-img"><a href="destination-resorts.php?dest_id=8"><img src="assets/images/destination/Egypt.webp" alt="Image"></a>
                         </div>
-                        <h3 class="box-title"><a href="our-destinations.php">Egypt</a></h3>
+                        <h3 class="box-title"><a href="destination-resorts.php?dest_id=8">Egypt</a></h3>
                     </div>
                 </div>
                 <div class="swiper-slide">
                     <div class="category-card single">
-                        <div class="box-img global-img"><a href="our-destinations.php"><img src="assets/images/destination/vietnam.webp" alt="Image"></a>
+                        <div class="box-img global-img"><a href="destination-resorts.php?dest_id=10"><img src="assets/images/destination/vietnam.webp" alt="Image"></a>
                         </div>
-                        <h3 class="box-title"><a href="our-destinations.php">Vietnam</a></h3>
+                        <h3 class="box-title"><a href="destination-resorts.php?dest_id=10">Vietnam</a></h3>
                     </div>
                 </div>
                 <div class="swiper-slide">
                     <div class="category-card single">
-                        <div class="box-img global-img"><a href="our-destinations.php"><img src="assets/images/destination/bali.webp" alt="Image"></a>
+                        <div class="box-img global-img"><a href="destination-resorts.php?dest_id=4"><img src="assets/images/destination/bali.webp" alt="Image"></a>
                         </div>
-                        <h3 class="box-title"><a href="our-destinations.php">Bali</a></h3>
-                    </div>
-                </div>
-
-                <div class="swiper-slide">
-                    <div class="category-card single">
-                        <div class="box-img global-img"><a href="our-destinations.php"><img src="assets/images/destination/italy.webp" alt="Image"></a>
-                        </div>
-                        <h3 class="box-title"><a href="our-destinations.php">Italy</a></h3>
-                    </div>
-                </div>
-                <div class="swiper-slide">
-                    <div class="category-card single">
-                        <div class="box-img global-img"><a href="our-destinations.php"><img src="assets/images/destination/spain.webp" alt="Image"></a>
-                        </div>
-                        <h3 class="box-title"><a href="our-destinations.php">Spain</a></h3>
-                    </div>
-                </div>
-                <div class="swiper-slide">
-                    <div class="category-card single">
-                        <div class="box-img global-img"><a href="our-destinations.php"><img src="assets/images/destination/germany.webp" alt="Image"></a>
-                        </div>
-                        <h3 class="box-title"><a href="our-destinations.php">Germany</a></h3>
-                    </div>
-                </div>
-                <div class="swiper-slide">
-                    <div class="category-card single">
-                        <div class="box-img global-img"><a href="our-destinations.php"><img src="assets/images/destination/Maldives.webp" alt="Image"></a>
-                        </div>
-                        <h3 class="box-title"><a href="our-destinations.php">Maldives</a></h3>
+                        <h3 class="box-title"><a href="destination-resorts.php?dest_id=4">Bali</a></h3>
                     </div>
                 </div>
 
                 <div class="swiper-slide">
                     <div class="category-card single">
-                        <div class="box-img global-img"><a href="our-destinations.php"><img src="assets/images/destination/UK.webp" alt="Image"></a>
+                        <div class="box-img global-img"><a href="destination-resorts.php?dest_id=5"><img src="assets/images/destination/italy.webp" alt="Image"></a>
                         </div>
-                        <h3 class="box-title"><a href="our-destinations.php">Uniked Kingdom</a></h3>
+                        <h3 class="box-title"><a href="destination-resorts.php?dest_id=5">Italy</a></h3>
+                    </div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="category-card single">
+                        <div class="box-img global-img"><a href="destination-resorts.php?dest_id=2"><img src="assets/images/destination/spain.webp" alt="Image"></a>
+                        </div>
+                        <h3 class="box-title"><a href="destination-resorts.php?dest_id=2">Spain</a></h3>
+                    </div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="category-card single">
+                        <div class="box-img global-img"><a href="destination-resorts.php?dest_id=3"><img src="assets/images/destination/germany.webp" alt="Image"></a>
+                        </div>
+                        <h3 class="box-title"><a href="destination-resorts.php?dest_id=3">Germany</a></h3>
+                    </div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="category-card single">
+                        <div class="box-img global-img"><a href="destination-resorts.php?dest_id=11"><img src="assets/images/destination/Maldives.webp" alt="Image"></a>
+                        </div>
+                        <h3 class="box-title"><a href="destination-resorts.php?dest_id=11">Maldives</a></h3>
+                    </div>
+                </div>
+
+                <div class="swiper-slide">
+                    <div class="category-card single">
+                        <div class="box-img global-img"><a href="destination-resorts.php?dest_id=6"><img src="assets/images/destination/UK.webp" alt="Image"></a>
+                        </div>
+                        <h3 class="box-title"><a href="destination-resorts.php?dest_id=6">United Kingdom</a></h3>
                     </div>
                 </div>
 
             </div>
             <div class="swiper-pagination"></div>
         </div>
-    </div>
+    </div> <br><br>
+
+   <center> <a href="our-destinations.php"class="th-btn th-icon">Explore All Destinations</a></center> 
 </section>
 
 

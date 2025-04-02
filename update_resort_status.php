@@ -1,57 +1,67 @@
 <?php
-session_start();
-if (!isset($_SESSION['user'])) {
-    echo json_encode(['success' => false, 'message' => 'Not authenticated']);
-    exit();
-}
-// Get the database connection properly
-$pdo = require 'db.php';
+// Prevent any output before JSON response
+ob_start();
 
-// Get JSON input from request body
-$data = json_decode(file_get_contents('php://input'), true);
-
-if (!isset($data['resort_id']) || !isset($data['is_active'])) {
-    echo json_encode(['success' => false, 'message' => 'Invalid input']);
-    exit();
-}
-
-$resortId = $data['resort_id'];
-$isActive = $data['is_active'];
+// Set JSON content type
+header('Content-Type: application/json');
 
 try {
-    // Log the update action (for debugging)
-    error_log("Updating resort ID: $resortId to is_active: $isActive");
-    
-    // Update the resort's active status in the database
+    // Initialize database connection
+    $pdo = require_once 'db.php';
+    if (!$pdo) {
+        throw new Exception('Database connection failed');
+    }
+
+    // Get JSON data
+    $json = file_get_contents('php://input');
+    $data = json_decode($json, true);
+
+    if (!isset($data['resort_id']) || !isset($data['status'])) {
+        throw new Exception('Missing required parameters');
+    }
+
+    $resort_id = (int)$data['resort_id'];
+    $status = (int)$data['status'];
+
+    // First get the resort slug
+    $stmt = $pdo->prepare("SELECT resort_slug FROM resorts WHERE id = ?");
+    $stmt->execute([$resort_id]);
+    $resort = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$resort) {
+        throw new Exception('Resort not found');
+    }
+
+    // Update the resort status
     $stmt = $pdo->prepare("UPDATE resorts SET is_active = ? WHERE id = ?");
-    $result = $stmt->execute([$isActive, $resortId]);
-    
-    if (!$result) {
-        throw new Exception("Failed to update resort status");
+    $success = $stmt->execute([$status, $resort_id]);
+
+    if (!$success) {
+        throw new Exception('Failed to update resort status');
     }
-    
-    // Verify the update was successful
-    $verifyStmt = $pdo->prepare("SELECT is_active, resort_slug FROM resorts WHERE id = ?");
-    $verifyStmt->execute([$resortId]);
-    $resort = $verifyStmt->fetch(PDO::FETCH_ASSOC);
-    
-    if ((int)$resort['is_active'] !== (int)$isActive) {
-        throw new Exception("Database update verification failed");
+
+    // Clear any output buffers
+    while (ob_get_level()) {
+        ob_end_clean();
     }
-    
-    // Set session message for notification
-    $_SESSION['success_message'] = $isActive ? "Resort activated successfully" : "Resort deactivated successfully";
-    
+
+    // Send success response
     echo json_encode([
         'success' => true,
-        'resort_slug' => $resort['resort_slug'],
-        'is_active' => $isActive
+        'message' => $status ? 'Resort activated successfully' : 'Resort deactivated successfully',
+        'resort_slug' => $resort['resort_slug']
     ]);
+
 } catch (Exception $e) {
-    error_log("Error updating resort status: " . $e->getMessage());
+    // Clear any output buffers
+    while (ob_get_level()) {
+        ob_end_clean();
+    }
+
+    // Send error response
     echo json_encode([
         'success' => false,
-        'message' => 'Database error: ' . $e->getMessage()
+        'message' => $e->getMessage()
     ]);
 }
 ?>

@@ -7,6 +7,13 @@ if (!isset($_SESSION['user'])) {
 $user = $_SESSION['user'];
 $pdo = require_once 'db.php';
 
+// Get the base URL dynamically
+$base_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]";
+$current_dir = dirname($_SERVER['PHP_SELF']);
+if ($current_dir != '/') {
+    $base_url .= $current_dir;
+}
+
 // Get filter parameters
 $status = isset($_GET['status']) ? $_GET['status'] : '';
 $resort_id = isset($_GET['resort_id']) ? $_GET['resort_id'] : '';
@@ -124,7 +131,79 @@ include 'bheader.php';
         .status-contacted { background-color: #DBEAFE; }
         .status-converted { background-color: #D1FAE5; }
         .status-closed { background-color: #F3F4F6; }
+        
+        /* Modal styles */
+        .modal-open {
+            overflow: hidden;
+        }
+        
+        #enquiryDetailModal {
+            backdrop-filter: blur(4px);
+        }
+        
+        #closeModal {
+            transition: all 0.2s ease-in-out;
+        }
+        
+        #closeModal:hover {
+            transform: rotate(90deg);
+        }
+        
+        /* Ensure modal content doesn't overflow on mobile */
+        @media (max-width: 640px) {
+            .max-w-2xl {
+                margin: 1rem;
+                max-height: calc(100vh - 2rem);
+                overflow-y: auto;
+            }
+        }
+        
+        /* Modern table styling */
+        #enquiriesTable {
+            @apply shadow-sm rounded-lg overflow-hidden;
+        }
+        
+        #enquiriesTable thead th {
+            @apply bg-gray-50 text-gray-600 text-sm font-medium px-6 py-3;
+        }
+        
+        #enquiriesTable tbody td {
+            @apply px-6 py-4 text-sm text-gray-800;
+        }
+        
+        /* Status indicators */
+        .status-new { @apply border-l-4 border-amber-400; }
+        .status-contacted { @apply border-l-4 border-blue-400; }
+        .status-converted { @apply border-l-4 border-emerald-400; }
+        .status-closed { @apply border-l-4 border-gray-400; }
+        
+        /* Button styling */
+        .view-details {
+            @apply inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200;
+        }
+        
+        /* DataTable custom styling */
+        .dataTables_wrapper .dataTables_filter input {
+            @apply rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500;
+        }
+        
+        .dataTables_wrapper .dataTables_length select {
+            @apply rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500;
+        }
+        
+        /* Pagination styling */
+        .dataTables_wrapper .dataTables_paginate .paginate_button {
+            @apply px-3 py-1 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50;
+        }
+        
+        .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+            @apply bg-indigo-50 border-indigo-500 text-indigo-600 hover:bg-indigo-100;
+        }
     </style>
+    <script>
+        // Add base URL for JavaScript use
+        const baseUrl = '<?php echo $base_url; ?>';
+    </script>
 </head>
 <body class="bg-gray-100">
     <div class="flex min-h-screen">
@@ -319,6 +398,7 @@ include 'bheader.php';
                                         <td>
                                             <select class="status-select rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm" 
                                                     data-enquiry-id="<?php echo $row['id']; ?>" 
+                                                    data-original-status="<?php echo $row['status']; ?>"
                                                     style="padding: 4px; min-width: 110px;">
                                                 <option value="new" <?php echo $row['status'] === 'new' ? 'selected' : ''; ?>>New</option>
                                                 <option value="contacted" <?php echo $row['status'] === 'contacted' ? 'selected' : ''; ?>>Contacted</option>
@@ -344,13 +424,15 @@ include 'bheader.php';
 
     <!-- Detail Modal -->
     <div id="enquiryDetailModal" class="fixed inset-0 z-50 overflow-auto bg-black bg-opacity-50 flex items-center justify-center hidden">
-        <div class="bg-white rounded-lg shadow-lg w-full max-w-2xl mx-auto">
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-2xl mx-auto relative">
             <div class="p-6 border-b border-gray-200 flex justify-between items-center">
                 <h3 class="text-xl font-semibold" id="modal-title">Enquiry Details</h3>
-                <button type="button" class="text-gray-400 hover:text-gray-500" id="closeModal">
-                    <i class="fas fa-times"></i>
+                <button type="button" class="text-gray-500 hover:text-gray-700 focus:outline-none p-2 rounded-full hover:bg-gray-100 transition-colors" id="closeModal">
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
                 </button>
-                </div>
+            </div>
             <div class="p-6" id="modal-content">
                 <!-- Loading state -->
                 <div class="text-center p-8">
@@ -374,7 +456,69 @@ include 'bheader.php';
                 $('#advancedFilters').show();
             }
             
-            // Initialize DataTable
+            // Status change handler
+            $('.status-select').on('change', function() {
+                const enquiryId = $(this).data('enquiry-id');
+                const newStatus = $(this).val();
+                const row = $(this).closest('tr');
+                const select = $(this);
+                const originalSelect = $(this).clone();
+                
+                // Show loading state
+                const loadingHtml = '<div class="flex items-center justify-center"><div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div></div>';
+                const selectCell = $(this).parent();
+                selectCell.html(loadingHtml);
+                
+                // Send the update request
+                $.ajax({
+                    url: 'update_enquiry_status.php',
+                    method: 'POST',
+                    data: JSON.stringify({
+                        enquiry_id: enquiryId,
+                        status: newStatus
+                    }),
+                    contentType: 'application/json',
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            // Update the select element with new status
+                            originalSelect.val(newStatus);
+                            selectCell.html(originalSelect);
+                            
+                            // Update row status
+                            row.removeClass('status-new status-contacted status-converted status-closed')
+                               .addClass('status-' + newStatus);
+                            
+                            // Show success message
+                            toastr.success('Status updated successfully');
+                            
+                            // If status was changed to converted, update UI accordingly
+                            if (newStatus === 'converted') {
+                                row.addClass('bg-green-50');
+                                setTimeout(() => row.removeClass('bg-green-50'), 3000);
+                            }
+                            
+                            // Reinitialize the event handler on the new select
+                            selectCell.find('.status-select').on('change', function() {
+                                $(this).trigger('change');
+                            });
+                        } else {
+                            // Show error message
+                            toastr.error(response.message || 'Failed to update status');
+                            selectCell.html(originalSelect);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error:', error);
+                        // Show error message
+                        toastr.error('Failed to update status. Please try again.');
+                        // Restore original select
+                        selectCell.html(originalSelect);
+                    }
+                });
+            });
+            
+            // Initialize DataTable with improved styling
             var table = $('#enquiriesTable').DataTable({
                 responsive: true,
                 dom: 'Bfrtip',
@@ -382,183 +526,175 @@ include 'bheader.php';
                     {
                         extend: 'excel',
                         text: '<i class="fas fa-file-excel mr-1"></i> Export to Excel',
-                        className: 'bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md text-sm',
+                        className: 'bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-md text-sm transition-colors duration-200',
                         exportOptions: {
                             columns: [0, 1, 2, 3, 4, 5, 6, 7]
                         }
                     }
                 ],
-                order: [[1, 'desc']], // Sort by date descending by default
+                order: [[1, 'desc']],
                 pageLength: 25,
                 language: {
                     search: "<i class='fas fa-search'></i> _INPUT_",
                     searchPlaceholder: "Search enquiries..."
+                },
+                rowCallback: function(row, data, index) {
+                    // Add hover effect
+                    $(row).addClass('hover:bg-gray-50 transition-colors duration-150');
                 }
             });
-            
-            // Status change handler
-        $('.status-select').change(function() {
-            const enquiryId = $(this).data('enquiry-id');
-            const newStatus = $(this).val();
-            
-                // Update row class
-                $(this).closest('tr').removeClass('status-new status-contacted status-converted status-closed');
-                $(this).closest('tr').addClass('status-' + newStatus);
-                
-                // Send AJAX request to update status
-            $.ajax({
-                url: 'update_enquiry_status.php',
-                    type: 'POST',
-                data: {
-                    enquiry_id: enquiryId,
-                    status: newStatus
-                },
-                success: function(response) {
-                        toastr.success('Status updated successfully');
-                    },
-                    error: function() {
-                        toastr.error('Failed to update status');
-                    }
-                });
+
+            // Improved status select styling
+            $('.status-select').each(function() {
+                const status = $(this).val();
+                $(this).addClass('rounded-full px-3 py-1 text-sm font-medium ' + getStatusClass(status));
             });
             
             // Direct view details functionality
             $(document).on('click', '.view-details', function() {
                 const enquiryId = $(this).data('enquiry-id');
-                const baseUrl = window.location.protocol + '//' + window.location.host;
-                const ajaxUrl = baseUrl + '/get_enquiry_details.php';
-                
-                console.log('View Details clicked for enquiry ID:', enquiryId);
-                console.log('AJAX URL:', ajaxUrl);
                 
                 // Show modal and loading state
                 $('#modal-content').html('<div class="text-center p-8"><i class="fas fa-spinner fa-spin fa-2x"></i><p class="mt-2">Loading enquiry details...</p></div>');
                 $('#enquiryDetailModal').removeClass('hidden');
                 
-                // Fetch using basic XMLHttpRequest to avoid jQuery AJAX issues
-                const xhr = new XMLHttpRequest();
-                xhr.open('GET', 'get_enquiry_details.php?id=' + enquiryId, true);
-                xhr.onload = function() {
-                    if (xhr.status === 200) {
-                        console.log('Response:', xhr.responseText);
-                        try {
-                            const data = JSON.parse(xhr.responseText);
-                            
-                            if (!data || data.success === false) {
-                                $('#modal-content').html('<div class="text-center p-8 text-red-500"><i class="fas fa-exclamation-triangle fa-2x mb-3"></i><p>Error loading enquiry details: ' + (data ? data.message : 'Unknown error') + '</p></div>');
-                                return;
-                            }
-                            
-                            // Create modal content HTML
-                            const modalHtml = `
-                            <div class="flex flex-col space-y-4">
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <h4 class="text-lg font-medium mb-3 text-gray-700 border-b pb-2">Customer Information</h4>
-                                        <div class="space-y-2">
-                                            <p><span class="font-medium text-gray-600">Name:</span> ${data.first_name || ''} ${data.last_name || ''}</p>
-                                            <p><span class="font-medium text-gray-600">Email:</span> ${data.email || 'Not provided'}</p>
-                                            <p><span class="font-medium text-gray-600">Phone:</span> ${data.phone || 'Not provided'}</p>
-                                            <p><span class="font-medium text-gray-600">Date of Birth:</span> ${data.date_of_birth || 'Not provided'}</p>
-                                            <p><span class="font-medium text-gray-600">Has Passport:</span> ${data.has_passport || 'Not provided'}</p>
-                                            <p><span class="font-medium text-gray-600">Country:</span> ${data.country_code || 'Not provided'}</p>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <h4 class="text-lg font-medium mb-3 text-gray-700 border-b pb-2">Resort Information</h4>
-                                        <div class="space-y-2">
-                                            <p><span class="font-medium text-gray-600">Resort:</span> ${data.resort_name || 'Not available'}</p>
-                                            <p><span class="font-medium text-gray-600">Destination:</span> ${data.destination_name || 'Not available'}</p>
-                                            <p><span class="font-medium text-gray-600">Resort Code:</span> ${data.resort_code || 'Not available'}</p>
-                                            <p><span class="font-medium text-gray-600">Date Submitted:</span> ${data.created_at ? new Date(data.created_at).toLocaleString() : 'Unknown'}</p>
-                                            <p><span class="font-medium text-gray-600">Status:</span> <span class="px-2 py-1 rounded ${getStatusClass(data.status)}">${data.status ? (data.status.charAt(0).toUpperCase() + data.status.slice(1)) : 'Unknown'}</span></p>
-                                            <p><span class="font-medium text-gray-600">Partner Hotel:</span> ${data.is_partner == 1 ? 'Yes' : 'No'}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div>
-                                    <h4 class="text-lg font-medium mb-3 text-gray-700 border-b pb-2">LeadSquared Details</h4>
-                                    <div class="bg-gray-50 p-4 rounded">
-                                        <div class="space-y-2">
-                                            <p><span class="font-medium text-gray-600">Lead Source:</span> ${data.lead_source || 'Web Enquiry'}</p>
-                                            <p><span class="font-medium text-gray-600">Lead Brand:</span> ${data.lead_brand || 'Timeshare Marketing'}</p>
-                                            <p><span class="font-medium text-gray-600">Lead Sub Brand:</span> ${data.lead_sub_brand || 'Not available'}</p>
-                                            <p><span class="font-medium text-gray-600">Lead Source Description:</span> ${data.lead_source_description || 'Not available'}</p>
-                                            <p><span class="font-medium text-gray-600">Lead Location:</span> ${data.lead_location || data.resort_name || 'Not available'}</p>
-                                            <p><span class="font-medium text-gray-600">LeadSquared ID:</span> ${data.leadsquared_id || 'Not available'}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="mt-4 pt-4 border-t">
-                                    <h4 class="text-lg font-medium mb-3 text-gray-700">Actions</h4>
-                                    <div class="flex flex-wrap gap-3">
-                                        <button class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm transition duration-300 ease-in-out flex items-center" id="emailCustomer" data-email="${data.email}">
-                                            <i class="fas fa-envelope mr-2"></i> Email Customer
-                                        </button>
-                                        <button class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md text-sm transition duration-300 ease-in-out flex items-center" id="markConverted" data-id="${data.id}">
-                                            <i class="fas fa-check-circle mr-2"></i> Mark as Converted
-                                        </button>
-                                    </div>
+                // Fetch using fetch API for better error handling
+                fetch(`${baseUrl}/get_enquiry_details.php?id=${enquiryId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (!data || data.success === false) {
+                        throw new Error(data ? data.message : 'Unknown error');
+                    }
+                    
+                    // Create modal content HTML
+                    const modalHtml = `
+                    <div class="flex flex-col space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <h4 class="text-lg font-medium mb-3 text-gray-700 border-b pb-2">Customer Information</h4>
+                                <div class="space-y-2">
+                                    <p><span class="font-medium text-gray-600">Name:</span> ${data.first_name || ''} ${data.last_name || ''}</p>
+                                    <p><span class="font-medium text-gray-600">Email:</span> ${data.email || 'Not provided'}</p>
+                                    <p><span class="font-medium text-gray-600">Phone:</span> ${data.phone || 'Not provided'}</p>
+                                    <p><span class="font-medium text-gray-600">Date of Birth:</span> ${data.date_of_birth || 'Not provided'}</p>
+                                    <p><span class="font-medium text-gray-600">Has Passport:</span> ${data.has_passport || 'Not provided'}</p>
+                                    <p><span class="font-medium text-gray-600">Country:</span> ${data.country_code || 'Not provided'}</p>
                                 </div>
                             </div>
-                            `;
-                            
-                            // Update modal title and content
-                            $('#modal-title').text('Enquiry Details: EQ' + data.id);
-                            $('#modal-content').html(modalHtml);
-                            
-                            // Setup action button handlers
-                            $('#emailCustomer').on('click', function() {
-                                const email = $(this).data('email');
-                                window.location.href = 'mailto:' + email + '?subject=Your Enquiry about ' + data.resort_name;
-                            });
-                            
-                            $('#markConverted').on('click', function() {
-                                const id = $(this).data('id');
-                                $.ajax({
-                                    url: 'update_enquiry_status.php',
-                                    type: 'POST',
-                                    data: {
-                                        enquiry_id: id,
-                                        status: 'converted'
-                                    },
-                                    success: function() {
-                                        $('#enquiryDetailModal').addClass('hidden');
-                                        toastr.success('Enquiry marked as converted');
-                                        location.reload();
-                                    },
-                                    error: function(xhr, status, error) {
-                                        console.error('Error updating status:', error);
-                                        toastr.error('Failed to update status: ' + error);
-                                    }
-                                });
-                            });
-                        } catch (e) {
-                            console.error('Error parsing JSON:', e);
-                            $('#modal-content').html('<div class="text-center p-8 text-red-500"><i class="fas fa-exclamation-triangle fa-2x mb-3"></i><p>Error parsing enquiry details: ' + e.message + '</p><pre class="mt-4 p-2 bg-gray-100 rounded overflow-auto text-xs text-left">' + xhr.responseText.substring(0, 200) + '...</pre></div>');
-                        }
-                    } else {
-                        console.error('Request failed with status:', xhr.status);
-                        $('#modal-content').html('<div class="text-center p-8 text-red-500"><i class="fas fa-exclamation-triangle fa-2x mb-3"></i><p>Error loading enquiry details. Server responded with status: ' + xhr.status + '</p></div>');
-                    }
-                };
-                xhr.onerror = function() {
-                    console.error('Request failed');
-                    $('#modal-content').html('<div class="text-center p-8 text-red-500"><i class="fas fa-exclamation-triangle fa-2x mb-3"></i><p>Network error when trying to load enquiry details</p></div>');
-                };
-                xhr.send();
+                            <div>
+                                <h4 class="text-lg font-medium mb-3 text-gray-700 border-b pb-2">Resort Information</h4>
+                                <div class="space-y-2">
+                                    <p><span class="font-medium text-gray-600">Resort:</span> ${data.resort_name || 'Not available'}</p>
+                                    <p><span class="font-medium text-gray-600">Destination:</span> ${data.destination_name || 'Not available'}</p>
+                                    <p><span class="font-medium text-gray-600">Resort Code:</span> ${data.resort_code || 'Not available'}</p>
+                                    <p><span class="font-medium text-gray-600">Date Submitted:</span> ${data.created_at ? new Date(data.created_at).toLocaleString() : 'Unknown'}</p>
+                                    <p><span class="font-medium text-gray-600">Status:</span> <span class="px-2 py-1 rounded ${getStatusClass(data.status)}">${data.status ? (data.status.charAt(0).toUpperCase() + data.status.slice(1)) : 'Unknown'}</span></p>
+                                    <p><span class="font-medium text-gray-600">Partner Hotel:</span> ${data.is_partner == 1 ? 'Yes' : 'No'}</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h4 class="text-lg font-medium mb-3 text-gray-700 border-b pb-2">LeadSquared Details</h4>
+                            <div class="bg-gray-50 p-4 rounded">
+                                <div class="space-y-2">
+                                    <p><span class="font-medium text-gray-600">Lead Source:</span> ${data.lead_source || 'Web Enquiry'}</p>
+                                    <p><span class="font-medium text-gray-600">Lead Brand:</span> ${data.lead_brand || 'Timeshare Marketing'}</p>
+                                    <p><span class="font-medium text-gray-600">Lead Sub Brand:</span> ${data.lead_sub_brand || 'Not available'}</p>
+                                    <p><span class="font-medium text-gray-600">Lead Source Description:</span> ${data.lead_source_description || 'Not available'}</p>
+                                    <p><span class="font-medium text-gray-600">Lead Location:</span> ${data.lead_location || data.resort_name || 'Not available'}</p>
+                                    <p><span class="font-medium text-gray-600">LeadSquared ID:</span> ${data.leadsquared_id || 'Not available'}</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4 pt-4 border-t">
+                            <h4 class="text-lg font-medium mb-3 text-gray-700">Actions</h4>
+                            <div class="flex flex-wrap gap-3">
+                                <button class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm transition duration-300 ease-in-out flex items-center" id="emailCustomer" data-email="${data.email}">
+                                    <i class="fas fa-envelope mr-2"></i> Email Customer
+                                </button>
+                                <button class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md text-sm transition duration-300 ease-in-out flex items-center" id="markConverted" data-id="${data.id}">
+                                    <i class="fas fa-check-circle mr-2"></i> Mark as Converted
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    `;
+                    
+                    // Update modal title and content
+                    $('#modal-title').text('Enquiry Details: EQ' + data.id);
+                    $('#modal-content').html(modalHtml);
+                    
+                    // Setup action button handlers
+                    $('#emailCustomer').on('click', function() {
+                        const email = $(this).data('email');
+                        window.location.href = 'mailto:' + email + '?subject=Your Enquiry about ' + data.resort_name;
+                    });
+                    
+                    $('#markConverted').on('click', function() {
+                        const id = $(this).data('id');
+                        fetch(`${baseUrl}/update_enquiry_status.php`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                enquiry_id: id,
+                                status: 'converted'
+                            })
+                        })
+                        .then(response => response.json())
+                        .then(response => {
+                            if (response.success) {
+                                $('#enquiryDetailModal').addClass('hidden');
+                                toastr.success('Enquiry marked as converted');
+                                location.reload();
+                            } else {
+                                throw new Error(response.message || 'Failed to update status');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error updating status:', error);
+                            toastr.error('Failed to update status: ' + error.message);
+                        });
+                    });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    $('#modal-content').html(`
+                        <div class="text-center p-8 text-red-500">
+                            <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
+                            <p>Error loading enquiry details: ${error.message}</p>
+                        </div>
+                    `);
+                });
             });
             
             // Helper function for status styling
             function getStatusClass(status) {
                 switch(status) {
-                    case 'new': return 'bg-yellow-100 text-yellow-800';
-                    case 'contacted': return 'bg-blue-100 text-blue-800';
-                    case 'converted': return 'bg-green-100 text-green-800';
-                    case 'closed': return 'bg-gray-100 text-gray-800';
-                    default: return 'bg-gray-100 text-gray-800';
+                    case 'new': 
+                        return 'bg-amber-100 text-amber-800 border-amber-200';
+                    case 'contacted': 
+                        return 'bg-blue-100 text-blue-800 border-blue-200';
+                    case 'converted': 
+                        return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+                    case 'closed': 
+                        return 'bg-gray-100 text-gray-800 border-gray-200';
+                    default: 
+                        return 'bg-gray-100 text-gray-800 border-gray-200';
                 }
             }
             
@@ -572,8 +708,8 @@ include 'bheader.php';
                 if ($(event.target).is('#enquiryDetailModal')) {
                     $('#enquiryDetailModal').addClass('hidden');
                 }
+            });
         });
-    });
     </script>
 </body>
 </html>

@@ -434,51 +434,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $pageContent .= "</div>\n";
     $pageContent .= "</div>\n";
 
-    // Room Details Section
-    $pageContent .= "<div class=\"resort-section rooms-section mt-8 mb-12\">\n";
-    $pageContent .= "    <h3 class=\"text-2xl font-semibold mb-6\">Room Details</h3>\n";
-    $pageContent .= "    <div class=\"room-details-grid\">\n";
-    $pageContent .= "    <?php if(is_array(\$room_details)): foreach(\$room_details as \$r): ?>\n";
-    $pageContent .= "        <div class=\"room-item\">\n";
-    $pageContent .= "            <?php if(!empty(\$r['image'])): ?>\n";
-    $pageContent .= "            <div class=\"room-image\">\n";
-    $pageContent .= "                <img src=\"<?php echo \$resortFolder . '/' . htmlspecialchars(\$r['image']); ?>\" \n";
-    $pageContent .= "                     alt=\"<?php echo htmlspecialchars(\$r['name']); ?>\">\n";
-    $pageContent .= "            </div>\n";
-    $pageContent .= "            <?php endif; ?>\n";
-    $pageContent .= "            <div class=\"room-info\">\n";
-    $pageContent .= "                <h4><?php echo htmlspecialchars(\$r['name']); ?></h4>\n";
-    $pageContent .= "            </div>\n";
-    $pageContent .= "        </div>\n";
-    $pageContent .= "    <?php endforeach; else: ?>\n";
-    $pageContent .= "        <p class=\"text-gray-500\">No room details available.</p>\n";
-    $pageContent .= "    <?php endif; ?>\n";
-    $pageContent .= "    </div>\n";
+    // Room Details Section (Added classes for hover effect)
+    $pageContent .= "<div class=\"resort-section rooms-section\">\n"; // Added class
+    $pageContent .= "        <h3>Room Details</h3>\n";
+    $pageContent .= "<div class=\"room-details-grid\">\n";
+    $pageContent .= "<?php if(is_array(\$room_details)): foreach(\$room_details as \$r): ?>\n";
+    $pageContent .= "<div class=\"room-item room-hover-effect\">\n"; // Added class for hover
+    $pageContent .= "<div class=\"room-image-container\">\n"; // Container for image
+    $pageContent .= "<img src=\"<?php echo \$resortFolder . '/' . htmlspecialchars(\$r['image'] ?? ''); ?>\" alt=\"<?php echo htmlspecialchars(\$r['name'] ?? ''); ?>\">\n";
     $pageContent .= "</div>\n";
-
-    // Add required CSS for room styling
-    $pageContent .= "<style>\n";
-    $pageContent .= ".room-details-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 25px; }\n";
-    $pageContent .= ".room-item { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: transform 0.3s; }\n";
-    $pageContent .= ".room-item:hover { transform: translateY(-5px); box-shadow: 0 6px 12px rgba(0,0,0,0.15); }\n";
-    $pageContent .= ".room-image { width: 100%; height: 300px; overflow: hidden; }\n";
-    $pageContent .= ".room-image img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; }\n";
-    $pageContent .= ".room-item:hover .room-image img { transform: scale(1.05); }\n";
-    $pageContent .= ".room-info { padding: 16px; text-align: center; }\n";
-    $pageContent .= ".room-info h4 { margin: 0; font-size: 18px; color: #333; font-weight: 600; }\n";
-    $pageContent .= "@media (max-width: 991px) {\n";
-    $pageContent .= "    .room-details-grid { grid-template-columns: repeat(2, 1fr); }\n";
-    $pageContent .= "    .room-image { height: 250px; }\n";
-    $pageContent .= "}\n";
-    $pageContent .= "@media (max-width: 768px) {\n";
-    $pageContent .= "    .room-details-grid { grid-template-columns: repeat(2, 1fr); gap: 15px; }\n";
-    $pageContent .= "    .room-image { height: 200px; }\n";
-    $pageContent .= "}\n";
-    $pageContent .= "@media (max-width: 480px) {\n";
-    $pageContent .= "    .room-details-grid { grid-template-columns: 1fr; }\n";
-    $pageContent .= "    .room-image { height: 250px; }\n";
-    $pageContent .= "}\n";
-    $pageContent .= "</style>\n";
+    $pageContent .= "<div class=\"room-info\">\n"; // Container for text
+    $pageContent .= "<p><?php echo htmlspecialchars(\$r['name'] ?? ''); ?></p>\n";
+    $pageContent .= "</div>\n";
+    $pageContent .= "</div>\n";
+    $pageContent .= "<?php endforeach; else: ?>\n";
+    $pageContent .= "<p>No room details available.</p>\n";
+    $pageContent .= "<?php endif; ?>\n";
+    $pageContent .= "</div>\n";
+    $pageContent .= "</div>\n";
 
     // Gallery Section (Modified for Grid Layout + Lightbox)
     $pageContent .= "<div class=\"resort-section gallery-section\">\n"; 
