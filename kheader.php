@@ -169,8 +169,6 @@
             z-index: 1000;
             padding: 40px 0;
             transform: translateY(-10px);
-            max-height: 85vh;
-            overflow-y: auto;
         }
 
         .menu-item-has-children:hover .mega-menu {
@@ -185,28 +183,52 @@
             padding: 0 40px;
         }
 
-        /* Masonry-like Layout */
+        /* Grid Layout */
         .mega-menu .destinations-wrapper {
-            column-count: 4;
-            column-gap: 30px;
-            width: 100%;
+            display: flex;
+            flex-wrap: wrap;
+        }
+        
+        /* Column structure */
+        .mega-menu .menu-column {
+            flex: 1;
+            min-width: 0;
+            padding: 0 15px;
+        }
+        
+        /* First column (India) is fixed */
+        .mega-menu .menu-column:first-child {
+            flex: 0 0 25%;
+        }
+        
+        /* Other columns share remaining space */
+        .mega-menu .menu-column:not(:first-child) {
+            flex: 1 0 0%;
         }
 
         .mega-menu .destination-section {
-            break-inside: avoid;
-            margin-bottom: 30px;
-            display: inline-block;
-            width: 100%;
             background: #fff;
-            border-radius: 8px;
+            padding: 5px;
+            margin-bottom: 20px;
         }
 
+        /* Special layout for India */
+        .mega-menu .destination-section.india {
+            grid-column: 1;
+            grid-row: span 1;
+        }
+
+        /* Other destinations */
+        .mega-menu .destination-section:not(.india) {
+            break-inside: avoid;
+        }
+        
         .mega-menu .destination-title {
             color: #B4975A;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 600;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             border-bottom: 1px solid #eee;
@@ -227,7 +249,7 @@
         }
 
         .mega-menu .resort-count {
-            font-size: 13px;
+            font-size: 12px;
             color: #999;
             font-weight: normal;
             text-transform: none;
@@ -236,56 +258,77 @@
         .mega-menu .resort-list {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 6px;
         }
 
         .mega-menu .resort-link {
             color: #666;
-            font-size: 14px;
+            font-size: 13px;
             text-decoration: none;
             transition: all 0.2s ease;
             display: block;
-            padding: 6px 0;
-            position: relative;
-            padding-left: 0;
+            padding: 4px 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .mega-menu .resort-link:hover {
             color: #B4975A;
-            padding-left: 12px;
+            padding-left: 8px;
         }
 
         .mega-menu .resort-link .location {
             color: #999;
-            font-size: 12px;
+            font-size: 11px;
             margin-left: 4px;
         }
 
         /* Partner Hotel Style */
-        .mega-menu .resort-link.partner::after {
+        .mega-menu .resort-link .partner-label {
+            font-size: 12px;
+            color: #B4975A;
+            font-style: italic;
+            margin-left: 6px;
+            font-weight: 500;
+            display: inline-block;
+        }
+
+        /* Removing the old partner class styling */
+        /* .mega-menu .resort-link.partner::after {
             content: '(Partner Hotel)';
             display: inline-block;
-            font-size: 12px;
+            font-size: 11px;
             color: #999;
-            margin-left: 5px;
-        }
+            margin-left: 4px;
+        } */
 
         /* Responsive Design */
         @media (max-width: 1400px) {
-            .mega-menu .destinations-wrapper {
-                column-count: 3;
+            .mega-menu .menu-column {
+                padding: 0 10px;
+            }
+            .mega-menu .menu-column:first-child {
+                flex: 0 0 25%;
             }
         }
 
         @media (max-width: 1200px) {
-            .mega-menu .destinations-wrapper {
-                column-count: 2;
+            .mega-menu .menu-column {
+                flex: 0 0 50%;
+                padding: 0 10px;
+            }
+            .mega-menu .menu-column:first-child {
+                flex: 0 0 50%;
             }
         }
 
         @media (max-width: 768px) {
-            .mega-menu .destinations-wrapper {
-                column-count: 1;
+            .mega-menu .menu-column {
+                flex: 0 0 100%;
+            }
+            .mega-menu .menu-column:first-child {
+                flex: 0 0 100%;
             }
             .mega-menu {
                 padding: 30px 0;
@@ -424,10 +467,11 @@
         .mobile-submenu .destination-section {
             background: rgba(255, 255, 255, 0.7);
             border-radius: 12px;
-            padding: 1.5rem;
+            padding: 10px;
             margin-bottom: 1rem;
             border: 1px solid rgba(180, 151, 90, 0.1);
             transition: all 0.3s ease;
+            width: 100%; /* Ensure full width */
         }
 
         .mobile-submenu .destination-title {
@@ -471,6 +515,8 @@
             font-weight: 500;
             transition: all 0.3s ease;
             position: relative;
+            white-space: normal; /* Allow text to wrap */
+            line-height: 1.4; /* Better line spacing for wrapped text */
         }
 
         .mobile-submenu .resort-link:hover {
@@ -493,6 +539,16 @@
 
         .mobile-submenu .resort-link:hover::after {
             opacity: 1;
+        }
+        
+        /* Partner Hotel Style for Mobile */
+        .mobile-submenu .resort-link .partner-label {
+            font-size: 12px;
+            color: #B4975A;
+            font-style: italic;
+            margin-left: 6px;
+            font-weight: 500;
+            display: inline-block;
         }
 
         /* Header Styles */
@@ -660,23 +716,116 @@
         <div class="mobile-menu-header">
             <a href="<?php echo $base_url; ?>/index.php">
                 <img src="<?php echo $assets_path; ?>assets/images/logo/KE-Gold.png" alt="Karma Experience" style="height: 40px;">
-            </a>
+                </a>
             <button class="mobile-menu-close">
                 <i class="fas fa-times"></i>
             </button>
-        </div>
+            </div>
         <ul class="mobile-menu-nav">
             <li><a href="index.php">Home</a></li>
                     <li class="menu-item-has-children">
                 <a href="#" class="mobile-menu-toggle">Destinations</a>
                 <div class="mobile-submenu">
                     <?php
-                    // Reuse the same data for mobile menu
-                    foreach ($menuDestinations as $destination): 
+                    // Find India and separate it from other destinations (for mobile menu)
+                    $mobileIndiaDestination = null;
+                    $mobileOtherDestinations = [];
+                    
+                    foreach ($menuDestinations as $destination) {
+                        if (strtoupper(trim($destination['name'])) === 'INDIA') {
+                            $mobileIndiaDestination = $destination;
+                        } else {
+                            $mobileOtherDestinations[] = $destination;
+                        }
+                    }
+                    
+                    // If India is not found exactly, try a more flexible approach
+                    if ($mobileIndiaDestination === null) {
+                        foreach ($menuDestinations as $destination) {
+                            if (stripos($destination['name'], 'INDIA') !== false) {
+                                $mobileIndiaDestination = $destination;
+                                break;
+                            }
+                        }
+                        
+                        // If still no India found, use the destination with most resorts
+                        if ($mobileIndiaDestination === null && !empty($mobileOtherDestinations)) {
+                            usort($menuDestinations, function($a, $b) {
+                                return count($b['resorts']) - count($a['resorts']);
+                            });
+                            $mobileIndiaDestination = $menuDestinations[0];
+                            
+                            // Remove it from other destinations to avoid duplication
+                            foreach ($mobileOtherDestinations as $key => $dest) {
+                                if ($dest['id'] === $mobileIndiaDestination['id']) {
+                                    unset($mobileOtherDestinations[$key]);
+                                    break;
+                                }
+                            }
+                            $mobileOtherDestinations = array_values($mobileOtherDestinations);
+                        }
+                    }
+                    
+                    // Sort other destinations by number of resorts (descending)
+                    usort($mobileOtherDestinations, function($a, $b) {
+                        return count($b['resorts']) - count($a['resorts']);
+                    });
+                    
+                    // Display India first
+                    if ($mobileIndiaDestination): 
                     ?>
                         <div class="destination-section">
                             <h3 class="destination-title">
-                               
+                                <?php echo htmlspecialchars($mobileIndiaDestination['name']); ?>
+                            </h3>
+                            <ul class="resort-list">
+                                <?php foreach ($mobileIndiaDestination['resorts'] as $resort): 
+                                    $isActive = ($resort['slug'] === $menuCurrentSlug);
+                                ?>
+                                    <li class="resort-item">
+                                        <a href="<?php echo $base_url; ?>/<?php echo htmlspecialchars($resort['slug']); ?>.php" 
+                                           class="resort-link <?php echo $isActive ? 'active' : ''; ?>">
+                                            <?php 
+                                            // Add debug comment
+                                            // echo "<!-- Resort: " . htmlspecialchars($resort['name']) . " -->";
+                                            
+                                            // Check if this is a partner hotel
+                                            $resortName = $resort['name'];
+                                            $isPartner = (stripos($resortName, 'Partner Hotel') !== false);
+                                            
+                                            // Clean up the resort name
+                                            $resortName = str_replace('(Partner Hotel)', '', $resortName);
+                                            $resortName = str_replace('Partner Hotel', '', $resortName);
+                                            
+                                            // Extract location if it exists (after the comma)
+                                            $location = '';
+                                            if (strpos($resortName, ',') !== false) {
+                                                list($resortName, $location) = explode(',', $resortName, 2);
+                                            }
+                                            ?>
+                                                <?php 
+                                                    echo htmlspecialchars(trim($resortName));
+                                                    
+                                                    // Directly output partner hotel text if this is a partner hotel
+                                                    if ($isPartner) {
+                                                        echo ' <span style="color:#B4975A; font-style:italic;">(Partner Hotel)</span>';
+                                                    }
+                                                    
+                                                    if ($location) {
+                                                        echo ' <span class="location">' . htmlspecialchars(trim($location)) . '</span>';
+                                                    }
+                                                ?>
+                                            </a>
+                                    </li>
+                                <?php endforeach; ?>
+                            </ul>
+                        </div>
+                    <?php endif; ?>
+                    
+                    <!-- Display other destinations -->
+                    <?php foreach ($mobileOtherDestinations as $destination): ?>
+                        <div class="destination-section">
+                            <h3 class="destination-title">
                                 <?php echo htmlspecialchars($destination['name']); ?>
                             </h3>
                             <ul class="resort-list">
@@ -684,16 +833,45 @@
                                     $isActive = ($resort['slug'] === $menuCurrentSlug);
                                 ?>
                                     <li class="resort-item">
-                                        <a href="<?php echo $resort['slug']; ?>.php" 
+                                        <a href="<?php echo $base_url; ?>/<?php echo htmlspecialchars($resort['slug']); ?>.php" 
                                            class="resort-link <?php echo $isActive ? 'active' : ''; ?>">
-                                            <?php echo htmlspecialchars($resort['name']); ?>
-                                        </a>
-                    </li>
+                                            <?php 
+                                            // Add debug comment
+                                            // echo "<!-- Resort: " . htmlspecialchars($resort['name']) . " -->";
+                                            
+                                            // Check if this is a partner hotel
+                                            $resortName = $resort['name'];
+                                            $isPartner = (stripos($resortName, 'Partner Hotel') !== false);
+                                            
+                                            // Clean up the resort name
+                                            $resortName = str_replace('(Partner Hotel)', '', $resortName);
+                                            $resortName = str_replace('Partner Hotel', '', $resortName);
+                                            
+                                            // Extract location if it exists (after the comma)
+                                            $location = '';
+                                            if (strpos($resortName, ',') !== false) {
+                                                list($resortName, $location) = explode(',', $resortName, 2);
+                                            }
+                                            ?>
+                                                <?php 
+                                                    echo htmlspecialchars(trim($resortName));
+                                                    
+                                                    // Directly output partner hotel text if this is a partner hotel
+                                                    if ($isPartner) {
+                                                        echo ' <span style="color:#B4975A; font-style:italic;">(Partner Hotel)</span>';
+                                                    }
+                                                    
+                                                    if ($location) {
+                                                        echo ' <span class="location">' . htmlspecialchars(trim($location)) . '</span>';
+                                                    }
+                                                ?>
+                                            </a>
+                                    </li>
                                 <?php endforeach; ?>
-                </ul>
-            </div>
+                            </ul>
+                        </div>
                     <?php endforeach; ?>
-        </div>
+                </div>
             </li>
             <li><a href="about.php">About Us</a></li>
             <li><a href="Blogs.php">Our Blogs</a></li>
@@ -718,43 +896,191 @@
                                         <div class="mega-menu">
                                             <div class="container">
                                                 <div class="destinations-wrapper">
-                                                    <?php 
-                                                    // Sort destinations by number of resorts (descending)
-                                                    usort($menuDestinations, function($a, $b) {
+                                                    <?php
+                                                    // Find India and separate it from other destinations
+                                                    $indiaDestination = null;
+                                                    $otherDestinations = [];
+                                                    
+                                                    foreach ($menuDestinations as $destination) {
+                                                        if (strtoupper(trim($destination['name'])) === 'INDIA') {
+                                                            $indiaDestination = $destination;
+                                                        } else {
+                                                            $otherDestinations[] = $destination;
+                                                        }
+                                                    }
+                                                    
+                                                    // Debug output to check if India is found
+                                                    if ($indiaDestination === null) {
+                                                        // If India is not found exactly, try a more flexible approach
+                                                        foreach ($menuDestinations as $destination) {
+                                                            if (stripos($destination['name'], 'INDIA') !== false) {
+                                                                $indiaDestination = $destination;
+                                                                break;
+                                                            }
+                                                        }
+                                                        
+                                                        // If still no India found, use the destination with most resorts
+                                                        if ($indiaDestination === null && !empty($otherDestinations)) {
+                                                            // Sort to get the destination with most resorts
+                                                            usort($menuDestinations, function($a, $b) {
+                                                                return count($b['resorts']) - count($a['resorts']);
+                                                            });
+                                                            $indiaDestination = $menuDestinations[0];
+                                                            
+                                                            // Remove it from other destinations to avoid duplication
+                                                            foreach ($otherDestinations as $key => $dest) {
+                                                                if ($dest['id'] === $indiaDestination['id']) {
+                                                                    unset($otherDestinations[$key]);
+                                                                    break;
+                                                                }
+                                                            }
+                                                            $otherDestinations = array_values($otherDestinations); // Reset array keys
+                                                        }
+                                                    }
+                                                    
+                                                    // Sort other destinations by number of resorts (descending)
+                                                    usort($otherDestinations, function($a, $b) {
                                                         return count($b['resorts']) - count($a['resorts']);
                                                     });
 
-                                                    foreach ($menuDestinations as $destination): 
-                                                        $resortCount = count($destination['resorts']);
+                                                    // Create the column structure
                                                     ?>
-                                                        <div class="destination-section">
-                                                            <h3 class="destination-title">
-                                                                <?php echo htmlspecialchars($destination['name']); ?>
-                                                                <span class="resort-count">(<?php echo $resortCount; ?> <?php echo $resortCount === 1 ? 'Resort' : 'Resorts'; ?>)</span>
-                                                            </h3>
-                                                            <div class="resort-list">
-                                                                <?php 
-                                                                foreach ($destination['resorts'] as $resort): 
-                                                                    $isPartner = stripos($resort['name'], 'Partner Hotel') !== false;
-                                                                    $resortName = $isPartner ? str_replace('(Partner Hotel)', '', $resort['name']) : $resort['name'];
-                                                                    
-                                                                    // Extract location if it exists (after the comma)
-                                                                    $location = '';
-                                                                    if (strpos($resortName, ',') !== false) {
-                                                                        list($resortName, $location) = explode(',', $resortName, 2);
-                                                                    }
-                                                                ?>
-                                                                    <a href="<?php echo $base_url; ?>/resorts/<?php echo htmlspecialchars($resort['slug']); ?>" 
-                                                                       class="resort-link <?php echo ($resort['slug'] === $menuCurrentSlug) ? 'active' : ''; ?> <?php echo $isPartner ? 'partner' : ''; ?>">
-                                                                        <?php echo htmlspecialchars(trim($resortName)); ?>
-                                                                        <?php if ($location): ?>
-                                                                            <span class="location"><?php echo htmlspecialchars(trim($location)); ?></span>
-                                                                        <?php endif; ?>
-                                                                    </a>
-                                                                <?php endforeach; ?>
+                                                    <!-- First Column (India) -->
+                                                    <div class="menu-column">
+                                                        <?php if ($indiaDestination): 
+                                                            $resortCount = count($indiaDestination['resorts']);
+                                                        ?>
+                                                            <div class="destination-section">
+                                                                <h3 class="destination-title">
+                                                                    <?php echo htmlspecialchars($indiaDestination['name']); ?>
+                                                                    <span class="resort-count">(<?php echo $resortCount; ?> <?php echo $resortCount === 1 ? 'Resort' : 'Resorts'; ?>)</span>
+                                                                </h3>
+                                                                <div class="resort-list">
+                                                                    <?php 
+                                                                    foreach ($indiaDestination['resorts'] as $resort):
+                                                                        // Add debug comment
+                                                                        // echo "<!-- Resort: " . htmlspecialchars($resort['name']) . " -->";
+                                                                        
+                                                                        // Check if this is a partner hotel
+                                                                        $resortName = $resort['name'];
+                                                                        $isPartner = (stripos($resortName, 'Partner Hotel') !== false);
+                                                                        
+                                                                        // Clean up the resort name
+                                                                        $resortName = str_replace('(Partner Hotel)', '', $resortName);
+                                                                        $resortName = str_replace('Partner Hotel', '', $resortName);
+                                                                        
+                                                                        // Extract location if it exists (after the comma)
+                                                                        $location = '';
+                                                                        if (strpos($resortName, ',') !== false) {
+                                                                            list($resortName, $location) = explode(',', $resortName, 2);
+                                                                        }
+                                                                    ?>
+                                                                        <a href="<?php echo $base_url; ?>/<?php echo htmlspecialchars($resort['slug']); ?>.php" 
+                                                                           class="resort-link <?php echo ($resort['slug'] === $menuCurrentSlug) ? 'active' : ''; ?>">
+                                                                            <?php 
+                                                                                echo htmlspecialchars(trim($resortName));
+                                                                                
+                                                                                // Directly output partner hotel text if this is a partner hotel
+                                                                                if ($isPartner) {
+                                                                                    echo ' <span style="color:#B4975A; font-style:italic;">(Partner Hotel)</span>';
+                                                                                }
+                                                                                
+                                                                                if ($location) {
+                                                                                    echo ' <span class="location">' . htmlspecialchars(trim($location)) . '</span>';
+                                                                                }
+                                                                            ?>
+                                                                        </a>
+                                                                    <?php endforeach; ?>
+                                                                </div>
                                                             </div>
+                                                        <?php endif; ?>
+                                                    </div>
+
+                                                    <?php
+                                                    // Calculate destinations per column for the other 3 columns
+                                                    $otherCount = count($otherDestinations);
+                                                    
+                                                    // Custom distribution logic to ensure better column layout
+                                                    $customColumns = [[], [], []];
+                                                    $colIndex = 0;
+                                                    $colHeight = [0, 0, 0]; // Track approximate "height" of each column
+                                                    
+                                                    foreach ($otherDestinations as $destination) {
+                                                        $resortCount = count($destination['resorts']);
+                                                        $weight = $resortCount * 0.5 + 1; // Each resort adds weight, plus base weight for section
+                                                        
+                                                        // Special case for Cambodia - force it to column 1 (second column)
+                                                        if (strtoupper(trim($destination['name'])) === 'CAMBODIA') {
+                                                            $customColumns[1][] = $destination;
+                                                            $colHeight[1] += $weight;
+                                                            continue;
+                                                        }
+                                                        
+                                                        // Find the column with the least height
+                                                        $minHeight = min($colHeight);
+                                                        $colIndex = array_search($minHeight, $colHeight);
+                                                        
+                                                        // Add destination to this column
+                                                        $customColumns[$colIndex][] = $destination;
+                                                        $colHeight[$colIndex] += $weight;
+                                                    }
+                                                    
+                                                    // Create other columns with custom distributed destinations
+                                                    for ($i = 0; $i < 3; $i++):
+                                                        $columnDestinations = $customColumns[$i];
+                                                        
+                                                        if (empty($columnDestinations)) continue;
+                                                    ?>
+                                                        <div class="menu-column">
+                                                            <?php foreach ($columnDestinations as $destination): 
+                                                                $resortCount = count($destination['resorts']);
+                                                            ?>
+                                                                <div class="destination-section">
+                                                                    <h3 class="destination-title">
+                                                                        <?php echo htmlspecialchars($destination['name']); ?>
+                                                                        <span class="resort-count">(<?php echo $resortCount; ?> <?php echo $resortCount === 1 ? 'Resort' : 'Resorts'; ?>)</span>
+                                                                    </h3>
+                                                                    <div class="resort-list">
+                                                                        <?php 
+                                                                        foreach ($destination['resorts'] as $resort):
+                                                                            // Add debug comment
+                                                                            // echo "<!-- Resort: " . htmlspecialchars($resort['name']) . " -->";
+                                                                            
+                                                                            // Check if this is a partner hotel
+                                                                            $resortName = $resort['name'];
+                                                                            $isPartner = (stripos($resortName, 'Partner Hotel') !== false);
+                                                                            
+                                                                            // Clean up the resort name
+                                                                            $resortName = str_replace('(Partner Hotel)', '', $resortName);
+                                                                            $resortName = str_replace('Partner Hotel', '', $resortName);
+                                                                            
+                                                                            // Extract location if it exists (after the comma)
+                                                                            $location = '';
+                                                                            if (strpos($resortName, ',') !== false) {
+                                                                                list($resortName, $location) = explode(',', $resortName, 2);
+                                                                            }
+                                                                        ?>
+                                                                            <a href="<?php echo $base_url; ?>/<?php echo htmlspecialchars($resort['slug']); ?>.php" 
+                                                                               class="resort-link <?php echo ($resort['slug'] === $menuCurrentSlug) ? 'active' : ''; ?>">
+                                                                                <?php 
+                                                                                    echo htmlspecialchars(trim($resortName));
+                                                                                    
+                                                                                    // Directly output partner hotel text if this is a partner hotel
+                                                                                    if ($isPartner) {
+                                                                                        echo ' <span style="color:#B4975A; font-style:italic;">(Partner Hotel)</span>';
+                                                                                    }
+                                                                                    
+                                                                                    if ($location) {
+                                                                                        echo ' <span class="location">' . htmlspecialchars(trim($location)) . '</span>';
+                                                                                    }
+                                                                                ?>
+                                                                            </a>
+                                                                        <?php endforeach; ?>
+                                                                </div>
                                                         </div>
                                                     <?php endforeach; ?>
+                                                        </div>
+                                                    <?php endfor; ?>
                                                 </div>
                                             </div>
                                         </div>

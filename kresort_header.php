@@ -198,193 +198,171 @@ if (!isset($pdo)) {
     }
 
     /* Mobile Menu Styles */
-    .th-mobile-menu {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: -100%;
-        width: 90%;
-        max-width: 350px;
-        height: 100%;
-        background: white;
-        z-index: 9999;
-        overflow-y: auto;
-        padding: 2rem;
-        transition: left 0.3s ease;
-        box-shadow: 0 0 30px rgba(0, 0, 0, 0.1);
-    }
-
-    .th-mobile-menu.active {
-        left: 0;
-        display: block;
-    }
-
     .mobile-menu-overlay {
         position: fixed;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(0, 0, 0, 0.7);
-        z-index: 9998;
+        background: rgba(0, 0, 0, 0.5);
         opacity: 0;
         visibility: hidden;
         transition: all 0.3s ease;
+        z-index: 9998;
     }
-
+    
     .mobile-menu-overlay.active {
         opacity: 1;
         visibility: visible;
     }
-
+    
+    .th-mobile-menu {
+        position: fixed;
+        top: 0;
+        left: -320px;
+        width: 320px;
+        height: 100%;
+        background: #fff;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        z-index: 9999;
+        overflow-y: auto;
+        transition: all 0.3s ease;
+        padding: 20px;
+    }
+    
+    .th-mobile-menu.active {
+        left: 0;
+    }
+    
+    .mobile-menu-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-bottom: 20px;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+    }
+    
     .mobile-menu-close {
-        position: absolute;
-        top: 20px;
-        right: 20px;
         background: none;
         border: none;
         font-size: 20px;
-        color: #333;
         cursor: pointer;
+        color: #B4975A;
+        transition: all 0.3s ease;
     }
-
-    .mobile-menu-logo {
-        margin-bottom: 2rem;
+    
+    .mobile-menu-close:hover {
+        transform: rotate(90deg);
     }
-
-    .mobile-menu-logo img {
-        max-height: 40px;
-    }
-
+    
     .mobile-menu-nav {
-        margin-top: 2rem;
-    }
-
-    .mobile-menu-nav ul {
         list-style: none;
         padding: 0;
         margin: 0;
     }
-
-    .mobile-menu-nav ul li {
-        padding: 0.5rem 0;
-        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    
+    .mobile-menu-nav > li {
+        margin-bottom: 15px;
     }
-
-    .mobile-menu-nav ul li a {
-        color: #333;
-        text-decoration: none;
-        font-size: 1rem;
-        font-weight: 500;
+    
+    .mobile-menu-nav > li > a {
         display: block;
-        padding: 0.75rem 0;
+        color: #333;
+        font-size: 16px;
+        font-weight: 500;
+        text-decoration: none;
+        padding: 10px 0;
         transition: all 0.3s ease;
     }
-
-    .mobile-menu-nav ul li a:hover {
+    
+    .mobile-menu-nav > li > a:hover {
         color: #B4975A;
     }
     
-    /* Dropdown styling */
-    .mobile-menu-nav .has-dropdown {
-        position: relative;
-    }
-    
-    .mobile-menu-nav .has-dropdown > a {
+    .mobile-menu-toggle {
         display: flex;
         justify-content: space-between;
         align-items: center;
+        position: relative;
     }
     
-    .mobile-menu-nav .has-dropdown > a:after {
+    .mobile-menu-toggle::after {
         content: '\f107';
         font-family: "Font Awesome 5 Pro", "Font Awesome 5 Free";
         font-weight: 900;
         transition: transform 0.3s ease;
     }
     
-    .mobile-menu-nav .has-dropdown.active > a:after {
+    .mobile-menu-toggle.active::after {
         transform: rotate(180deg);
     }
     
-    .mobile-menu-nav .dropdown-menu {
+    .mobile-submenu {
         display: none;
-        padding-left: 1rem;
-        margin-top: 0.5rem;
-        width: 100%;
-        max-width: 100%;
+        padding: 10px 0;
     }
     
-    .mobile-menu-nav .dropdown-menu.active {
+    .mobile-submenu.active {
         display: block;
     }
     
-    .mobile-menu-nav .dropdown-menu .destination-label {
-        display: flex;
-        align-items: center;
+    .mobile-submenu .destination-section {
+        background: #f9f9f9;
+        padding: 15px;
+        margin-bottom: 15px;
+        border-radius: 5px;
+        width: 100%;
+    }
+    
+    .mobile-submenu .destination-title {
+        font-size: 15px;
         font-weight: 600;
         color: #B4975A;
-        margin: 0.75rem 0 0.5rem;
-        padding-bottom: 0.25rem;
-        border-bottom: 1px dashed rgba(180, 151, 90, 0.3);
+        margin-bottom: 10px;
+        padding-bottom: 5px;
+        border-bottom: 1px solid rgba(180, 151, 90, 0.2);
     }
     
-    .mobile-menu-nav .dropdown-menu .destination-label i {
-        margin-right: 0.5rem;
-        font-size: 0.9rem;
+    .mobile-submenu .resort-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
     }
     
-    .mobile-menu-nav .dropdown-menu ul {
-        padding-left: 1rem;
-        margin-bottom: 1rem;
-        width: 100%;
+    .mobile-submenu .resort-item {
+        margin-bottom: 5px;
     }
     
-    .mobile-menu-nav .dropdown-menu ul li {
-        border-bottom: none;
-        padding: 0.25rem 0;
-        width: 100%;
-    }
-    
-    .mobile-menu-nav .dropdown-menu ul li a {
-        font-size: 0.95rem;
-        padding: 0.5rem 0;
+    .mobile-submenu .resort-link {
+        display: block;
+        color: #555;
+        font-size: 14px;
+        text-decoration: none;
+        padding: 5px 0;
+        transition: all 0.3s ease;
         white-space: normal;
-        word-wrap: break-word;
-        width: 100%;
-        display: inline-block;
+        line-height: 1.4;
     }
-
-    @media (max-width: 1199px) {
+    
+    .mobile-submenu .resort-link:hover {
+        color: #B4975A;
+        padding-left: 5px;
+    }
+    
+    .mobile-submenu .resort-link .location {
+        color: #999;
+        font-size: 12px;
+        margin-left: 5px;
+    }
+    
+    @media (max-width: 991px) {
         .main-menu {
             display: none;
         }
         
         .th-menu-toggle {
             display: flex !important;
-        }
-        
-        .col-auto {
-            width: auto;
-            flex: 0 0 auto;
-        }
-        
-        .col-auto.d-none.d-xl-block {
-            display: none !important;
-        }
-        
-        .header-right-flex {
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-        }
-        
-        .ml-3 {
-            margin-left: 0.75rem;
-        }
-        
-        .ml-4 {
-            margin-left: 1rem;
         }
     }
 
@@ -509,22 +487,20 @@ if (!isset($pdo)) {
         transform: rotate(-180deg);
     }
 
-    /* Mega Menu Styles */
+    /* Enhanced Modern Mega Menu Styles */
     .mega-menu {
         position: fixed;
         top: 80px;
         left: 0;
         width: 100%;
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.99) 0%, rgba(255, 255, 255, 0.97) 100%);
-        backdrop-filter: blur(20px);
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        background: #fff;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
         opacity: 0;
         visibility: hidden;
-        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        transition: all 0.3s ease;
         z-index: 1000;
         padding: 40px 0;
         transform: translateY(-10px);
-        border-top: 1px solid rgba(180, 151, 90, 0.1);
     }
 
     .menu-item-has-children:hover .mega-menu {
@@ -534,96 +510,145 @@ if (!isset($pdo)) {
     }
 
     .mega-menu .container {
-        max-width: 1200px;
+        max-width: 1400px;
         margin: 0 auto;
-        padding: 0 30px;
+        padding: 0 40px;
     }
 
-    .mega-menu .row {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 30px;
-        margin: 0;
+    /* Flex Layout */
+    .mega-menu .destinations-wrapper {
+        display: flex;
+        flex-wrap: wrap;
+    }
+    
+    /* Column structure */
+    .mega-menu .menu-column {
+        flex: 1;
+        min-width: 0;
+        padding: 0 15px;
+    }
+    
+    /* First column (India) is fixed */
+    .mega-menu .menu-column:first-child {
+        flex: 0 0 25%;
+    }
+    
+    /* Other columns share remaining space */
+    .mega-menu .menu-column:not(:first-child) {
+        flex: 1 0 0%;
     }
 
     .mega-menu .destination-section {
-        position: relative;
-        padding: 25px;
-        background: none;
-        border-radius: 16px;
-        transition: all 0.3s ease;
-        overflow: hidden;
-        border: 1px solid rgba(180, 151, 90, 0.1);
-        min-width: 250px;
-        width: 100%;
+        background: #fff;
+        padding: 5px;
+        margin-bottom: 20px;
     }
-
-    .mega-menu .destination-section:hover {
-        transform: translateY(-5px);
-        background: rgba(255, 255, 255, 0.9);
-        box-shadow: 0 15px 30px rgba(180, 151, 90, 0.1);
-        border-color: rgba(180, 151, 90, 0.2);
-    }
-
+    
     .mega-menu .destination-title {
-        font-size: 1.1rem;
-        font-weight: 600;
         color: #B4975A;
-        margin-bottom: 25px;
-        padding-bottom: 15px;
+        font-size: 15px;
+        font-weight: 600;
+        margin-bottom: 12px;
+        padding-bottom: 8px;
         text-transform: uppercase;
-        letter-spacing: 1.5px;
-        border-bottom: 1px solid rgba(180, 151, 90, 0.2);
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid #eee;
         position: relative;
         display: flex;
         align-items: center;
-        gap: 10px;
+        justify-content: space-between;
     }
 
     .mega-menu .destination-title::before {
-        content: '\f3c5';
-        font-family: "Font Awesome 5 Pro", "Font Awesome 5 Free";
-        font-weight: 900;
-        font-size: 16px;
-       
+        content: '';
+        position: absolute;
+        left: 0;
+        bottom: -1px;
+        width: 40px;
+        height: 2px;
+        background: #B4975A;
+    }
+
+    .mega-menu .resort-count {
+        font-size: 12px;
+        color: #999;
+        font-weight: normal;
+        text-transform: none;
     }
 
     .mega-menu .resort-list {
-        padding: 0;
-        list-style: none;
-        margin: 0;
-        position: relative;
-        width: 100%;
-    }
-
-    .mega-menu .resort-item {
-        margin-bottom: 12px;
-        position: relative;
-        transform: translateX(0);
-        transition: transform 0.3s ease;
-        width: 100%;
-            background: none !important;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
     }
 
     .mega-menu .resort-link {
-        color: #555;
+        color: #666;
+        font-size: 13px;
         text-decoration: none;
-        font-size: 0.95rem;
-        padding: 0; /* Remove padding */
-        display: inline-block; /* Ensure it appears as normal text */
-        font-weight: 500;
-        background: transparent !important;
-        white-space: normal;
-        word-wrap: break-word;
-        width: 100%;
-        line-height: 1.4;
-        border: none; /* Remove any border */
-        box-shadow: none !important; /* Remove any shadow */
+        transition: all 0.2s ease;
+        display: block;
+        padding: 4px 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .mega-menu .resort-link:hover {
         color: #B4975A;
-        background: none !important; /* Ensure no background on hover */
+        padding-left: 8px;
+    }
+
+    .mega-menu .resort-link .location {
+        color: #999;
+        font-size: 11px;
+        margin-left: 4px;
+    }
+
+    /* Partner Hotel Style */
+    .mega-menu .resort-link .partner-label,
+    .mobile-submenu .resort-link .partner-label {
+        font-size: 12px;
+        color: #B4975A;
+        font-style: italic;
+        margin-left: 6px;
+        font-weight: 500;
+        display: inline-block;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1400px) {
+        .mega-menu .menu-column {
+            padding: 0 10px;
+        }
+        .mega-menu .menu-column:first-child {
+            flex: 0 0 25%;
+        }
+    }
+
+    @media (max-width: 1200px) {
+        .mega-menu .menu-column {
+            flex: 0 0 50%;
+            padding: 0 10px;
+        }
+        .mega-menu .menu-column:first-child {
+            flex: 0 0 50%;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .mega-menu .menu-column {
+            flex: 0 0 100%;
+        }
+        .mega-menu .menu-column:first-child {
+            flex: 0 0 100%;
+        }
+        .mega-menu {
+            padding: 30px 0;
+        }
+        .mega-menu .container {
+            padding: 0 20px;
+        }
     }
 
     /* Destination Form Styles */
@@ -809,30 +834,187 @@ if (!isset($pdo)) {
             
             $menuCurrentSlug = _ke_get_current_slug();
             
+            // Find India and separate it from other destinations
+            $indiaDestination = null;
+            $otherDestinations = [];
+            
+            foreach ($menuDestinations as $destination) {
+                if (strtoupper(trim($destination['name'])) === 'INDIA') {
+                    $indiaDestination = $destination;
+                } else {
+                    $otherDestinations[] = $destination;
+                }
+            }
+            
+            // If India is not found exactly, try a more flexible approach
+            if ($indiaDestination === null) {
+                foreach ($menuDestinations as $destination) {
+                    if (stripos($destination['name'], 'INDIA') !== false) {
+                        $indiaDestination = $destination;
+                        break;
+                    }
+                }
+                
+                // If still no India found, use the destination with most resorts
+                if ($indiaDestination === null && !empty($otherDestinations)) {
+                    // Sort to get the destination with most resorts
+                    usort($menuDestinations, function($a, $b) {
+                        return count($b['resorts']) - count($a['resorts']);
+                    });
+                    $indiaDestination = $menuDestinations[0];
+                    
+                    // Remove it from other destinations to avoid duplication
+                    foreach ($otherDestinations as $key => $dest) {
+                        if ($dest['id'] === $indiaDestination['id']) {
+                            unset($otherDestinations[$key]);
+                            break;
+                        }
+                    }
+                    $otherDestinations = array_values($otherDestinations); // Reset array keys
+                }
+            }
+            
+            // Sort other destinations by number of resorts (descending)
+            usort($otherDestinations, function($a, $b) {
+                return count($b['resorts']) - count($a['resorts']);
+            });
+
             if (!empty($menuDestinations)):
             ?>
             <div class="mega-menu">
                 <div class="container">
-                    <div class="row">
-                        <?php foreach ($menuDestinations as $destination): ?>
-                            <div class="destination-section">
-                                <h3 class="destination-title">
-                                    <?php echo htmlspecialchars($destination['name']); ?>
-                                </h3>
-                                <ul class="resort-list">
-                                    <?php foreach ($destination['resorts'] as $resort): 
-                                        $isActive = ($resort['slug'] === $menuCurrentSlug);
-                                    ?>
-                                        <li class="resort-item">
+                    <div class="destinations-wrapper">
+                        <!-- First Column (India) -->
+                        <div class="menu-column">
+                            <?php if ($indiaDestination): 
+                                $resortCount = count($indiaDestination['resorts']);
+                            ?>
+                                <div class="destination-section">
+                                    <h3 class="destination-title">
+                                        <?php echo htmlspecialchars($indiaDestination['name']); ?>
+                                        <span class="resort-count">(<?php echo $resortCount; ?> <?php echo $resortCount === 1 ? 'Resort' : 'Resorts'; ?>)</span>
+                                    </h3>
+                                    <div class="resort-list">
+                                        <?php 
+                                        foreach ($indiaDestination['resorts'] as $resort):
+                                            // Check if this is a partner hotel
+                                            $resortName = $resort['name'];
+                                            $isPartner = (stripos($resortName, 'Partner Hotel') !== false);
+                                            
+                                            // Clean up the resort name
+                                            $resortName = str_replace('(Partner Hotel)', '', $resortName);
+                                            $resortName = str_replace('Partner Hotel', '', $resortName);
+                                            
+                                            // Extract location if it exists (after the comma)
+                                            $location = '';
+                                            if (strpos($resortName, ',') !== false) {
+                                                list($resortName, $location) = explode(',', $resortName, 2);
+                                            }
+                                            
+                                            $isActive = ($resort['slug'] === $menuCurrentSlug);
+                                        ?>
                                             <a href="<?php echo $resort['slug']; ?>.php" 
                                                class="resort-link <?php echo $isActive ? 'active' : ''; ?>">
-                                                <?php echo htmlspecialchars($resort['name']); ?>
+                                                <?php 
+                                                    echo htmlspecialchars(trim($resortName));
+                                                    
+                                                    // Directly output partner hotel text if this is a partner hotel
+                                                    if ($isPartner) {
+                                                        echo ' <span style="color:#B4975A; font-style:italic;">(Partner Hotel)</span>';
+                                                    }
+                                                    
+                                                    if ($location) {
+                                                        echo ' <span class="location">' . htmlspecialchars(trim($location)) . '</span>';
+                                                    }
+                                                ?>
                                             </a>
-                                        </li>
-                                    <?php endforeach; ?>
-                                </ul>
+                                        <?php endforeach; ?>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+
+                        <?php
+                        // Custom distribution logic to ensure better column layout
+                        $customColumns = [[], [], []];
+                        $colIndex = 0;
+                        $colHeight = [0, 0, 0]; // Track approximate "height" of each column
+                        
+                        foreach ($otherDestinations as $destination) {
+                            $resortCount = count($destination['resorts']);
+                            $weight = $resortCount * 0.5 + 1; // Each resort adds weight, plus base weight for section
+                            
+                            // Special case for Cambodia - force it to column 1 (second column)
+                            if (strtoupper(trim($destination['name'])) === 'CAMBODIA') {
+                                $customColumns[1][] = $destination;
+                                $colHeight[1] += $weight;
+                                continue;
+                            }
+                            
+                            // Find the column with the least height
+                            $minHeight = min($colHeight);
+                            $colIndex = array_search($minHeight, $colHeight);
+                            
+                            // Add destination to this column
+                            $customColumns[$colIndex][] = $destination;
+                            $colHeight[$colIndex] += $weight;
+                        }
+                        
+                        // Create other columns with custom distributed destinations
+                        for ($i = 0; $i < 3; $i++):
+                            $columnDestinations = $customColumns[$i];
+                            
+                            if (empty($columnDestinations)) continue;
+                        ?>
+                            <div class="menu-column">
+                                <?php foreach ($columnDestinations as $destination): 
+                                    $resortCount = count($destination['resorts']);
+                                ?>
+                                    <div class="destination-section">
+                                        <h3 class="destination-title">
+                                            <?php echo htmlspecialchars($destination['name']); ?>
+                                            <span class="resort-count">(<?php echo $resortCount; ?> <?php echo $resortCount === 1 ? 'Resort' : 'Resorts'; ?>)</span>
+                                        </h3>
+                                        <div class="resort-list">
+                                            <?php 
+                                            foreach ($destination['resorts'] as $resort):
+                                                // Check if this is a partner hotel
+                                                $resortName = $resort['name'];
+                                                $isPartner = (stripos($resortName, 'Partner Hotel') !== false);
+                                                
+                                                // Clean up the resort name
+                                                $resortName = str_replace('(Partner Hotel)', '', $resortName);
+                                                $resortName = str_replace('Partner Hotel', '', $resortName);
+                                                
+                                                // Extract location if it exists (after the comma)
+                                                $location = '';
+                                                if (strpos($resortName, ',') !== false) {
+                                                    list($resortName, $location) = explode(',', $resortName, 2);
+                                                }
+                                                
+                                                $isActive = ($resort['slug'] === $menuCurrentSlug);
+                                            ?>
+                                                <a href="<?php echo $resort['slug']; ?>.php" 
+                                                   class="resort-link <?php echo $isActive ? 'active' : ''; ?>">
+                                                    <?php 
+                                                        echo htmlspecialchars(trim($resortName));
+                                                        
+                                                        // Directly output partner hotel text if this is a partner hotel
+                                                        if ($isPartner) {
+                                                            echo ' <span style="color:#B4975A; font-style:italic;">(Partner Hotel)</span>';
+                                                        }
+                                                        
+                                                        if ($location) {
+                                                            echo ' <span class="location">' . htmlspecialchars(trim($location)) . '</span>';
+                                                        }
+                                                    ?>
+                                                </a>
+                                            <?php endforeach; ?>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
                             </div>
-                        <?php endforeach; ?>
+                        <?php endfor; ?>
                     </div>
                 </div>
             </div>
@@ -854,6 +1036,51 @@ if (!isset($pdo)) {
             ob_start();
             
             $menuDestinations = _ke_get_menu_destinations();
+            $menuCurrentSlug = _ke_get_current_slug();
+            
+            // Find India and separate it from other destinations (for mobile menu)
+            $mobileIndiaDestination = null;
+            $mobileOtherDestinations = [];
+            
+            foreach ($menuDestinations as $destination) {
+                if (strtoupper(trim($destination['name'])) === 'INDIA') {
+                    $mobileIndiaDestination = $destination;
+                } else {
+                    $mobileOtherDestinations[] = $destination;
+                }
+            }
+            
+            // If India is not found exactly, try a more flexible approach
+            if ($mobileIndiaDestination === null) {
+                foreach ($menuDestinations as $destination) {
+                    if (stripos($destination['name'], 'INDIA') !== false) {
+                        $mobileIndiaDestination = $destination;
+                        break;
+                    }
+                }
+                
+                // If still no India found, use the destination with most resorts
+                if ($mobileIndiaDestination === null && !empty($mobileOtherDestinations)) {
+                    usort($menuDestinations, function($a, $b) {
+                        return count($b['resorts']) - count($a['resorts']);
+                    });
+                    $mobileIndiaDestination = $menuDestinations[0];
+                    
+                    // Remove it from other destinations to avoid duplication
+                    foreach ($mobileOtherDestinations as $key => $dest) {
+                        if ($dest['id'] === $mobileIndiaDestination['id']) {
+                            unset($mobileOtherDestinations[$key]);
+                            break;
+                        }
+                    }
+                    $mobileOtherDestinations = array_values($mobileOtherDestinations);
+                }
+            }
+            
+            // Sort other destinations by number of resorts (descending)
+            usort($mobileOtherDestinations, function($a, $b) {
+                return count($b['resorts']) - count($a['resorts']);
+            });
             
             // If no destinations found, render a simplified menu without destinations
             if (empty($menuDestinations)) {
@@ -879,53 +1106,123 @@ if (!isset($pdo)) {
                 <?php
                 return ob_get_clean();
             }
-            
-            $menuCurrentSlug = _ke_get_current_slug();
             ?>
-    <div class="mobile-menu-overlay"></div>
-    <div class="th-mobile-menu">
-        <div class="mobile-menu-header">
-                <a href="index.php">
-                <img src="assets/images/logo/KE-Gold.png" alt="Karma Experience" style="height: 40px;">
-                </a>
-            <button class="mobile-menu-close">
-                <i class="fas fa-times"></i>
-            </button>
-            </div>
-        <ul class="mobile-menu-nav">
-            <li><a href="index.php">Home</a></li>
-                    <li class="has-dropdown">
-                <a href="javascript:void(0);">Destinations</a>
-                <div class="dropdown-menu">
-                    <?php 
-                    if (isset($menuDestinations)) {
-                        foreach ($menuDestinations as $destination): 
-                            if (empty($destination['resorts'])) continue; 
-                    ?>
-                        <div class="destination-label">
-                            <i class="fas fa-map-marker-alt"></i> <?php echo htmlspecialchars($destination['name']); ?>
-                        </div>
-                        <ul>
-                            <?php foreach ($destination['resorts'] as $resort): ?>
-                                <li>
-                                    <a href="<?php echo $resort['slug']; ?>.php">
-                                        <?php echo htmlspecialchars($resort['name']); ?>
-                                    </a>
-                                </li>
-                            <?php endforeach; ?>
-                        </ul>
-                    <?php 
-                        endforeach; 
-                    }
-                    ?>
+            <div class="mobile-menu-overlay"></div>
+            <div class="th-mobile-menu">
+                <div class="mobile-menu-header">
+                    <a href="index.php">
+                        <img src="assets/images/logo/KE-Gold.png" alt="Karma Experience" style="height: 40px;">
+                    </a>
+                    <button class="mobile-menu-close">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
-            </li>
-            <li><a href="about.php">About Us</a></li>
+                <ul class="mobile-menu-nav">
+                    <li><a href="index.php">Home</a></li>
+                    <li class="menu-item-has-children">
+                        <a href="#" class="mobile-menu-toggle">Destinations</a>
+                        <div class="mobile-submenu">
+                            <!-- Display India first -->
+                            <?php if ($mobileIndiaDestination): ?>
+                                <div class="destination-section">
+                                    <h3 class="destination-title">
+                                        <?php echo htmlspecialchars($mobileIndiaDestination['name']); ?>
+                                    </h3>
+                                    <ul class="resort-list">
+                                        <?php foreach ($mobileIndiaDestination['resorts'] as $resort): 
+                                            $isActive = ($resort['slug'] === $menuCurrentSlug);
+                                        ?>
+                                            <li class="resort-item">
+                                                <a href="<?php echo $resort['slug']; ?>.php" 
+                                                   class="resort-link <?php echo $isActive ? 'active' : ''; ?>">
+                                                    <?php 
+                                                    // Check if this is a partner hotel
+                                                    $resortName = $resort['name'];
+                                                    $isPartner = (stripos($resortName, 'Partner Hotel') !== false);
+                                                    
+                                                    // Clean up the resort name
+                                                    $resortName = str_replace('(Partner Hotel)', '', $resortName);
+                                                    $resortName = str_replace('Partner Hotel', '', $resortName);
+                                                    
+                                                    // Extract location if it exists (after the comma)
+                                                    $location = '';
+                                                    if (strpos($resortName, ',') !== false) {
+                                                        list($resortName, $location) = explode(',', $resortName, 2);
+                                                    }
+                                                    ?>
+                                                    <?php 
+                                                        echo htmlspecialchars(trim($resortName));
+                                                        
+                                                        // Directly output partner hotel text if this is a partner hotel
+                                                        if ($isPartner) {
+                                                            echo ' <span style="color:#B4975A; font-style:italic;">(Partner Hotel)</span>';
+                                                        }
+                                                        
+                                                        if ($location) {
+                                                            echo ' <span class="location">' . htmlspecialchars(trim($location)) . '</span>';
+                                                        }
+                                                    ?>
+                                                </a>
+                                            </li>
+                                        <?php endforeach; ?>
+                                    </ul>
+                                </div>
+                            <?php endif; ?>
+                            
+                            <!-- Display other destinations -->
+                            <?php foreach ($mobileOtherDestinations as $destination): ?>
+                                <div class="destination-section">
+                                    <h3 class="destination-title">
+                                        <?php echo htmlspecialchars($destination['name']); ?>
+                                    </h3>
+                                    <ul class="resort-list">
+                                        <?php foreach ($destination['resorts'] as $resort): 
+                                            $isActive = ($resort['slug'] === $menuCurrentSlug);
+                                        ?>
+                                            <li class="resort-item">
+                                                <a href="<?php echo $resort['slug']; ?>.php" 
+                                                   class="resort-link <?php echo $isActive ? 'active' : ''; ?>">
+                                                    <?php 
+                                                    // Check if this is a partner hotel
+                                                    $resortName = $resort['name'];
+                                                    $isPartner = (stripos($resortName, 'Partner Hotel') !== false);
+                                                    
+                                                    // Clean up the resort name
+                                                    $resortName = str_replace('(Partner Hotel)', '', $resortName);
+                                                    $resortName = str_replace('Partner Hotel', '', $resortName);
+                                                    
+                                                    // Extract location if it exists (after the comma)
+                                                    $location = '';
+                                                    if (strpos($resortName, ',') !== false) {
+                                                        list($resortName, $location) = explode(',', $resortName, 2);
+                                                    }
+                                                    ?>
+                                                    <?php 
+                                                        echo htmlspecialchars(trim($resortName));
+                                                        
+                                                        // Directly output partner hotel text if this is a partner hotel
+                                                        if ($isPartner) {
+                                                            echo ' <span style="color:#B4975A; font-style:italic;">(Partner Hotel)</span>';
+                                                        }
+                                                        
+                                                        if ($location) {
+                                                            echo ' <span class="location">' . htmlspecialchars(trim($location)) . '</span>';
+                                                        }
+                                                    ?>
+                                                </a>
+                                            </li>
+                                        <?php endforeach; ?>
+                                    </ul>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </li>
+                    <li><a href="about.php">About Us</a></li>
                     <li><a href="Blogs.php">Our Blogs</a></li>
-            <li><a href="enquire-now.php">Enquire</a></li>
-            <li><a href="pay-now.php">Pay Now</a></li>
-        </ul>
-    </div>
+                    <li><a href="enquire-now.php">Enquire</a></li>
+                    <li><a href="pay-now.php">Pay Now</a></li>
+                </ul>
+            </div>
             <?php
             
             // Return the captured HTML
@@ -946,7 +1243,7 @@ if (!isset($pdo)) {
     }
     ?>
 
-    <!-- Desktop Header -->
+    <!-- Header HTML -->
     <header class="th-header header-layout3 header-absolute">
         <div class="sticky-wrapper">
             <div class="menu-area">
@@ -958,13 +1255,7 @@ if (!isset($pdo)) {
                                     <li><a href="index.php">Home</a></li>
                                     <li class="menu-item-has-children">
                                         <a href="#">Destinations</a>
-                                                    <?php
-                                        try {
-                                            echo _ke_render_mega_menu(); 
-                                        } catch (Exception $e) {
-                                            error_log("Error rendering mega menu: " . $e->getMessage());
-                                        }
-                                        ?>
+                                        <?php echo _ke_render_mega_menu(); ?>
                                     </li>
                                     <li><a href="about.php">About Us</a></li>
                                 </ul>
@@ -977,20 +1268,21 @@ if (!isset($pdo)) {
                                 </a>
                             </div>
                         </div>
-                        <div class="col-auto d-flex align-items-center">
+                        <div class="col-auto">
                             <nav class="main-menu d-none d-xl-block">
                                 <ul>
                                     <li><a href="Blogs.php">Our Blogs</a></li>
                                     <li><a href="enquire-now.php">Enquire Now</a></li>
-                                    <li class="d-xl-none d-lg-block d-md-block d-sm-block"><a href="pay-now.php">Pay Now</a></li>
                                 </ul>
                             </nav>
-                            <div class="header-button d-none d-xl-flex ml-4">
-                                <a href="pay-now.php" class="th-btn style3 th-icon">Pay Now</a>
-                            </div>
-                            <button type="button" class="th-menu-toggle d-block d-xl-none ml-3">
+                            <button type="button" class="th-menu-toggle d-block d-xl-none">
                                 <i class="fas fa-bars"></i>
                             </button>
+                        </div>
+                        <div class="col-auto d-none d-xl-block">
+                            <div class="header-button">
+                                <a href="pay-now.php" class="th-btn style3">Pay Now</a>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1054,8 +1346,8 @@ if (!isset($pdo)) {
             const mobileMenu = document.querySelector('.th-mobile-menu');
             const mobileMenuClose = document.querySelector('.mobile-menu-close');
             const overlay = document.querySelector('.mobile-menu-overlay');
-            const dropdownToggles = document.querySelectorAll('.mobile-menu-nav .has-dropdown > a');
-
+            const submenuToggles = document.querySelectorAll('.mobile-menu-toggle');
+            
             window.addEventListener('scroll', function() {
                 if (window.scrollY > 50) {
                     header.classList.add('scrolled');
@@ -1064,73 +1356,50 @@ if (!isset($pdo)) {
                 }
             });
 
-            // Mobile menu functions
+            // Function to open mobile menu
             function openMobileMenu() {
                 mobileMenu.classList.add('active');
                 overlay.classList.add('active');
                 document.body.style.overflow = 'hidden';
             }
 
+            // Function to close mobile menu
             function closeMobileMenu() {
                 mobileMenu.classList.remove('active');
                 overlay.classList.remove('active');
                 document.body.style.overflow = '';
-                
-                // Close all dropdowns when closing menu
-                document.querySelectorAll('.mobile-menu-nav .has-dropdown').forEach(item => {
-                    item.classList.remove('active');
-                });
-                document.querySelectorAll('.mobile-menu-nav .dropdown-menu').forEach(menu => {
-                    menu.classList.remove('active');
-                });
             }
 
             // Mobile menu toggle
-            if (menuToggle) {
-                menuToggle.addEventListener('click', openMobileMenu);
-            }
-            
-            if (mobileMenuClose) {
-                mobileMenuClose.addEventListener('click', closeMobileMenu);
-            }
-            
-            if (overlay) {
-                overlay.addEventListener('click', closeMobileMenu);
-            }
+            menuToggle.addEventListener('click', openMobileMenu);
+            mobileMenuClose.addEventListener('click', closeMobileMenu);
+            overlay.addEventListener('click', closeMobileMenu);
 
-            // Handle dropdown toggles
-            if (dropdownToggles) {
-                dropdownToggles.forEach(toggle => {
-                    toggle.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        const parent = this.parentElement;
-                        const dropdown = this.nextElementSibling;
-                        
-                        // Close other dropdowns
-                        document.querySelectorAll('.mobile-menu-nav .has-dropdown').forEach(item => {
-                            if (item !== parent) {
-                                item.classList.remove('active');
-                            }
-                        });
-                        document.querySelectorAll('.mobile-menu-nav .dropdown-menu').forEach(menu => {
-                            if (menu !== dropdown) {
-                                menu.classList.remove('active');
-                            }
-                        });
-                        
-                        // Toggle current dropdown
-                        parent.classList.toggle('active');
-                        dropdown.classList.toggle('active');
+            // Handle submenu toggles
+            submenuToggles.forEach(toggle => {
+                toggle.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const submenu = this.nextElementSibling;
+                    const isActive = submenu.classList.contains('active');
+                    
+                    // Close all other submenus
+                    document.querySelectorAll('.mobile-submenu').forEach(sub => {
+                        if (sub !== submenu) {
+                            sub.classList.remove('active');
+                            sub.previousElementSibling.classList.remove('active');
+                        }
                     });
+                    
+                    // Toggle clicked submenu
+                    submenu.classList.toggle('active');
+                    this.classList.toggle('active');
                 });
-            }
+            });
 
-            // Prevent clicks inside mobile menu from closing the menu
-            if (mobileMenu) {
-                mobileMenu.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                });
-            }
+            // Prevent clicks inside mobile menu from closing it
+            mobileMenu.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
         });
     </script>
 </body>

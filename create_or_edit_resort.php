@@ -90,7 +90,7 @@ if (!$destination_id) {
                     <?php endforeach; ?>
                 </select>
             </div>
-            <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded">Continue</button>
+            <button type="submit" class="px-4 py-2 bg-[#B4975A] hover:bg-[#96793D] text-black rounded transition duration-300 ease-in-out transform hover:-translate-y-0.5">Continue</button>
         </form>
     </div>
     <?php

@@ -228,232 +228,576 @@ $page_title = "Edit Blog Post";
 include 'bheader.php';
 ?>
 
-<!-- Include our new CSS file -->
+<!-- Add essential styling libraries -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+
+<!-- Define CSS variables if not already set in the main CSS -->
+<style>
+/* Clean modern styling for blog editor */
+.blog-card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+
+.blog-card-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid #edf2f7;
+  background-color: #f8fafc;
+}
+
+.blog-card-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+}
+
+.blog-card-header h3 i {
+  margin-right: 10px;
+  color: #b4975a;
+}
+
+.blog-card-body {
+  padding: 20px;
+}
+
+/* Main layout */
+.blog-form {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+}
+
+@media (max-width: 991px) {
+  .blog-form {
+    grid-template-columns: 1fr;
+  }
+}
+
+.blog-form-main, .blog-form-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Form elements */
+.blog-form label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
+  color: #4b5563;
+  font-size: 14px;
+}
+
+.blog-form input,
+.blog-form textarea,
+.blog-form select {
+  width: 100%;
+  padding: 10px 12px;
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.blog-form input:focus,
+.blog-form textarea:focus,
+.blog-form select:focus {
+  outline: none;
+  border-color: #b4975a;
+  box-shadow: 0 0 0 3px rgba(180, 151, 90, 0.1);
+}
+
+.form-hint {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+/* TinyMCE specific styling */
+.tox-tinymce {
+  border-radius: 6px !important;
+}
+
+/* Form section spacing */
+.form-section {
+  margin-bottom: 16px;
+}
+
+.form-section:last-child {
+  margin-bottom: 0;
+}
+
+/* Status toggle */
+.status-options {
+  display: flex;
+  background: #f3f4f6;
+  border-radius: 6px;
+  padding: 3px;
+}
+
+.status-option {
+  flex: 1;
+  padding: 8px 12px;
+  text-align: center;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+}
+
+.status-option.active {
+  background: #b4975a;
+  color: white;
+}
+
+/* Save button */
+.save-button {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  background: #b4975a;
+  color: white;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.save-button:hover {
+  background: #96793d;
+}
+
+/* Image uploader */
+.image-upload-area {
+  border: 2px dashed #d1d5db;
+  border-radius: 6px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.image-upload-area:hover {
+  border-color: #b4975a;
+}
+
+.image-upload-area i {
+  font-size: 24px;
+  color: #9ca3af;
+  margin-bottom: 8px;
+}
+
+.image-upload-area h4 {
+  margin: 0 0 4px 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.image-upload-area p {
+  margin: 0;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.image-preview {
+  margin-top: 12px;
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
+}
+
+.image-preview img {
+  width: 100%;
+  display: block;
+}
+
+.remove-image {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(0,0,0,0.5);
+  border: none;
+  color: white;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+/* Stats section */
+.stats-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.stats-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid #edf2f7;
+}
+
+.stats-list li:last-child {
+  border-bottom: none;
+}
+
+.stats-list i {
+  color: #b4975a;
+  margin-right: 8px;
+}
+
+.stats-badge {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.badge-primary {
+  background-color: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+}
+
+.badge-secondary {
+  background-color: rgba(107, 114, 128, 0.1);
+  color: #6b7280;
+}
+
+.badge-info {
+  background-color: rgba(6, 182, 212, 0.1);
+  color: #06b6d4;
+}
+
+/* Preview section */
+.preview-buttons {
+  display: grid;
+  gap: 8px;
+}
+
+.btn-view {
+  background-color: #10b981;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-preview {
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-view:hover, .btn-preview:hover {
+  filter: brightness(90%);
+}
+</style>
+
+<!-- Include our custom CSS file -->
 <link rel="stylesheet" href="assets/css/admin-blog.css">
 
 <div class="container mt-4">
     <div class="d-flex align-items-center justify-content-between mb-4">
-        <h1 class="mb-0">Edit Blog Post</h1>
-        <a href="admin_blog.php" class="btn btn-secondary">
-            <i class="fas fa-arrow-left me-2"></i> Back to Blog List
-        </a>
+        <h1 class="h3">Edit Blog Post</h1>
+        <div class="d-flex gap-2">
+            <?php if ($post['status'] === 'published'): ?>
+            <a href="blogs/<?php echo htmlspecialchars($post['slug']); ?>" class="btn btn-sm btn-success" target="_blank">
+                <i class="fas fa-eye me-2"></i> View Blog
+            </a>
+            <?php endif; ?>
+            <a href="blogs/<?php echo htmlspecialchars($post['slug']); ?>?preview=true" class="btn btn-sm btn-primary" target="_blank">
+                <i class="fas fa-desktop me-2"></i> Preview Blog
+            </a>
+            <a href="admin_blog.php" class="btn btn-sm btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i> Back to Blog List
+            </a>
+        </div>
     </div>
 
     <?php if (!empty($error_message)): ?>
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <div class="alert alert-danger alert-dismissible fade show py-2" role="alert">
             <?php echo $error_message; ?>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     <?php endif; ?>
 
     <?php if (!empty($success_message)): ?>
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <div class="alert alert-success alert-dismissible fade show py-2" role="alert">
             <?php echo $success_message; ?>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     <?php endif; ?>
 
-    <div class="content-section">
-        <div class="content-section__header">
-            <h2>Post Information</h2>
-        </div>
-        <div class="card-body">
-            <form action="admin_blog_edit.php?id=<?php echo $post_id; ?>" method="POST" enctype="multipart/form-data" class="blog-form">
-                <div class="row">
-                    <div class="col-lg-8">
-                        <div class="form-group mb-3">
-                            <label for="title" class="form-label">Title <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="title" name="title" required
-                                value="<?php echo htmlspecialchars($post['title']); ?>">
-                        </div>
-                        
-                        <div class="form-group mb-3">
-                            <label for="slug" class="form-label">Slug (URL-friendly version of title)</label>
-                            <input type="text" class="form-control" id="slug" name="slug" 
-                                value="<?php echo htmlspecialchars($post['slug']); ?>"
-                                placeholder="Leave blank to auto-generate from title">
-                            <small class="form-text text-muted">
-                                Use lowercase letters, numbers, and hyphens. No spaces or special characters.
-                            </small>
-                        </div>
-                        
-                        <div class="form-group mb-3">
-                            <label for="content" class="form-label">Content <span class="text-danger">*</span></label>
-                            <textarea class="form-control" id="content" name="content" rows="15" required><?php echo htmlspecialchars($post['content']); ?></textarea>
-                        </div>
-                        
-                        <div class="form-group mb-3">
-                            <label for="excerpt" class="form-label">Excerpt</label>
-                            <textarea class="form-control" id="excerpt" name="excerpt" rows="3"><?php echo htmlspecialchars($post['excerpt']); ?></textarea>
-                            <small class="form-text text-muted">
-                                A short summary of your post. If left empty, it will be automatically generated from the content.
-                            </small>
-                        </div>
+    <form action="admin_blog_edit.php?id=<?php echo $post_id; ?>" method="POST" enctype="multipart/form-data" class="blog-form">
+        <!-- Left Column -->
+        <div class="blog-form-main">
+            <!-- Basic Info Card -->
+            <div class="blog-card">
+                <div class="blog-card-header">
+                    <h3><i class="fas fa-edit"></i> Basic Information</h3>
+                </div>
+                <div class="blog-card-body">
+                    <div class="form-section">
+                        <label for="title">Title <span class="text-danger">*</span></label>
+                        <input type="text" id="title" name="title" required
+                            value="<?php echo htmlspecialchars($post['title']); ?>"
+                            placeholder="Enter blog title">
                     </div>
-                    <div class="col-lg-4">
-                        <div class="side-card mb-4">
-                            <div class="side-card-header">
-                                <h5><i class="fas fa-paper-plane me-2"></i>Publishing</h5>
-                            </div>
-                            <div class="side-card-body">
-                                <div class="form-group mb-3">
-                                    <label for="status" class="form-label">Status</label>
-                                    <select class="form-select" id="status" name="status">
-                                        <option value="draft" <?php echo $post['status'] === 'draft' ? 'selected' : ''; ?>>Draft</option>
-                                        <option value="published" <?php echo $post['status'] === 'published' ? 'selected' : ''; ?>>Published</option>
-                                    </select>
-                                </div>
-                                
-                                <?php if ($post['status'] === 'published' && !empty($post['published_at'])): ?>
-                                    <div class="form-group mb-3">
-                                        <label class="form-label">Published Date</label>
-                                        <input type="text" class="form-control" value="<?php echo date('M d, Y \a\t h:i a', strtotime($post['published_at'])); ?>" readonly>
-                                    </div>
-                                <?php endif; ?>
-                                
-                                <div class="mt-3">
-                                    <button type="submit" class="btn btn-primary w-100">
-                                        <i class="fas fa-save me-2"></i> Update Blog Post
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="side-card mb-4">
-                            <div class="side-card-header">
-                                <h5><i class="fas fa-tags me-2"></i>Categories & Tags</h5>
-                            </div>
-                            <div class="side-card-body">
-                                <div class="form-group mb-3">
-                                    <label for="category_id" class="form-label">Category</label>
-                                    <select class="form-select" id="category_id" name="category_id">
-                                        <option value="">-- Select Category --</option>
-                                        <?php
-                                        $categories_result->data_seek(0); // Reset result pointer
-                                        while ($category = $categories_result->fetch_assoc()): 
-                                        ?>
-                                            <option value="<?php echo $category['id']; ?>" <?php echo ($post['category_id'] == $category['id']) ? 'selected' : ''; ?>>
-                                                <?php echo htmlspecialchars($category['name']); ?>
-                                            </option>
-                                        <?php endwhile; ?>
-                                    </select>
-                                </div>
-                                
-                                <div class="form-group mb-3">
-                                    <label for="tags" class="form-label">Tags</label>
-                                    <select class="form-select" id="tags" name="tags[]" multiple>
-                                        <?php
-                                        $tags_result->data_seek(0); // Reset result pointer
-                                        while ($tag = $tags_result->fetch_assoc()): 
-                                        ?>
-                                            <option value="<?php echo $tag['id']; ?>" <?php echo in_array($tag['id'], $selected_tags) ? 'selected' : ''; ?>>
-                                                <?php echo htmlspecialchars($tag['name']); ?>
-                                            </option>
-                                        <?php endwhile; ?>
-                                    </select>
-                                    <small class="form-text text-muted">
-                                        Hold Ctrl (or Cmd on Mac) to select multiple tags.
-                                    </small>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="side-card mb-4">
-                            <div class="side-card-header">
-                                <h5><i class="fas fa-image me-2"></i>Featured Image</h5>
-                            </div>
-                            <div class="side-card-body">
-                                <?php if (!empty($post['featured_image'])): ?>
-                                    <div class="mb-3">
-                                        <label class="form-label">Current Featured Image:</label>
-                                        <div class="text-center">
-                                            <img src="<?php echo htmlspecialchars($post['featured_image']); ?>" alt="Featured Image" class="img-fluid rounded">
-                                        </div>
-                                        <div class="form-check mt-2">
-                                            <input type="checkbox" class="form-check-input" id="remove_featured_image" name="remove_featured_image" value="yes">
-                                            <label class="form-check-label" for="remove_featured_image">Remove featured image</label>
-                                        </div>
-                                    </div>
-                                <?php endif; ?>
-                                
-                                <div class="form-group mb-3">
-                                    <label for="featured_image" class="form-label">Upload New Featured Image</label>
-                                    <input type="file" class="form-control" id="featured_image" name="featured_image" accept="image/*">
-                                    <small class="form-text text-muted">
-                                        Recommended size: 1200x800 pixels. Max size: 5MB.
-                                    </small>
-                                    <div id="image-preview" class="mt-3 text-center" style="display: none;">
-                                        <label class="form-label">New Image Preview:</label>
-                                        <img src="" alt="Image Preview" class="img-fluid rounded">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="side-card mb-4">
-                            <div class="side-card-header">
-                                <h5><i class="fas fa-search me-2"></i>SEO Settings</h5>
-                            </div>
-                            <div class="side-card-body">
-                                <div class="form-group mb-3">
-                                    <label for="meta_title" class="form-label">Meta Title</label>
-                                    <input type="text" class="form-control" id="meta_title" name="meta_title" 
-                                        value="<?php echo htmlspecialchars($post['meta_title']); ?>">
-                                    <small class="form-text text-muted">
-                                        Leave blank to use post title. Recommended length: 50-60 characters.
-                                    </small>
-                                </div>
-                                
-                                <div class="form-group mb-3">
-                                    <label for="meta_description" class="form-label">Meta Description</label>
-                                    <textarea class="form-control" id="meta_description" name="meta_description" rows="3"><?php echo htmlspecialchars($post['meta_description']); ?></textarea>
-                                    <small class="form-text text-muted">
-                                        A brief description of your post for search engines. Recommended length: 150-160 characters.
-                                    </small>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="side-card mb-4">
-                            <div class="side-card-header">
-                                <h5><i class="fas fa-chart-bar me-2"></i>Blog Post Statistics</h5>
-                            </div>
-                            <div class="side-card-body">
-                                <ul class="list-group stats-list">
-                                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                                        <span><i class="fas fa-eye me-2"></i>Views</span>
-                                        <span class="badge bg-primary rounded-pill"><?php echo number_format($post['views']); ?></span>
-                                    </li>
-                                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                                        <span><i class="fas fa-calendar-plus me-2"></i>Created</span>
-                                        <span class="badge bg-secondary rounded-pill"><?php echo date('M d, Y', strtotime($post['created_at'])); ?></span>
-                                    </li>
-                                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                                        <span><i class="fas fa-clock me-2"></i>Last Updated</span>
-                                        <span class="badge bg-info rounded-pill"><?php echo date('M d, Y', strtotime($post['updated_at'])); ?></span>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                        
-                        <div class="side-card mb-4">
-                            <div class="side-card-header">
-                                <h5><i class="fas fa-globe me-2"></i>Preview</h5>
-                            </div>
-                            <div class="side-card-body text-center">
-                                <p>See how your post appears on the front-end:</p>
-                                <a href="blogs/<?php echo htmlspecialchars($post['slug']); ?>" class="btn btn-outline-primary" target="_blank">
-                                    <i class="fas fa-eye me-1"></i> Preview Post
-                                </a>
-                            </div>
+                    
+                    <div class="form-section">
+                        <label for="slug">URL Slug</label>
+                        <input type="text" id="slug" name="slug" 
+                            value="<?php echo htmlspecialchars($post['slug']); ?>"
+                            placeholder="Leave blank to auto-generate from title">
+                        <div class="form-hint">
+                            Use lowercase letters, numbers, and hyphens. No spaces or special characters.
                         </div>
                     </div>
                 </div>
-            </form>
+            </div>
+
+            <!-- Content Card -->
+            <div class="blog-card">
+                <div class="blog-card-header">
+                    <h3><i class="fas fa-paragraph"></i> Content <span class="text-danger">*</span></h3>
+                </div>
+                <div class="blog-card-body">
+                    <textarea id="content" name="content" rows="15" required><?php echo htmlspecialchars($post['content']); ?></textarea>
+                </div>
+            </div>
+
+            <!-- Excerpt Card -->
+            <div class="blog-card">
+                <div class="blog-card-header">
+                    <h3><i class="fas fa-quote-right"></i> Excerpt</h3>
+                </div>
+                <div class="blog-card-body">
+                    <div class="form-section">
+                        <textarea id="excerpt" name="excerpt" rows="3" placeholder="A brief summary of your post"><?php echo htmlspecialchars($post['excerpt']); ?></textarea>
+                        <div class="form-hint">
+                            A short summary of your post. If left empty, it will be generated from the content.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- SEO Card -->
+            <div class="blog-card">
+                <div class="blog-card-header">
+                    <h3><i class="fas fa-search"></i> SEO Settings</h3>
+                </div>
+                <div class="blog-card-body">
+                    <div class="form-section">
+                        <label for="meta_title">Meta Title</label>
+                        <input type="text" id="meta_title" name="meta_title" 
+                            value="<?php echo htmlspecialchars($post['meta_title']); ?>"
+                            placeholder="Leave blank to use post title">
+                        <div class="form-hint">Recommended length: 50-60 characters</div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <label for="meta_description">Meta Description</label>
+                        <textarea id="meta_description" name="meta_description" rows="3" 
+                            placeholder="Brief description for search engines"><?php echo htmlspecialchars($post['meta_description']); ?></textarea>
+                        <div class="form-hint">Recommended length: 150-160 characters</div>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
+        
+        <!-- Right Column -->
+        <div class="blog-form-sidebar">
+            <!-- Publish Card -->
+            <div class="blog-card">
+                <div class="blog-card-header">
+                    <h3><i class="fas fa-paper-plane"></i> Publish</h3>
+                </div>
+                <div class="blog-card-body">
+                    <div class="form-section">
+                        <label>Status</label>
+                        <div class="status-options">
+                            <label class="status-option <?php echo $post['status'] === 'draft' ? 'active' : ''; ?>">
+                                <input type="radio" name="status" value="draft" <?php echo $post['status'] === 'draft' ? 'checked' : ''; ?> style="display: none;">
+                                <i class="fas fa-pencil-alt me-1"></i> Draft
+                            </label>
+                            <label class="status-option <?php echo $post['status'] === 'published' ? 'active' : ''; ?>">
+                                <input type="radio" name="status" value="published" <?php echo $post['status'] === 'published' ? 'checked' : ''; ?> style="display: none;">
+                                <i class="fas fa-check-circle me-1"></i> Published
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <?php if ($post['status'] === 'published' && !empty($post['published_at'])): ?>
+                    <div class="form-section">
+                        <label>Published Date</label>
+                        <input type="text" value="<?php echo date('M d, Y \a\t h:i a', strtotime($post['published_at'])); ?>" readonly disabled>
+                    </div>
+                    <?php endif; ?>
+                    
+                    <button type="submit" class="save-button">
+                        <i class="fas fa-save"></i> Update Blog Post
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Categories & Tags Card -->
+            <div class="blog-card">
+                <div class="blog-card-header">
+                    <h3><i class="fas fa-tags"></i> Categories & Tags</h3>
+                </div>
+                <div class="blog-card-body">
+                    <div class="form-section">
+                        <label for="category_id">Category</label>
+                        <select id="category_id" name="category_id">
+                            <option value="">-- Select Category --</option>
+                            <?php
+                            $categories_result->data_seek(0); // Reset result pointer
+                            while ($category = $categories_result->fetch_assoc()): 
+                            ?>
+                                <option value="<?php echo $category['id']; ?>" <?php echo ($post['category_id'] == $category['id']) ? 'selected' : ''; ?>>
+                                    <?php echo htmlspecialchars($category['name']); ?>
+                                </option>
+                            <?php endwhile; ?>
+                        </select>
+                    </div>
+                    
+                    <div class="form-section">
+                        <label for="tags">Tags</label>
+                        <select id="tags" name="tags[]" multiple>
+                            <?php
+                            $tags_result->data_seek(0); // Reset result pointer
+                            while ($tag = $tags_result->fetch_assoc()): 
+                            ?>
+                                <option value="<?php echo $tag['id']; ?>" <?php echo in_array($tag['id'], $selected_tags) ? 'selected' : ''; ?>>
+                                    <?php echo htmlspecialchars($tag['name']); ?>
+                                </option>
+                            <?php endwhile; ?>
+                        </select>
+                        <div class="form-hint">Hold Ctrl (or Cmd on Mac) to select multiple tags</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Featured Image Card -->
+            <div class="blog-card">
+                <div class="blog-card-header">
+                    <h3><i class="fas fa-image"></i> Featured Image</h3>
+                </div>
+                <div class="blog-card-body">
+                    <?php if (!empty($post['featured_image'])): ?>
+                        <div class="image-preview show">
+                            <img src="<?php echo htmlspecialchars($post['featured_image']); ?>" alt="Featured Image">
+                            <div class="mt-3">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" id="remove_featured_image" name="remove_featured_image" value="yes">
+                                    <label class="form-check-label" for="remove_featured_image">Remove this image</label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-section mt-3">
+                            <label>Upload New Image</label>
+                            <input type="file" id="featured_image" name="featured_image" accept="image/*">
+                        </div>
+                    <?php else: ?>
+                        <div class="image-upload-area" id="featured-image-uploader">
+                            <div style="position: relative; width: 100%; height: 100%;">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <h4>Upload Featured Image</h4>
+                                <p>Drop an image here or click to browse</p>
+                                <input type="file" id="featured_image" name="featured_image" accept="image/*" style="opacity: 0; position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: pointer; z-index: 1;">
+                            </div>
+                        </div>
+                        <div id="image-preview" class="image-preview" style="display: none;">
+                            <img src="" alt="Image Preview">
+                            <button type="button" class="remove-image" id="remove-image">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    <?php endif; ?>
+                    
+                    <div class="form-hint mt-2">Recommended size: 1200x800 pixels. Max size: 5MB.</div>
+                </div>
+            </div>
+            
+            <!-- Stats Card -->
+            <div class="blog-card">
+                <div class="blog-card-header">
+                    <h3><i class="fas fa-chart-bar"></i> Blog Post Statistics</h3>
+                </div>
+                <div class="blog-card-body p-0">
+                    <ul class="stats-list">
+                        <li>
+                            <span><i class="fas fa-eye"></i> Views</span>
+                            <span class="stats-badge badge-primary"><?php echo number_format($post['views']); ?></span>
+                        </li>
+                        <li>
+                            <span><i class="fas fa-calendar-plus"></i> Created</span>
+                            <span class="stats-badge badge-secondary"><?php echo date('M d, Y', strtotime($post['created_at'])); ?></span>
+                        </li>
+                        <li>
+                            <span><i class="fas fa-clock"></i> Last Updated</span>
+                            <span class="stats-badge badge-info"><?php echo date('M d, Y', strtotime($post['updated_at'])); ?></span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Preview Card -->
+            <div class="blog-card">
+                <div class="blog-card-header">
+                    <h3><i class="fas fa-globe"></i> Preview</h3>
+                </div>
+                <div class="blog-card-body text-center">
+                    <p class="mb-3">See how your post appears:</p>
+                    <div class="preview-buttons">
+                        <?php if ($post['status'] === 'published'): ?>
+                        <a href="blogs/<?php echo htmlspecialchars($post['slug']); ?>" class="btn-view" target="_blank">
+                            <i class="fas fa-eye"></i> View Live Blog
+                        </a>
+                        <?php endif; ?>
+                        <a href="blogs/<?php echo htmlspecialchars($post['slug']); ?>?preview=true" class="btn-preview" target="_blank">
+                            <i class="fas fa-desktop"></i> Preview Blog
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
 </div>
 
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script src="https://cdn.tiny.cloud/1/2dcx752ng7via2ayk5f144ggv0lz4w4gxhihr5vynet3ru4f/tinymce/5/tinymce.min.js" referrerpolicy="origin"></script>
 <script>
     // Initialize TinyMCE for content editor
@@ -484,29 +828,76 @@ include 'bheader.php';
         }
     });
     
-    // Image preview
-    document.getElementById('featured_image').addEventListener('change', function(e) {
-        const file = this.files[0];
-        if (file) {
-            const reader = new FileReader();
-            const preview = document.getElementById('image-preview');
-            const previewImg = preview.querySelector('img');
+    // Status toggle functionality
+    document.querySelectorAll('.status-option').forEach(option => {
+        option.addEventListener('click', function() {
+            // Remove active class from all options
+            document.querySelectorAll('.status-option').forEach(opt => {
+                opt.classList.remove('active');
+            });
             
-            reader.onload = function(e) {
-                previewImg.src = e.target.result;
-                preview.style.display = 'block';
-            }
+            // Add active class to clicked option
+            this.classList.add('active');
             
-            reader.readAsDataURL(file);
-            
-            // Uncheck the remove featured image checkbox if it was checked
-            if (document.getElementById('remove_featured_image')) {
-                document.getElementById('remove_featured_image').checked = false;
-            }
-        }
+            // Check the radio button
+            this.querySelector('input[type="radio"]').checked = true;
+        });
     });
     
-    // Initialize select2 for tags
+    // Image preview
+    const featuredImageInput = document.getElementById('featured_image');
+    if (featuredImageInput) {
+        featuredImageInput.addEventListener('change', function(e) {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                const preview = document.getElementById('image-preview');
+                if (preview) {
+                    const previewImg = preview.querySelector('img');
+                    const uploader = document.getElementById('featured-image-uploader');
+                    
+                    reader.onload = function(e) {
+                        previewImg.src = e.target.result;
+                        preview.style.display = 'block';
+                        if (uploader) {
+                            uploader.style.display = 'none';
+                        }
+                        
+                        // Add show class for animation
+                        setTimeout(() => {
+                            preview.classList.add('show');
+                        }, 50);
+                    }
+                    
+                    reader.readAsDataURL(file);
+                    
+                    // Uncheck the remove featured image checkbox if it was checked
+                    if (document.getElementById('remove_featured_image')) {
+                        document.getElementById('remove_featured_image').checked = false;
+                    }
+                }
+            }
+        });
+    }
+    
+    // Remove image preview button if it exists
+    const removeButton = document.getElementById('remove-image');
+    if (removeButton) {
+        removeButton.addEventListener('click', function() {
+            const preview = document.getElementById('image-preview');
+            const uploader = document.getElementById('featured-image-uploader');
+            const fileInput = document.getElementById('featured_image');
+            
+            preview.style.display = 'none';
+            preview.classList.remove('show');
+            if (uploader) {
+                uploader.style.display = 'block';
+            }
+            fileInput.value = '';
+        });
+    }
+    
+    // Initialize select2 for tags and category
     $(document).ready(function() {
         $('#tags').select2({
             placeholder: 'Select tags',
@@ -521,12 +912,17 @@ include 'bheader.php';
         });
         
         // Hide image preview when remove checkbox is checked
-        $('#remove_featured_image').on('change', function() {
-            if (this.checked) {
-                $('#featured_image').val('');
-                $('#image-preview').hide();
-            }
-        });
+        const removeCheckbox = document.getElementById('remove_featured_image');
+        if (removeCheckbox) {
+            removeCheckbox.addEventListener('change', function() {
+                if (this.checked) {
+                    const fileInput = document.getElementById('featured_image');
+                    if (fileInput) {
+                        fileInput.value = '';
+                    }
+                }
+            });
+        }
     });
 </script>
 
