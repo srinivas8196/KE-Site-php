@@ -180,7 +180,7 @@
         .mega-menu .container {
             max-width: 1400px;
             margin: 0 auto;
-            padding: 0 30px;
+            padding: 0 40px;
         }
 
         /* Clean Column Layout */
@@ -188,15 +188,21 @@
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 40px;
+            align-items: start;
         }
 
         .mega-menu .destination-section {
             position: relative;
         }
 
+        /* Special styling for destinations with more resorts */
+        .mega-menu .destination-section.large {
+            grid-column: span 2;
+        }
+
         .mega-menu .destination-title {
             color: #B4975A;
-            font-size: 16px;
+            font-size: 18px;
             font-weight: 600;
             margin-bottom: 20px;
             padding-bottom: 12px;
@@ -216,10 +222,18 @@
             background: #B4975A;
         }
 
+        .mega-menu .resort-count {
+            font-size: 13px;
+            color: #999;
+            font-weight: normal;
+            text-transform: none;
+            margin-left: 8px;
+        }
+
         .mega-menu .resort-list {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 10px;
         }
 
         .mega-menu .resort-link {
@@ -238,8 +252,16 @@
             padding-left: 12px;
         }
 
-        .mega-menu .resort-link.has-partner::after {
+        .mega-menu .resort-link .location {
+            color: #999;
+            font-size: 12px;
+            margin-left: 4px;
+        }
+
+        /* Partner Hotel Style */
+        .mega-menu .resort-link.partner::after {
             content: '(Partner Hotel)';
+            display: inline-block;
             font-size: 12px;
             color: #999;
             margin-left: 5px;
@@ -250,6 +272,9 @@
             .mega-menu .destinations-wrapper {
                 grid-template-columns: repeat(3, 1fr);
             }
+            .mega-menu .destination-section.large {
+                grid-column: span 2;
+            }
         }
 
         @media (max-width: 1200px) {
@@ -257,11 +282,17 @@
                 grid-template-columns: repeat(2, 1fr);
                 gap: 30px;
             }
+            .mega-menu .destination-section.large {
+                grid-column: span 2;
+            }
         }
 
         @media (max-width: 768px) {
             .mega-menu .destinations-wrapper {
                 grid-template-columns: 1fr;
+            }
+            .mega-menu .destination-section.large {
+                grid-column: span 1;
             }
             .mega-menu {
                 padding: 30px 0;
@@ -695,30 +726,38 @@
                                             <div class="container">
                                                 <div class="destinations-wrapper">
                                                     <?php 
-                                                    // Sort destinations alphabetically
+                                                    // Sort destinations by number of resorts (descending)
                                                     usort($menuDestinations, function($a, $b) {
-                                                        return strcmp($a['name'], $b['name']);
+                                                        return count($b['resorts']) - count($a['resorts']);
                                                     });
 
-                                                    foreach ($menuDestinations as $destination): ?>
-                                                        <div class="destination-section">
+                                                    foreach ($menuDestinations as $destination): 
+                                                        $resortCount = count($destination['resorts']);
+                                                        $isLarge = $resortCount > 5; // Destinations with more than 5 resorts get more space
+                                                    ?>
+                                                        <div class="destination-section <?php echo $isLarge ? 'large' : ''; ?>">
                                                             <h3 class="destination-title">
                                                                 <?php echo htmlspecialchars($destination['name']); ?>
+                                                                <span class="resort-count">(<?php echo $resortCount; ?> <?php echo $resortCount === 1 ? 'Resort' : 'Resorts'; ?>)</span>
                                                             </h3>
                                                             <div class="resort-list">
                                                                 <?php 
-                                                                // Sort resorts alphabetically within each destination
-                                                                usort($destination['resorts'], function($a, $b) {
-                                                                    return strcmp($a['name'], $b['name']);
-                                                                });
-                                                                
                                                                 foreach ($destination['resorts'] as $resort): 
-                                                                    $isPartnerHotel = stripos($resort['name'], 'Partner Hotel') !== false;
-                                                                    $resortName = $isPartnerHotel ? str_replace('(Partner Hotel)', '', $resort['name']) : $resort['name'];
+                                                                    $isPartner = stripos($resort['name'], 'Partner Hotel') !== false;
+                                                                    $resortName = $isPartner ? str_replace('(Partner Hotel)', '', $resort['name']) : $resort['name'];
+                                                                    
+                                                                    // Extract location if it exists (after the comma)
+                                                                    $location = '';
+                                                                    if (strpos($resortName, ',') !== false) {
+                                                                        list($resortName, $location) = explode(',', $resortName, 2);
+                                                                    }
                                                                 ?>
                                                                     <a href="<?php echo $base_url; ?>/resorts/<?php echo htmlspecialchars($resort['slug']); ?>" 
-                                                                       class="resort-link <?php echo ($resort['slug'] === $menuCurrentSlug) ? 'active' : ''; ?> <?php echo $isPartnerHotel ? 'has-partner' : ''; ?>">
+                                                                       class="resort-link <?php echo ($resort['slug'] === $menuCurrentSlug) ? 'active' : ''; ?> <?php echo $isPartner ? 'partner' : ''; ?>">
                                                                         <?php echo htmlspecialchars(trim($resortName)); ?>
+                                                                        <?php if ($location): ?>
+                                                                            <span class="location"><?php echo htmlspecialchars(trim($location)); ?></span>
+                                                                        <?php endif; ?>
                                                                     </a>
                                                                 <?php endforeach; ?>
                                                             </div>
