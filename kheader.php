@@ -169,6 +169,8 @@
             z-index: 1000;
             padding: 40px 0;
             transform: translateY(-10px);
+            max-height: 85vh;
+            overflow-y: auto;
         }
 
         .menu-item-has-children:hover .mega-menu {
@@ -183,33 +185,35 @@
             padding: 0 40px;
         }
 
-        /* Clean Column Layout */
+        /* Masonry-like Layout */
         .mega-menu .destinations-wrapper {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 40px;
-            align-items: start;
+            column-count: 4;
+            column-gap: 30px;
+            width: 100%;
         }
 
         .mega-menu .destination-section {
-            position: relative;
-        }
-
-        /* Special styling for destinations with more resorts */
-        .mega-menu .destination-section.large {
-            grid-column: span 2;
+            break-inside: avoid;
+            margin-bottom: 30px;
+            display: inline-block;
+            width: 100%;
+            background: #fff;
+            border-radius: 8px;
         }
 
         .mega-menu .destination-title {
             color: #B4975A;
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 600;
-            margin-bottom: 20px;
-            padding-bottom: 12px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             border-bottom: 1px solid #eee;
             position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
 
         .mega-menu .destination-title::before {
@@ -227,13 +231,12 @@
             color: #999;
             font-weight: normal;
             text-transform: none;
-            margin-left: 8px;
         }
 
         .mega-menu .resort-list {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 8px;
         }
 
         .mega-menu .resort-link {
@@ -242,7 +245,7 @@
             text-decoration: none;
             transition: all 0.2s ease;
             display: block;
-            padding: 4px 0;
+            padding: 6px 0;
             position: relative;
             padding-left: 0;
         }
@@ -270,29 +273,19 @@
         /* Responsive Design */
         @media (max-width: 1400px) {
             .mega-menu .destinations-wrapper {
-                grid-template-columns: repeat(3, 1fr);
-            }
-            .mega-menu .destination-section.large {
-                grid-column: span 2;
+                column-count: 3;
             }
         }
 
         @media (max-width: 1200px) {
             .mega-menu .destinations-wrapper {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 30px;
-            }
-            .mega-menu .destination-section.large {
-                grid-column: span 2;
+                column-count: 2;
             }
         }
 
         @media (max-width: 768px) {
             .mega-menu .destinations-wrapper {
-                grid-template-columns: 1fr;
-            }
-            .mega-menu .destination-section.large {
-                grid-column: span 1;
+                column-count: 1;
             }
             .mega-menu {
                 padding: 30px 0;
@@ -733,9 +726,8 @@
 
                                                     foreach ($menuDestinations as $destination): 
                                                         $resortCount = count($destination['resorts']);
-                                                        $isLarge = $resortCount > 5; // Destinations with more than 5 resorts get more space
                                                     ?>
-                                                        <div class="destination-section <?php echo $isLarge ? 'large' : ''; ?>">
+                                                        <div class="destination-section">
                                                             <h3 class="destination-title">
                                                                 <?php echo htmlspecialchars($destination['name']); ?>
                                                                 <span class="resort-count">(<?php echo $resortCount; ?> <?php echo $resortCount === 1 ? 'Resort' : 'Resorts'; ?>)</span>
