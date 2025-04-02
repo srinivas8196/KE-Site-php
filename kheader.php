@@ -161,18 +161,14 @@
             top: 80px;
             left: 0;
             width: 100%;
-            background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.95) 100%);
-            backdrop-filter: blur(20px);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            background: #fff;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
             opacity: 0;
             visibility: hidden;
             transition: all 0.3s ease;
             z-index: 1000;
             padding: 40px 0;
             transform: translateY(-10px);
-            border-top: 1px solid rgba(180, 151, 90, 0.1);
-            max-height: 85vh;
-            overflow-y: auto;
         }
 
         .menu-item-has-children:hover .mega-menu {
@@ -187,132 +183,91 @@
             padding: 0 30px;
         }
 
-        /* New Grid Layout */
+        /* Clean Column Layout */
         .mega-menu .destinations-wrapper {
             display: grid;
-            grid-template-columns: repeat(3, 1fr); /* Always 3 columns */
-            gap: 30px;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 40px;
         }
 
-        /* Special handling for India (first/largest destination) */
-        .mega-menu .destination-section:first-child {
-            grid-column: 1 / -1; /* Span all columns */
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            background: linear-gradient(to right, #fff, #fcfaf5);
-            padding: 25px;
-            margin-bottom: 10px;
-        }
-
-        .mega-menu .destination-section:first-child .destination-title {
-            grid-column: 1 / -1;
-            font-size: 20px;
-            margin-bottom: 20px;
-            color: #B4975A;
-            border-bottom: 2px solid #B4975A;
-            padding-bottom: 15px;
-        }
-
-        .mega-menu .destination-section:first-child .resort-list {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 8px;
-            margin: 0;
-            padding: 0;
-            max-height: none;
-        }
-
-        /* Regular destination sections */
         .mega-menu .destination-section {
-            background: #fff;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            border: 1px solid rgba(180, 151, 90, 0.15);
-            transition: all 0.3s ease;
-        }
-
-        .mega-menu .destination-section:hover {
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-            transform: translateY(-2px);
+            position: relative;
         }
 
         .mega-menu .destination-title {
             color: #B4975A;
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 600;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid rgba(180, 151, 90, 0.2);
+            margin-bottom: 20px;
+            padding-bottom: 12px;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid #eee;
+            position: relative;
         }
 
         .mega-menu .destination-title::before {
-            content: '\f3c5';
-            font-family: "Font Awesome 5 Pro", "Font Awesome 5 Free";
-            font-weight: 900;
-            font-size: 14px;
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: -1px;
+            width: 40px;
+            height: 2px;
+            background: #B4975A;
         }
 
         .mega-menu .resort-list {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 12px;
         }
 
         .mega-menu .resort-link {
-            color: #555;
+            color: #666;
             font-size: 14px;
             text-decoration: none;
-            padding: 10px 15px;
-            border-radius: 6px;
             transition: all 0.2s ease;
             display: block;
-            background: rgba(255, 255, 255, 0.7);
-            border: 1px solid rgba(180, 151, 90, 0.1);
+            padding: 4px 0;
+            position: relative;
+            padding-left: 0;
         }
 
         .mega-menu .resort-link:hover {
-            background: rgba(180, 151, 90, 0.1);
             color: #B4975A;
-            transform: translateX(5px);
+            padding-left: 12px;
         }
 
-        .mega-menu .resort-link.active {
-            background: #B4975A;
-            color: #fff;
+        .mega-menu .resort-link.has-partner::after {
+            content: '(Partner Hotel)';
+            font-size: 12px;
+            color: #999;
+            margin-left: 5px;
         }
 
         /* Responsive Design */
-        @media (max-width: 1200px) {
+        @media (max-width: 1400px) {
             .mega-menu .destinations-wrapper {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            .mega-menu .destination-section:first-child {
-                grid-template-columns: repeat(2, 1fr);
+                grid-template-columns: repeat(3, 1fr);
             }
         }
 
-        @media (max-width: 992px) {
+        @media (max-width: 1200px) {
             .mega-menu .destinations-wrapper {
-                grid-template-columns: 1fr;
-            }
-            .mega-menu .destination-section:first-child {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 30px;
             }
         }
 
         @media (max-width: 768px) {
+            .mega-menu .destinations-wrapper {
+                grid-template-columns: 1fr;
+            }
             .mega-menu {
-                padding: 20px 0;
+                padding: 30px 0;
             }
             .mega-menu .container {
-                padding: 0 15px;
+                padding: 0 20px;
             }
         }
 
@@ -740,26 +695,30 @@
                                             <div class="container">
                                                 <div class="destinations-wrapper">
                                                     <?php 
-                                                    // Sort destinations by number of resorts
+                                                    // Sort destinations alphabetically
                                                     usort($menuDestinations, function($a, $b) {
-                                                        return count($b['resorts']) - count($a['resorts']);
+                                                        return strcmp($a['name'], $b['name']);
                                                     });
 
-                                                    foreach ($menuDestinations as $destination): 
-                                                        $isIndia = strtolower($destination['name']) === 'india';
-                                                    ?>
-                                                        <div class="destination-section <?php echo $isIndia ? 'india-section' : ''; ?>">
+                                                    foreach ($menuDestinations as $destination): ?>
+                                                        <div class="destination-section">
                                                             <h3 class="destination-title">
                                                                 <?php echo htmlspecialchars($destination['name']); ?>
-                                                                <?php if ($isIndia): ?>
-                                                                    <span class="resort-count">(<?php echo count($destination['resorts']); ?> Resorts)</span>
-                                                                <?php endif; ?>
                                                             </h3>
                                                             <div class="resort-list">
-                                                                <?php foreach ($destination['resorts'] as $resort): ?>
+                                                                <?php 
+                                                                // Sort resorts alphabetically within each destination
+                                                                usort($destination['resorts'], function($a, $b) {
+                                                                    return strcmp($a['name'], $b['name']);
+                                                                });
+                                                                
+                                                                foreach ($destination['resorts'] as $resort): 
+                                                                    $isPartnerHotel = stripos($resort['name'], 'Partner Hotel') !== false;
+                                                                    $resortName = $isPartnerHotel ? str_replace('(Partner Hotel)', '', $resort['name']) : $resort['name'];
+                                                                ?>
                                                                     <a href="<?php echo $base_url; ?>/resorts/<?php echo htmlspecialchars($resort['slug']); ?>" 
-                                                                       class="resort-link <?php echo ($resort['slug'] === $menuCurrentSlug) ? 'active' : ''; ?>">
-                                                                        <?php echo htmlspecialchars($resort['name']); ?>
+                                                                       class="resort-link <?php echo ($resort['slug'] === $menuCurrentSlug) ? 'active' : ''; ?> <?php echo $isPartnerHotel ? 'has-partner' : ''; ?>">
+                                                                        <?php echo htmlspecialchars(trim($resortName)); ?>
                                                                     </a>
                                                                 <?php endforeach; ?>
                                                             </div>
