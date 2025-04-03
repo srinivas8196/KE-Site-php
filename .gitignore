@@ -55,9 +55,9 @@ Thumbs.db
 # Upload directories
 /uploads/
 /assets/uploads/
-/assets/resorts/*/gallery/
-/assets/resorts/*/rooms/
-/assets/resorts/*/amenities/
+# /assets/resorts/*/gallery/
+# /assets/resorts/*/rooms/
+# /assets/resorts/*/amenities/
 
 # Backup files
 *.bak
