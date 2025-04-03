@@ -133,23 +133,48 @@ $resortFolder = 'assets/resorts/' . ($resort['resort_slug'] ?? '');
 <?php endif; ?>
 </div>
 </div>
-<div class="resort-section rooms-section">
-        <h3>Room Details</h3>
-<div class="room-details-grid">
-<?php if(is_array($room_details)): foreach($room_details as $r): ?>
-<div class="room-item room-hover-effect">
-<div class="room-image-container">
-<img src="<?php echo $resortFolder . '/' . htmlspecialchars($r['image'] ?? ''); ?>" alt="<?php echo htmlspecialchars($r['name'] ?? ''); ?>">
+<div class="resort-section rooms-section mt-8 mb-12">
+    <h3 class="text-2xl font-semibold mb-6">Room Details</h3>
+    <div class="room-details-grid">
+    <?php if(is_array($room_details)): foreach($room_details as $r): ?>
+        <div class="room-item">
+            <?php if(!empty($r['image'])): ?>
+            <div class="room-image">
+                <img src="<?php echo $resortFolder . '/' . htmlspecialchars($r['image']); ?>" 
+                     alt="<?php echo htmlspecialchars($r['name']); ?>">
+            </div>
+            <?php endif; ?>
+            <div class="room-info">
+                <h4><?php echo htmlspecialchars($r['name']); ?></h4>
+            </div>
+        </div>
+    <?php endforeach; else: ?>
+        <p class="text-gray-500">No room details available.</p>
+    <?php endif; ?>
+    </div>
 </div>
-<div class="room-info">
-<p><?php echo htmlspecialchars($r['name'] ?? ''); ?></p>
-</div>
-</div>
-<?php endforeach; else: ?>
-<p>No room details available.</p>
-<?php endif; ?>
-</div>
-</div>
+<style>
+.room-details-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 25px; }
+.room-item { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: transform 0.3s; }
+.room-item:hover { transform: translateY(-5px); box-shadow: 0 6px 12px rgba(0,0,0,0.15); }
+.room-image { width: 100%; height: 300px; overflow: hidden; }
+.room-image img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; }
+.room-item:hover .room-image img { transform: scale(1.05); }
+.room-info { padding: 16px; text-align: center; }
+.room-info h4 { margin: 0; font-size: 18px; color: #333; font-weight: 600; }
+@media (max-width: 991px) {
+    .room-details-grid { grid-template-columns: repeat(2, 1fr); }
+    .room-image { height: 250px; }
+}
+@media (max-width: 768px) {
+    .room-details-grid { grid-template-columns: repeat(2, 1fr); gap: 15px; }
+    .room-image { height: 200px; }
+}
+@media (max-width: 480px) {
+    .room-details-grid { grid-template-columns: 1fr; }
+    .room-image { height: 250px; }
+}
+</style>
 <div class="resort-section gallery-section">
         <h3>Gallery</h3>
 <?php

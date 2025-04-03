@@ -5,13 +5,13 @@ session_start();
 $_SESSION['user_id'] = 1;
 $_SESSION['is_admin'] = 1;
 
-/*
-// Check if user is logged in and is admin
-if (!isset($_SESSION['user_id']) || !isset($_SESSION['is_admin']) || $_SESSION['is_admin'] != 1) {
-    header("Location: login.php");
-    exit;
-}
-*/
+
+// //Check if user is logged in and is admin
+// if (!isset($_SESSION['user_id']) || !isset($_SESSION['is_admin']) || $_SESSION['is_admin'] != 1) {
+//     header("Location: login.php");
+//     exit;
+// }
+
 
 // Include database connection
 require_once 'db.php';
