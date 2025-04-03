@@ -432,7 +432,7 @@ include 'bheader.php';
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
                 </button>
-            </div>
+                </div>
             <div class="p-6" id="modal-content">
                 <!-- Loading state -->
                 <div class="text-center p-8">
@@ -572,78 +572,78 @@ include 'bheader.php';
                     return response.json();
                 })
                 .then(data => {
-                    if (!data || data.success === false) {
+                            if (!data || data.success === false) {
                         throw new Error(data ? data.message : 'Unknown error');
-                    }
-                    
-                    // Create modal content HTML
-                    const modalHtml = `
-                    <div class="flex flex-col space-y-4">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <h4 class="text-lg font-medium mb-3 text-gray-700 border-b pb-2">Customer Information</h4>
-                                <div class="space-y-2">
-                                    <p><span class="font-medium text-gray-600">Name:</span> ${data.first_name || ''} ${data.last_name || ''}</p>
-                                    <p><span class="font-medium text-gray-600">Email:</span> ${data.email || 'Not provided'}</p>
-                                    <p><span class="font-medium text-gray-600">Phone:</span> ${data.phone || 'Not provided'}</p>
-                                    <p><span class="font-medium text-gray-600">Date of Birth:</span> ${data.date_of_birth || 'Not provided'}</p>
-                                    <p><span class="font-medium text-gray-600">Has Passport:</span> ${data.has_passport || 'Not provided'}</p>
-                                    <p><span class="font-medium text-gray-600">Country:</span> ${data.country_code || 'Not provided'}</p>
+                            }
+                            
+                            // Create modal content HTML
+                            const modalHtml = `
+                            <div class="flex flex-col space-y-4">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <h4 class="text-lg font-medium mb-3 text-gray-700 border-b pb-2">Customer Information</h4>
+                                        <div class="space-y-2">
+                                            <p><span class="font-medium text-gray-600">Name:</span> ${data.first_name || ''} ${data.last_name || ''}</p>
+                                            <p><span class="font-medium text-gray-600">Email:</span> ${data.email || 'Not provided'}</p>
+                                            <p><span class="font-medium text-gray-600">Phone:</span> ${data.phone || 'Not provided'}</p>
+                                            <p><span class="font-medium text-gray-600">Date of Birth:</span> ${data.date_of_birth || 'Not provided'}</p>
+                                            <p><span class="font-medium text-gray-600">Has Passport:</span> ${data.has_passport || 'Not provided'}</p>
+                                            <p><span class="font-medium text-gray-600">Country:</span> ${data.country_code || 'Not provided'}</p>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-lg font-medium mb-3 text-gray-700 border-b pb-2">Resort Information</h4>
+                                        <div class="space-y-2">
+                                            <p><span class="font-medium text-gray-600">Resort:</span> ${data.resort_name || 'Not available'}</p>
+                                            <p><span class="font-medium text-gray-600">Destination:</span> ${data.destination_name || 'Not available'}</p>
+                                            <p><span class="font-medium text-gray-600">Resort Code:</span> ${data.resort_code || 'Not available'}</p>
+                                            <p><span class="font-medium text-gray-600">Date Submitted:</span> ${data.created_at ? new Date(data.created_at).toLocaleString() : 'Unknown'}</p>
+                                            <p><span class="font-medium text-gray-600">Status:</span> <span class="px-2 py-1 rounded ${getStatusClass(data.status)}">${data.status ? (data.status.charAt(0).toUpperCase() + data.status.slice(1)) : 'Unknown'}</span></p>
+                                            <p><span class="font-medium text-gray-600">Partner Hotel:</span> ${data.is_partner == 1 ? 'Yes' : 'No'}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <h4 class="text-lg font-medium mb-3 text-gray-700 border-b pb-2">LeadSquared Details</h4>
+                                    <div class="bg-gray-50 p-4 rounded">
+                                        <div class="space-y-2">
+                                            <p><span class="font-medium text-gray-600">Lead Source:</span> ${data.lead_source || 'Web Enquiry'}</p>
+                                            <p><span class="font-medium text-gray-600">Lead Brand:</span> ${data.lead_brand || 'Timeshare Marketing'}</p>
+                                            <p><span class="font-medium text-gray-600">Lead Sub Brand:</span> ${data.lead_sub_brand || 'Not available'}</p>
+                                            <p><span class="font-medium text-gray-600">Lead Source Description:</span> ${data.lead_source_description || 'Not available'}</p>
+                                            <p><span class="font-medium text-gray-600">Lead Location:</span> ${data.lead_location || data.resort_name || 'Not available'}</p>
+                                            <p><span class="font-medium text-gray-600">LeadSquared ID:</span> ${data.leadsquared_id || 'Not available'}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-4 pt-4 border-t">
+                                    <h4 class="text-lg font-medium mb-3 text-gray-700">Actions</h4>
+                                    <div class="flex flex-wrap gap-3">
+                                        <button class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm transition duration-300 ease-in-out flex items-center" id="emailCustomer" data-email="${data.email}">
+                                            <i class="fas fa-envelope mr-2"></i> Email Customer
+                                        </button>
+                                        <button class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md text-sm transition duration-300 ease-in-out flex items-center" id="markConverted" data-id="${data.id}">
+                                            <i class="fas fa-check-circle mr-2"></i> Mark as Converted
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
-                            <div>
-                                <h4 class="text-lg font-medium mb-3 text-gray-700 border-b pb-2">Resort Information</h4>
-                                <div class="space-y-2">
-                                    <p><span class="font-medium text-gray-600">Resort:</span> ${data.resort_name || 'Not available'}</p>
-                                    <p><span class="font-medium text-gray-600">Destination:</span> ${data.destination_name || 'Not available'}</p>
-                                    <p><span class="font-medium text-gray-600">Resort Code:</span> ${data.resort_code || 'Not available'}</p>
-                                    <p><span class="font-medium text-gray-600">Date Submitted:</span> ${data.created_at ? new Date(data.created_at).toLocaleString() : 'Unknown'}</p>
-                                    <p><span class="font-medium text-gray-600">Status:</span> <span class="px-2 py-1 rounded ${getStatusClass(data.status)}">${data.status ? (data.status.charAt(0).toUpperCase() + data.status.slice(1)) : 'Unknown'}</span></p>
-                                    <p><span class="font-medium text-gray-600">Partner Hotel:</span> ${data.is_partner == 1 ? 'Yes' : 'No'}</p>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div>
-                            <h4 class="text-lg font-medium mb-3 text-gray-700 border-b pb-2">LeadSquared Details</h4>
-                            <div class="bg-gray-50 p-4 rounded">
-                                <div class="space-y-2">
-                                    <p><span class="font-medium text-gray-600">Lead Source:</span> ${data.lead_source || 'Web Enquiry'}</p>
-                                    <p><span class="font-medium text-gray-600">Lead Brand:</span> ${data.lead_brand || 'Timeshare Marketing'}</p>
-                                    <p><span class="font-medium text-gray-600">Lead Sub Brand:</span> ${data.lead_sub_brand || 'Not available'}</p>
-                                    <p><span class="font-medium text-gray-600">Lead Source Description:</span> ${data.lead_source_description || 'Not available'}</p>
-                                    <p><span class="font-medium text-gray-600">Lead Location:</span> ${data.lead_location || data.resort_name || 'Not available'}</p>
-                                    <p><span class="font-medium text-gray-600">LeadSquared ID:</span> ${data.leadsquared_id || 'Not available'}</p>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="mt-4 pt-4 border-t">
-                            <h4 class="text-lg font-medium mb-3 text-gray-700">Actions</h4>
-                            <div class="flex flex-wrap gap-3">
-                                <button class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm transition duration-300 ease-in-out flex items-center" id="emailCustomer" data-email="${data.email}">
-                                    <i class="fas fa-envelope mr-2"></i> Email Customer
-                                </button>
-                                <button class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md text-sm transition duration-300 ease-in-out flex items-center" id="markConverted" data-id="${data.id}">
-                                    <i class="fas fa-check-circle mr-2"></i> Mark as Converted
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    `;
-                    
-                    // Update modal title and content
-                    $('#modal-title').text('Enquiry Details: EQ' + data.id);
-                    $('#modal-content').html(modalHtml);
-                    
-                    // Setup action button handlers
-                    $('#emailCustomer').on('click', function() {
-                        const email = $(this).data('email');
-                        window.location.href = 'mailto:' + email + '?subject=Your Enquiry about ' + data.resort_name;
-                    });
-                    
-                    $('#markConverted').on('click', function() {
-                        const id = $(this).data('id');
+                            `;
+                            
+                            // Update modal title and content
+                            $('#modal-title').text('Enquiry Details: EQ' + data.id);
+                            $('#modal-content').html(modalHtml);
+                            
+                            // Setup action button handlers
+                            $('#emailCustomer').on('click', function() {
+                                const email = $(this).data('email');
+                                window.location.href = 'mailto:' + email + '?subject=Your Enquiry about ' + data.resort_name;
+                            });
+                            
+                            $('#markConverted').on('click', function() {
+                                const id = $(this).data('id');
                         fetch(`${baseUrl}/update_enquiry_status.php`, {
                             method: 'POST',
                             headers: {
@@ -651,25 +651,25 @@ include 'bheader.php';
                                 'Accept': 'application/json'
                             },
                             body: JSON.stringify({
-                                enquiry_id: id,
-                                status: 'converted'
+                                        enquiry_id: id,
+                                        status: 'converted'
                             })
                         })
                         .then(response => response.json())
                         .then(response => {
                             if (response.success) {
-                                $('#enquiryDetailModal').addClass('hidden');
-                                toastr.success('Enquiry marked as converted');
-                                location.reload();
+                                        $('#enquiryDetailModal').addClass('hidden');
+                                        toastr.success('Enquiry marked as converted');
+                                        location.reload();
                             } else {
                                 throw new Error(response.message || 'Failed to update status');
                             }
                         })
                         .catch(error => {
-                            console.error('Error updating status:', error);
+                                        console.error('Error updating status:', error);
                             toastr.error('Failed to update status: ' + error.message);
-                        });
-                    });
+                                });
+                            });
                 })
                 .catch(error => {
                     console.error('Error:', error);
@@ -708,8 +708,8 @@ include 'bheader.php';
                 if ($(event.target).is('#enquiryDetailModal')) {
                     $('#enquiryDetailModal').addClass('hidden');
                 }
-            });
         });
+    });
     </script>
 </body>
 </html>

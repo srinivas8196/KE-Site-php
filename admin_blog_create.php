@@ -357,196 +357,207 @@ include 'bheader.php';
 <!-- Include our custom CSS file -->
 <link rel="stylesheet" href="assets/css/admin-blog.css">
 
-<div class="container mt-4">
-    <div class="d-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3">Create New Blog Post</h1>
-        <div class="d-flex gap-2">
-            <a href="#" id="preview-draft-button" class="btn btn-sm btn-primary" style="display: none;">
-                <i class="fas fa-desktop me-2"></i> Preview Draft
-            </a>
-            <a href="admin_blog.php" class="btn btn-sm btn-secondary">
-                <i class="fas fa-arrow-left me-2"></i> Back to Blog List
-            </a>
-        </div>
-    </div>
+<div class="admin-wrapper">
+    <!-- Include the reusable sidebar -->
+    <?php include 'admin_blog_sidebar.php'; ?>
 
-    <?php if (!empty($error_message)): ?>
-        <div class="alert alert-danger alert-dismissible fade show py-2" role="alert">
-            <?php echo $error_message; ?>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    <!-- Main Content -->
+    <main class="admin-content">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="d-flex align-items-center">
+                <button id="sidebarToggle" class="btn btn-sm btn-icon me-3">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1 class="h3 mb-0">Create New Blog Post</h1>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="#" id="preview-draft-button" class="btn btn-sm btn-primary" style="display: none;">
+                    <i class="fas fa-desktop me-2"></i> Preview Draft
+                </a>
+                <a href="admin_blog.php" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-2"></i> Back to Blog List
+                </a>
+            </div>
         </div>
-    <?php endif; ?>
 
-    <?php if (!empty($success_message)): ?>
-        <div class="alert alert-success alert-dismissible fade show py-2" role="alert">
-            <?php echo $success_message; ?>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    <?php endif; ?>
+        <?php if (!empty($error_message)): ?>
+            <div class="alert alert-danger alert-dismissible fade show py-2" role="alert">
+                <?php echo $error_message; ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        <?php endif; ?>
 
-    <form action="admin_blog_create.php" method="POST" enctype="multipart/form-data" class="blog-form">
-        <!-- Left Column -->
-        <div class="blog-form-main">
-            <!-- Basic Info Card -->
-            <div class="blog-card">
-                <div class="blog-card-header">
-                    <h3><i class="fas fa-edit"></i> Basic Information</h3>
-                </div>
-                <div class="blog-card-body">
-                    <div class="form-section">
-                        <label for="title">Title <span class="text-danger">*</span></label>
-                        <input type="text" id="title" name="title" required
-                            value="<?php echo isset($_POST['title']) ? htmlspecialchars($_POST['title']) : ''; ?>"
-                            placeholder="Enter blog title">
+        <?php if (!empty($success_message)): ?>
+            <div class="alert alert-success alert-dismissible fade show py-2" role="alert">
+                <?php echo $success_message; ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        <?php endif; ?>
+
+        <form action="admin_blog_create.php" method="POST" enctype="multipart/form-data" class="blog-form">
+            <!-- Left Column -->
+            <div class="blog-form-main">
+                <!-- Basic Info Card -->
+                <div class="blog-card">
+                    <div class="blog-card-header">
+                        <h3><i class="fas fa-edit"></i> Basic Information</h3>
                     </div>
-                    
-                    <div class="form-section">
-                        <label for="slug">URL Slug</label>
-                        <input type="text" id="slug" name="slug" 
-                            value="<?php echo isset($_POST['slug']) ? htmlspecialchars($_POST['slug']) : ''; ?>"
-                            placeholder="Leave blank to auto-generate from title">
-                        <div class="form-hint">
-                            Use lowercase letters, numbers, and hyphens. No spaces or special characters.
-                            <br>The slug is needed to preview your draft before saving.
+                    <div class="blog-card-body">
+                        <div class="form-section">
+                            <label for="title">Title <span class="text-danger">*</span></label>
+                            <input type="text" id="title" name="title" required
+                                value="<?php echo isset($_POST['title']) ? htmlspecialchars($_POST['title']) : ''; ?>"
+                                placeholder="Enter blog title">
+                        </div>
+                        
+                        <div class="form-section">
+                            <label for="slug">URL Slug</label>
+                            <input type="text" id="slug" name="slug" 
+                                value="<?php echo isset($_POST['slug']) ? htmlspecialchars($_POST['slug']) : ''; ?>"
+                                placeholder="Leave blank to auto-generate from title">
+                            <div class="form-hint">
+                                Use lowercase letters, numbers, and hyphens. No spaces or special characters.
+                                <br>The slug is needed to preview your draft before saving.
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Content Card -->
-            <div class="blog-card">
-                <div class="blog-card-header">
-                    <h3><i class="fas fa-paragraph"></i> Content <span class="text-danger">*</span></h3>
+                <!-- Content Card -->
+                <div class="blog-card">
+                    <div class="blog-card-header">
+                        <h3><i class="fas fa-paragraph"></i> Content <span class="text-danger">*</span></h3>
+                    </div>
+                    <div class="blog-card-body">
+                        <textarea id="content" name="content" rows="15" required><?php echo isset($_POST['content']) ? htmlspecialchars($_POST['content']) : ''; ?></textarea>
+                    </div>
                 </div>
-                <div class="blog-card-body">
-                    <textarea id="content" name="content" rows="15" required><?php echo isset($_POST['content']) ? htmlspecialchars($_POST['content']) : ''; ?></textarea>
-                </div>
-            </div>
 
-            <!-- Excerpt Card -->
-            <div class="blog-card">
-                <div class="blog-card-header">
-                    <h3><i class="fas fa-quote-right"></i> Excerpt</h3>
+                <!-- Excerpt Card -->
+                <div class="blog-card">
+                    <div class="blog-card-header">
+                        <h3><i class="fas fa-quote-right"></i> Excerpt</h3>
+                    </div>
+                    <div class="blog-card-body">
+                        <div class="form-section">
+                            <textarea id="excerpt" name="excerpt" rows="3" placeholder="A brief summary of your post"><?php echo isset($_POST['excerpt']) ? htmlspecialchars($_POST['excerpt']) : ''; ?></textarea>
+                            <div class="form-hint">
+                                A short summary of your post. If left empty, it will be generated from the content.
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="blog-card-body">
-                    <div class="form-section">
-                        <textarea id="excerpt" name="excerpt" rows="3" placeholder="A brief summary of your post"><?php echo isset($_POST['excerpt']) ? htmlspecialchars($_POST['excerpt']) : ''; ?></textarea>
-                        <div class="form-hint">
-                            A short summary of your post. If left empty, it will be generated from the content.
+                
+                <!-- SEO Card -->
+                <div class="blog-card">
+                    <div class="blog-card-header">
+                        <h3><i class="fas fa-search"></i> SEO Settings</h3>
+                    </div>
+                    <div class="blog-card-body">
+                        <div class="form-section">
+                            <label for="meta_title">Meta Title</label>
+                            <input type="text" id="meta_title" name="meta_title" 
+                                value="<?php echo isset($_POST['meta_title']) ? htmlspecialchars($_POST['meta_title']) : ''; ?>"
+                                placeholder="Leave blank to use post title">
+                            <div class="form-hint">Recommended length: 50-60 characters</div>
+                        </div>
+                        
+                        <div class="form-section">
+                            <label for="meta_description">Meta Description</label>
+                            <textarea id="meta_description" name="meta_description" rows="3" 
+                                placeholder="Brief description for search engines"><?php echo isset($_POST['meta_description']) ? htmlspecialchars($_POST['meta_description']) : ''; ?></textarea>
+                            <div class="form-hint">Recommended length: 150-160 characters</div>
                         </div>
                     </div>
                 </div>
             </div>
             
-            <!-- SEO Card -->
-            <div class="blog-card">
-                <div class="blog-card-header">
-                    <h3><i class="fas fa-search"></i> SEO Settings</h3>
-                </div>
-                <div class="blog-card-body">
-                    <div class="form-section">
-                        <label for="meta_title">Meta Title</label>
-                        <input type="text" id="meta_title" name="meta_title" 
-                            value="<?php echo isset($_POST['meta_title']) ? htmlspecialchars($_POST['meta_title']) : ''; ?>"
-                            placeholder="Leave blank to use post title">
-                        <div class="form-hint">Recommended length: 50-60 characters</div>
+            <!-- Right Column -->
+            <div class="blog-form-sidebar">
+                <!-- Publish Card -->
+                <div class="blog-card">
+                    <div class="blog-card-header">
+                        <h3><i class="fas fa-paper-plane"></i> Publish</h3>
                     </div>
-                    
-                    <div class="form-section">
-                        <label for="meta_description">Meta Description</label>
-                        <textarea id="meta_description" name="meta_description" rows="3" 
-                            placeholder="Brief description for search engines"><?php echo isset($_POST['meta_description']) ? htmlspecialchars($_POST['meta_description']) : ''; ?></textarea>
-                        <div class="form-hint">Recommended length: 150-160 characters</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Right Column -->
-        <div class="blog-form-sidebar">
-            <!-- Publish Card -->
-            <div class="blog-card">
-                <div class="blog-card-header">
-                    <h3><i class="fas fa-paper-plane"></i> Publish</h3>
-                </div>
-                <div class="blog-card-body">
-                    <div class="form-section">
-                        <label>Status</label>
-                        <div class="status-options">
-                            <label class="status-option <?php echo (!isset($_POST['status']) || $_POST['status'] === 'draft') ? 'active' : ''; ?>">
-                                <input type="radio" name="status" value="draft" <?php echo (!isset($_POST['status']) || $_POST['status'] === 'draft') ? 'checked' : ''; ?> style="display: none;">
-                                <i class="fas fa-pencil-alt me-1"></i> Draft
-                            </label>
-                            <label class="status-option <?php echo (isset($_POST['status']) && $_POST['status'] === 'published') ? 'active' : ''; ?>">
-                                <input type="radio" name="status" value="published" <?php echo (isset($_POST['status']) && $_POST['status'] === 'published') ? 'checked' : ''; ?> style="display: none;">
-                                <i class="fas fa-check-circle me-1"></i> Published
-                            </label>
+                    <div class="blog-card-body">
+                        <div class="form-section">
+                            <label>Status</label>
+                            <div class="status-options">
+                                <label class="status-option <?php echo (!isset($_POST['status']) || $_POST['status'] === 'draft') ? 'active' : ''; ?>">
+                                    <input type="radio" name="status" value="draft" <?php echo (!isset($_POST['status']) || $_POST['status'] === 'draft') ? 'checked' : ''; ?> style="display: none;">
+                                    <i class="fas fa-pencil-alt me-1"></i> Draft
+                                </label>
+                                <label class="status-option <?php echo (isset($_POST['status']) && $_POST['status'] === 'published') ? 'active' : ''; ?>">
+                                    <input type="radio" name="status" value="published" <?php echo (isset($_POST['status']) && $_POST['status'] === 'published') ? 'checked' : ''; ?> style="display: none;">
+                                    <i class="fas fa-check-circle me-1"></i> Published
+                                </label>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <button type="submit" class="save-button">
-                        <i class="fas fa-save"></i> Save Blog Post
-                    </button>
-                </div>
-            </div>
-            
-            <!-- Categories & Tags Card -->
-            <div class="blog-card">
-                <div class="blog-card-header">
-                    <h3><i class="fas fa-tags"></i> Categories & Tags</h3>
-                </div>
-                <div class="blog-card-body">
-                    <div class="form-section">
-                        <label for="category_id">Category</label>
-                        <select id="category_id" name="category_id">
-                            <option value="">-- Select Category --</option>
-                            <?php while ($category = $categories_result->fetch_assoc()): ?>
-                                <option value="<?php echo $category['id']; ?>" <?php echo (isset($_POST['category_id']) && $_POST['category_id'] == $category['id']) ? 'selected' : ''; ?>>
-                                    <?php echo htmlspecialchars($category['name']); ?>
-                                </option>
-                            <?php endwhile; ?>
-                        </select>
-                    </div>
-                    
-                    <div class="form-section">
-                        <label for="tags">Tags</label>
-                        <select id="tags" name="tags[]" multiple>
-                            <?php while ($tag = $tags_result->fetch_assoc()): ?>
-                                <option value="<?php echo $tag['id']; ?>" <?php echo (isset($_POST['tags']) && in_array($tag['id'], $_POST['tags'])) ? 'selected' : ''; ?>>
-                                    <?php echo htmlspecialchars($tag['name']); ?>
-                                </option>
-                            <?php endwhile; ?>
-                        </select>
-                        <div class="form-hint">Hold Ctrl (or Cmd on Mac) to select multiple tags</div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Featured Image Card -->
-            <div class="blog-card">
-                <div class="blog-card-header">
-                    <h3><i class="fas fa-image"></i> Featured Image</h3>
-                </div>
-                <div class="blog-card-body">
-                    <div class="image-upload-area" id="featured-image-uploader">
-                        <div style="position: relative; width: 100%; height: 100%;">
-                            <i class="fas fa-cloud-upload-alt"></i>
-                            <h4>Upload Featured Image</h4>
-                            <p>Drop an image here or click to browse</p>
-                            <input type="file" id="featured_image" name="featured_image" accept="image/*" style="opacity: 0; position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: pointer; z-index: 1;">
-                        </div>
-                    </div>
-                    <div id="image-preview" class="image-preview" style="display: none;">
-                        <img src="" alt="Image Preview">
-                        <button type="button" class="remove-image" id="remove-image">
-                            <i class="fas fa-times"></i>
+                        
+                        <button type="submit" class="save-button">
+                            <i class="fas fa-save"></i> Save Blog Post
                         </button>
                     </div>
-                    <div class="form-hint mt-2">Recommended size: 1200x800 pixels. Max size: 5MB.</div>
+                </div>
+                
+                <!-- Categories & Tags Card -->
+                <div class="blog-card">
+                    <div class="blog-card-header">
+                        <h3><i class="fas fa-tags"></i> Categories & Tags</h3>
+                    </div>
+                    <div class="blog-card-body">
+                        <div class="form-section">
+                            <label for="category_id">Category</label>
+                            <select id="category_id" name="category_id">
+                                <option value="">-- Select Category --</option>
+                                <?php while ($category = $categories_result->fetch_assoc()): ?>
+                                    <option value="<?php echo $category['id']; ?>" <?php echo (isset($_POST['category_id']) && $_POST['category_id'] == $category['id']) ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars($category['name']); ?>
+                                    </option>
+                                <?php endwhile; ?>
+                            </select>
+                        </div>
+                        
+                        <div class="form-section">
+                            <label for="tags">Tags</label>
+                            <select id="tags" name="tags[]" multiple>
+                                <?php while ($tag = $tags_result->fetch_assoc()): ?>
+                                    <option value="<?php echo $tag['id']; ?>" <?php echo (isset($_POST['tags']) && in_array($tag['id'], $_POST['tags'])) ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars($tag['name']); ?>
+                                    </option>
+                                <?php endwhile; ?>
+                            </select>
+                            <div class="form-hint">Hold Ctrl (or Cmd on Mac) to select multiple tags</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Featured Image Card -->
+                <div class="blog-card">
+                    <div class="blog-card-header">
+                        <h3><i class="fas fa-image"></i> Featured Image</h3>
+                    </div>
+                    <div class="blog-card-body">
+                        <div class="image-upload-area" id="featured-image-uploader">
+                            <div style="position: relative; width: 100%; height: 100%;">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <h4>Upload Featured Image</h4>
+                                <p>Drop an image here or click to browse</p>
+                                <input type="file" id="featured_image" name="featured_image" accept="image/*" style="opacity: 0; position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: pointer; z-index: 1;">
+                            </div>
+                        </div>
+                        <div id="image-preview" class="image-preview" style="display: none;">
+                            <img src="" alt="Image Preview">
+                            <button type="button" class="remove-image" id="remove-image">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="form-hint mt-2">Recommended size: 1200x800 pixels. Max size: 5MB.</div>
+                    </div>
                 </div>
             </div>
-        </div>
-    </form>
+        </form>
+    </main>
 </div>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

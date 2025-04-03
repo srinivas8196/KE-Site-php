@@ -207,32 +207,32 @@ if (file_exists('bheader.php')) {
             <div class="flex-grow">
               <input type="text" id="search" placeholder="Search resorts..." 
                      class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-            </div>
+      </div>
             <div>
               <select id="filter-status" 
                       class="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="">All Statuses</option>
-                <option value="1">Active</option>
-                <option value="0">Inactive</option>
-              </select>
-            </div>
+          <option value="">All Statuses</option>
+          <option value="1">Active</option>
+          <option value="0">Inactive</option>
+        </select>
+      </div>
           </div>
           <div class="flex items-center space-x-4">
             <select id="bulk-action" 
                     class="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <option value="">Bulk Actions</option>
-              <option value="activate">Activate</option>
-              <option value="deactivate">Deactivate</option>
-              <option value="delete">Delete</option>
-            </select>
+          <option value="">Bulk Actions</option>
+          <option value="activate">Activate</option>
+          <option value="deactivate">Deactivate</option>
+          <option value="delete">Delete</option>
+        </select>
             <button id="apply-bulk-action" 
                     class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition duration-200">
               Apply
             </button>
           </div>
-        </div>
+      </div>
 
-        <?php if(count($resorts) > 0): ?>
+      <?php if(count($resorts) > 0): ?>
           <div class="overflow-x-auto">
             <table id="resorts-table" class="min-w-full bg-white">
               <thead class="bg-gray-50">
@@ -244,51 +244,51 @@ if (file_exists('bheader.php')) {
                   <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Destination</th>
                   <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                   <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                </tr>
-              </thead>
+            </tr>
+          </thead>
               <tbody class="divide-y divide-gray-200">
-                <?php foreach($resorts as $resort): ?>
+            <?php foreach($resorts as $resort): ?>
                 <tr id="resort-row-<?php echo $resort['id']; ?>" class="hover:bg-gray-50">
                   <td class="py-4 px-4">
                     <input type="checkbox" class="resort-checkbox rounded border-gray-300" value="<?php echo $resort['id']; ?>">
-                  </td>
+              </td>
                   <td class="py-4 px-4"><?php echo htmlspecialchars($resort['resort_name']); ?></td>
                   <td class="py-4 px-4"><?php echo htmlspecialchars($resort['destination_name']); ?></td>
                   <td class="py-4 px-4">
-                    <label class="switch">
+                <label class="switch">
                       <input type="checkbox" class="toggle-active" data-resort-id="<?php echo $resort['id']; ?>" 
                              <?php echo ($resort['is_active'] == 1) ? 'checked' : ''; ?>>
-                      <span class="slider"></span>
-                    </label>
-                  </td>
+                  <span class="slider"></span>
+                </label>
+              </td>
                   <td class="py-4 px-4">
                     <div class="flex space-x-2">
                       <a href="create_or_edit_resort.php?destination_id=<?php echo $resort['destination_id']; ?>&resort_id=<?php echo $resort['id']; ?>" 
                          class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-lg transition duration-200">
                         <i class="fas fa-edit"></i>
                       </a>
-                      <?php if ($resort['is_active'] == 1): ?>
+                <?php if ($resort['is_active'] == 1): ?>
                         <a href="<?php echo htmlspecialchars($resort['resort_slug']); ?>" target="_blank" 
                            class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-lg transition duration-200">
                           <i class="fas fa-eye"></i>
                         </a>
-                      <?php else: ?>
+                <?php else: ?>
                         <a href="404.php" target="_blank" 
                            class="bg-gray-400 text-white px-3 py-1 rounded-lg cursor-not-allowed">
                           <i class="fas fa-eye-slash"></i>
                         </a>
-                      <?php endif; ?>
+                <?php endif; ?>
                       <a href="delete_resort.php?id=<?php echo $resort['id']; ?>" 
                          class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg transition duration-200"
                          onclick="return confirm('Are you sure you want to delete this resort?');">
                         <i class="fas fa-trash"></i>
                       </a>
                     </div>
-                  </td>
-                </tr>
-                <?php endforeach; ?>
-              </tbody>
-            </table>
+              </td>
+            </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
           </div>
 
           <!-- Pagination -->
@@ -327,14 +327,14 @@ if (file_exists('bheader.php')) {
           </div>
           <?php endif; ?>
 
-        <?php else: ?>
+      <?php else: ?>
           <div class="text-center py-8">
             <p class="text-gray-500 mb-4">No resorts found.</p>
             <a href="create_or_edit_resort.php" class="inline-block bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition duration-200">
               Create Your First Resort
             </a>
           </div>
-        <?php endif; ?>
+      <?php endif; ?>
       </div>
     </main>
   </div>
@@ -407,7 +407,7 @@ if (file_exists('bheader.php')) {
 
             try {
               const response = await fetch('bulk_resort_action.php', {
-                method: 'POST',
+          method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
                   'Accept': 'application/json'
@@ -419,9 +419,9 @@ if (file_exists('bheader.php')) {
               });
 
               // Check if response is ok and is JSON
-              if (!response.ok) {
-                throw new Error('Network response was not ok');
-              }
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
 
               const contentType = response.headers.get('content-type');
               if (!contentType || !contentType.includes('application/json')) {
@@ -437,7 +437,7 @@ if (file_exists('bheader.php')) {
                 await Swal.fire({
                   title: 'Success',
                   text: data.message,
-                  icon: 'success',
+          icon: 'success',
                   timer: 2000,
                   showConfirmButton: false
                 });
@@ -447,12 +447,12 @@ if (file_exists('bheader.php')) {
               } else {
                 throw new Error(data.message || 'Failed to process bulk action');
               }
-            } catch (error) {
+      } catch (error) {
               // Close loading toast
               loadingToast.close();
               
-              Swal.fire({
-                title: 'Error',
+        Swal.fire({
+          title: 'Error',
                 text: error.message || 'An error occurred while processing the request',
                 icon: 'error'
               });
@@ -482,7 +482,7 @@ if (file_exists('bheader.php')) {
 
           try {
             const response = await fetch('update_resort_status.php', {
-              method: 'POST',
+          method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
@@ -498,12 +498,12 @@ if (file_exists('bheader.php')) {
               throw new Error('Invalid response format from server');
             }
 
-            const data = await response.json();
+        const data = await response.json();
             
             // Close loading toast
             loadingToast.close();
 
-            if (data.success) {
+        if (data.success) {
               // Update view button
               if (newStatus) {
                 viewButton.href = data.resort_slug;
@@ -525,10 +525,10 @@ if (file_exists('bheader.php')) {
                 timer: 1500,
                 showConfirmButton: false
               });
-            } else {
+        } else {
               throw new Error(data.message || 'Failed to update resort status');
-            }
-          } catch (error) {
+        }
+      } catch (error) {
             // Close loading toast
             loadingToast.close();
             
@@ -550,7 +550,7 @@ if (file_exists('bheader.php')) {
       const statusFilter = document.getElementById('filter-status');
       let searchTimeout;
 
-      function filterTable() {
+    function filterTable() {
         const searchTerm = searchInput.value.toLowerCase();
         const statusValue = statusFilter.value;
         const rows = document.querySelectorAll('#resorts-table tbody tr');
@@ -561,9 +561,9 @@ if (file_exists('bheader.php')) {
           const matchesSearch = resortName.includes(searchTerm);
           const matchesStatus = statusValue === '' || (statusValue === '1' && isActive) || (statusValue === '0' && !isActive);
 
-          row.style.display = matchesSearch && matchesStatus ? '' : 'none';
-        });
-      }
+        row.style.display = matchesSearch && matchesStatus ? '' : 'none';
+      });
+    }
 
       if (searchInput) {
         searchInput.addEventListener('input', () => {
@@ -589,17 +589,17 @@ if (file_exists('bheader.php')) {
 
       function sortTable(column, isAsc) {
         const tbody = document.querySelector('#resorts-table tbody');
-        const rows = Array.from(tbody.querySelectorAll('tr'));
+      const rows = Array.from(tbody.querySelectorAll('tr'));
 
-        rows.sort((a, b) => {
+      rows.sort((a, b) => {
           const aValue = a.querySelector(`td:nth-child(${column + 1})`).textContent.trim();
           const bValue = b.querySelector(`td:nth-child(${column + 1})`).textContent.trim();
           return isAsc ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
         });
 
         tbody.innerHTML = '';
-        rows.forEach(row => tbody.appendChild(row));
-      }
+      rows.forEach(row => tbody.appendChild(row));
+    }
     });
   </script>
 

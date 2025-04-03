@@ -865,13 +865,13 @@
                                                         echo ' <span class="location">' . htmlspecialchars(trim($location)) . '</span>';
                                                     }
                                                 ?>
-                                            </a>
-                                    </li>
+                                        </a>
+                    </li>
                                 <?php endforeach; ?>
-                            </ul>
-                        </div>
+                </ul>
+            </div>
                     <?php endforeach; ?>
-                </div>
+        </div>
             </li>
             <li><a href="about.php">About Us</a></li>
             <li><a href="Blogs.php">Our Blogs</a></li>
@@ -922,9 +922,9 @@
                                                         // If still no India found, use the destination with most resorts
                                                         if ($indiaDestination === null && !empty($otherDestinations)) {
                                                             // Sort to get the destination with most resorts
-                                                            usort($menuDestinations, function($a, $b) {
-                                                                return count($b['resorts']) - count($a['resorts']);
-                                                            });
+                                                    usort($menuDestinations, function($a, $b) {
+                                                        return count($b['resorts']) - count($a['resorts']);
+                                                    });
                                                             $indiaDestination = $menuDestinations[0];
                                                             
                                                             // Remove it from other destinations to avoid duplication
@@ -1036,7 +1036,7 @@
                                                                 $resortCount = count($destination['resorts']);
                                                             ?>
                                                                 <div class="destination-section">
-                                                                    <h3 class="destination-title">
+                                                                    <h3 class="destination-title">  
                                                                         <?php echo htmlspecialchars($destination['name']); ?>
                                                                         <span class="resort-count">(<?php echo $resortCount; ?> <?php echo $resortCount === 1 ? 'Resort' : 'Resorts'; ?>)</span>
                                                                     </h3>
