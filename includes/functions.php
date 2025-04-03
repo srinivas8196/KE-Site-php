@@ -156,4 +156,72 @@ function getReadingTime($content) {
     $words = getWordCount($content);
     $minutes = ceil($words / 200); // Assuming average reading speed of 200 words per minute
     return max(1, $minutes);
+}
+
+/**
+ * Verify reCAPTCHA v3 token
+ * @param string $token The reCAPTCHA token to verify
+ * @param string $action The expected action name
+ * @return array ['success' => bool, 'score' => float|null, 'error' => string|null]
+ */
+function verifyRecaptchaV3($token, $action) {
+    $result = [
+        'success' => false,
+        'score' => null,
+        'error' => null
+    ];
+
+    try {
+        $url = 'https://www.google.com/recaptcha/api/siteverify';
+        $data = [
+            'secret' => RECAPTCHA_V3_SECRET_KEY,
+            'response' => $token
+        ];
+
+        $options = [
+            'http' => [
+                'header' => "Content-type: application/x-www-form-urlencoded\r\n",
+                'method' => 'POST',
+                'content' => http_build_query($data)
+            ]
+        ];
+
+        $context = stream_context_create($options);
+        $response = file_get_contents($url, false, $context);
+        
+        if ($response === false) {
+            throw new Exception('Failed to verify reCAPTCHA');
+        }
+
+        $responseData = json_decode($response, true);
+
+        if ($responseData === null) {
+            throw new Exception('Invalid reCAPTCHA response');
+        }
+
+        // Verify the response
+        if ($responseData['success'] === true) {
+            // Verify action matches
+            if ($responseData['action'] !== $action) {
+                $result['error'] = 'Invalid action';
+                return $result;
+            }
+
+            // Check score
+            $score = $responseData['score'] ?? 0;
+            $result['score'] = $score;
+            
+            if ($score >= RECAPTCHA_V3_SCORE_THRESHOLD) {
+                $result['success'] = true;
+            } else {
+                $result['error'] = 'Score too low';
+            }
+        } else {
+            $result['error'] = 'Verification failed: ' . implode(', ', $responseData['error-codes'] ?? ['unknown error']);
+        }
+    } catch (Exception $e) {
+        $result['error'] = $e->getMessage();
+    }
+
+    return $result;
 } 

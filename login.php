@@ -4,6 +4,7 @@ session_start();
 
 // Include database
 require_once 'db.php';
+require_once 'includes/recaptcha-config.php';
 
 // Debug: Log the request method and session info
 error_log("Login page accessed via " . $_SERVER['REQUEST_METHOD'] . " method");
@@ -21,48 +22,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Get form data
     $username = isset($_POST['username']) ? trim($_POST['username']) : '';
     $password = isset($_POST['password']) ? $_POST['password'] : '';
+    $recaptcha_token = $_POST['recaptcha_token'] ?? '';
     
     // Validate input
     if (empty($username) || empty($password)) {
         $error = 'Please enter both username and password';
     } else {
-        try {
-            // Get PDO connection
-            $pdo = require 'db.php';
-            
-            // Query the database
-            $stmt = $pdo->prepare("SELECT * FROM users WHERE username = ?");
-            $stmt->execute([$username]);
-            $user = $stmt->fetch(PDO::FETCH_ASSOC);
-            
-            // Check password
-            if ($user && password_verify($password, $user['password'])) {
-                // Set session variables
-                $_SESSION['user'] = [
-                    'id' => $user['id'],
-                    'username' => $user['username'],
-                    'role' => $user['role'],
-                    'user_type' => $user['user_type']
-                ];
+        // Verify reCAPTCHA first
+        $recaptcha_result = verifyRecaptchaV3($recaptcha_token, 'login');
+        
+        if (!$recaptcha_result['success']) {
+            $error = 'Security verification failed. Please try again.';
+            error_log('reCAPTCHA verification failed: ' . ($recaptcha_result['error'] ?? 'unknown error'));
+        } else {
+            try {
+                // Get PDO connection
+                $pdo = require 'db.php';
                 
-                // Set activity timestamps
-                $_SESSION['LAST_ACTIVITY'] = time();
-                $_SESSION['CREATED'] = time();
+                // Query the database
+                $stmt = $pdo->prepare("SELECT * FROM users WHERE username = ?");
+                $stmt->execute([$username]);
+                $user = $stmt->fetch(PDO::FETCH_ASSOC);
                 
-                // Debug: Log successful login
-                error_log("Login successful for user: {$username}, redirecting to dashboard.php");
-                
-                // Redirect to dashboard with absolute path
-                header("Location: " . $_SERVER['REQUEST_SCHEME'] . '://' . $_SERVER['HTTP_HOST'] . dirname($_SERVER['PHP_SELF']) . '/dashboard.php');
-                exit;
-            } else {
-                // Debug: Log failed login
-                error_log("Login failed for username: {$username}");
-                $error = 'Invalid username or password';
+                // Check password
+                if ($user && password_verify($password, $user['password'])) {
+                    // Set session variables
+                    $_SESSION['user'] = [
+                        'id' => $user['id'],
+                        'username' => $user['username'],
+                        'role' => $user['role'],
+                        'user_type' => $user['user_type']
+                    ];
+                    
+                    // Set activity timestamps
+                    $_SESSION['LAST_ACTIVITY'] = time();
+                    $_SESSION['CREATED'] = time();
+                    
+                    // Debug: Log successful login
+                    error_log("Login successful for user: {$username}, redirecting to dashboard.php");
+                    
+                    // Redirect to dashboard with absolute path
+                    header("Location: " . $_SERVER['REQUEST_SCHEME'] . '://' . $_SERVER['HTTP_HOST'] . dirname($_SERVER['PHP_SELF']) . '/dashboard.php');
+                    exit;
+                } else {
+                    // Debug: Log failed login
+                    error_log("Login failed for username: {$username}");
+                    $error = 'Invalid username or password';
+                }
+            } catch (PDOException $e) {
+                error_log("Database error: " . $e->getMessage());
+                $error = 'Database error: ' . $e->getMessage();
             }
-        } catch (PDOException $e) {
-            error_log("Database error: " . $e->getMessage());
-            $error = 'Database error: ' . $e->getMessage();
         }
     }
 }
@@ -127,6 +137,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border-left: 4px solid #e74c3c;
         }
     </style>
+    <!-- Add reCAPTCHA v3 script -->
+    <script src="https://www.google.com/recaptcha/api.js?render=<?php echo RECAPTCHA_V3_SITE_KEY; ?>"></script>
 </head>
 <body>
     <div class="login-container">
@@ -142,7 +154,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
         <?php endif; ?>
         
-        <form method="POST" action="login.php">
+        <form method="POST" action="login.php" id="loginForm">
             <div class="mb-3">
                 <label for="username" class="form-label">Username</label>
                 <input type="text" class="form-control" id="username" name="username" required>
@@ -153,6 +165,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <input type="password" class="form-control" id="password" name="password" required>
             </div>
             
+            <!-- Hidden reCAPTCHA token field -->
+            <input type="hidden" name="recaptcha_token" id="recaptchaToken">
+            
             <button type="submit" class="btn btn-login">Login</button>
         </form>
         
@@ -162,6 +177,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </a>
         </div>
     </div>
+    
+    <script>
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        grecaptcha.ready(function() {
+            grecaptcha.execute('<?php echo RECAPTCHA_V3_SITE_KEY; ?>', {action: 'login'})
+                .then(function(token) {
+                    document.getElementById('recaptchaToken').value = token;
+                    document.getElementById('loginForm').submit();
+                });
+        });
+    });
+    </script>
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>

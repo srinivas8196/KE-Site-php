@@ -11,8 +11,9 @@
     header("Cache-Control: post-check=0, pre-check=0", false);
     header("Pragma: no-cache");
 
-    // Include database connection
+    // Include database connection and required files
     require_once 'db.php';
+    require_once 'includes/recaptcha-config.php';
     $pdo = require 'db.php';
 
     // Define base URL
@@ -706,6 +707,58 @@
             }
         }
     </style>
+    <!-- Add reCAPTCHA v3 script in head -->
+    <script src="https://www.google.com/recaptcha/api.js?render=<?php echo RECAPTCHA_V3_SITE_KEY; ?>"></script>
+    
+    <!-- Add global reCAPTCHA helper function -->
+    <script>
+    function executeRecaptcha(action) {
+        return new Promise((resolve, reject) => {
+            grecaptcha.ready(function() {
+                grecaptcha.execute('<?php echo RECAPTCHA_V3_SITE_KEY; ?>', { action: action })
+                    .then(function(token) {
+                        resolve(token);
+                    })
+                    .catch(function(error) {
+                        reject(error);
+                    });
+            });
+        });
+    }
+
+    // Automatically add reCAPTCHA token to all forms
+    document.addEventListener('DOMContentLoaded', function() {
+        const forms = document.querySelectorAll('form');
+        forms.forEach(form => {
+            // Skip forms that shouldn't have reCAPTCHA
+            if (form.classList.contains('no-recaptcha')) return;
+            
+            // Create hidden input for token if it doesn't exist
+            if (!form.querySelector('input[name="recaptcha_token"]')) {
+                const tokenInput = document.createElement('input');
+                tokenInput.type = 'hidden';
+                tokenInput.name = 'recaptcha_token';
+                form.appendChild(tokenInput);
+            }
+
+            // Add submit handler
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                try {
+                    // Get form action or default to 'form_submit'
+                    const recaptchaAction = form.dataset.recaptchaAction || 'form_submit';
+                    const token = await executeRecaptcha(recaptchaAction);
+                    form.querySelector('input[name="recaptcha_token"]').value = token;
+                    form.submit();
+                } catch (error) {
+                    console.error('reCAPTCHA error:', error);
+                    // Optionally show error to user
+                    alert('Security verification failed. Please try again.');
+                }
+            });
+        });
+    });
+    </script>
 </head>
 <body>
     <!-- Mobile Menu Overlay -->

@@ -452,14 +452,12 @@ body {
 .destination-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 15px;
-    margin-bottom: 30px;
+    gap: 25px;
 }
 
 @media (min-width: 768px) {
     .destination-grid {
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 20px;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     }
 }
 
@@ -514,8 +512,14 @@ body {
 
 .resort-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 20px;
+    grid-template-columns: 1fr;
+    gap: 25px;
+}
+
+@media (min-width: 768px) {
+    .resort-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
 
 .resort-card {
@@ -526,7 +530,7 @@ body {
     transition: var(--transition);
     cursor: pointer;
     height: 220px;
-    margin-bottom: 15px;
+    margin-bottom: 0; /* Remove margin-bottom since we're using grid gap */
 }
 
 .resort-card:hover, .resort-card.selected {
@@ -1037,44 +1041,73 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     }
 }
 
-.change-destination-btn {
-    margin: 20px 0;
-    display: block;
-    width: 100%;
-    text-align: center;
-    font-weight: 600;
-    padding: 15px 20px;
-    border-radius: 8px;
-    background-color: #8b734b;
-    color: white;
-    border: 2px solid #8b734b;
+.change-destination-card {
+    background-color: var(--white);
+    border: 2px dashed var(--border-color);
+    border-radius: 10px;
+    padding: 20px;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: var(--transition);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    min-height: 220px;
+}
+
+.change-destination-card i {
+    font-size: 2rem;
+    color: var(--primary-color);
+    transition: transform 0.3s ease;
+}
+
+.change-destination-card h4 {
     font-size: 1.1rem;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    position: relative;
-    z-index: 10;
-    animation: pulse 2s infinite;
+    margin: 0;
+    color: var(--primary-color);
+    font-weight: 600;
 }
 
-@keyframes pulse {
-    0% {
-        box-shadow: 0 0 0 0 rgba(139, 115, 75, 0.7);
-    }
-    70% {
-        box-shadow: 0 0 0 10px rgba(139, 115, 75, 0);
-    }
-    100% {
-        box-shadow: 0 0 0 0 rgba(139, 115, 75, 0);
+.change-destination-card:hover {
+    background-color: rgba(139, 115, 75, 0.05);
+    border-color: var(--primary-color);
+}
+
+.change-destination-card:hover i {
+    transform: rotate(180deg);
+}
+
+/* Remove old button styles */
+.change-destination-btn {
+    display: none;
+}
+
+/* Update resort grid spacing */
+.resort-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 25px;
+}
+
+@media (min-width: 768px) {
+    .resort-grid {
+        grid-template-columns: repeat(2, 1fr);
     }
 }
 
-.change-destination-btn:hover {
-    background-color: #a08759;
-    color: white;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
-    border-color: #a08759;
+/* Update destination grid spacing */
+.destination-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 25px;
+}
+
+@media (min-width: 768px) {
+    .destination-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
 }
 
 /* Custom styling for checkboxes */
@@ -1789,24 +1822,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
             
-            // Add a "Change Destination" button if it doesn't exist
+            // Add a "Change Destination" card if it doesn't exist
             if (!document.getElementById('change-destination')) {
-                const changeBtn = document.createElement('button');
-                changeBtn.id = 'change-destination';
-                changeBtn.className = 'change-destination-btn';
-                changeBtn.innerHTML = '<i class="fas fa-exchange-alt"></i> Change Destination';
+                const changeCard = document.createElement('div');
+                changeCard.id = 'change-destination';
+                changeCard.className = 'change-destination-card';
+                changeCard.innerHTML = `
+                    <i class="fas fa-exchange-alt"></i>
+                    <h4>Change Destination</h4>
+                `;
                 
-                // Clear previous change button if it exists
-                const existingBtn = document.getElementById('change-destination');
-                if (existingBtn) {
-                    existingBtn.remove();
-                }
+                // Insert the card into the destination grid
+                destinationGrid.appendChild(changeCard);
                 
-                // Insert the button right before the form-actions div to make it more visible
-                const formActions = document.querySelector("#step1-content .form-actions");
-                formActions.parentNode.insertBefore(changeBtn, formActions);
-                
-                changeBtn.addEventListener('click', function(e) {
+                changeCard.addEventListener('click', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
                     
@@ -1816,7 +1845,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         c.classList.remove('selected');
                     });
                     
-                    // Remove this button
+                    // Remove this card
                     this.remove();
                     
                     // Reset progress
@@ -1963,6 +1992,51 @@ document.addEventListener('DOMContentLoaded', function() {
                     selectedDestinationSubtext.textContent = selectedDestinationName.textContent;
                     resortPreview.classList.add('active');
                     resortError.style.display = 'none';
+
+                    // Hide all resort cards except selected one
+                    allResortCards.forEach(c => {
+                        if (c !== resortCard) {
+                            c.style.display = 'none';
+                        }
+                    });
+
+                    // Add "Change Resort" card if it doesn't exist
+                    if (!document.getElementById('change-resort')) {
+                        const changeCard = document.createElement('div');
+                        changeCard.id = 'change-resort';
+                        changeCard.className = 'change-destination-card';
+                        changeCard.innerHTML = `
+                            <i class="fas fa-exchange-alt"></i>
+                            <h4>Change Resort</h4>
+                        `;
+                        
+                        // Insert the card into the resort grid
+                        resortGrid.appendChild(changeCard);
+                        
+                        // Add click handler for the change card
+                        changeCard.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            
+                            // Show all resort cards again
+                            allResortCards.forEach(c => {
+                                c.style.display = 'block';
+                                c.classList.remove('selected');
+                            });
+                            
+                            // Reset resort selection
+                            resortIdInput.value = '';
+                            resortNameHidden.value = '';
+                            resortCodeHidden.value = '';
+                            resortPreview.classList.remove('active');
+                            
+                            // Remove the change card
+                            this.remove();
+                            
+                            // Update progress
+                            updateProgress(33);
+                        });
+                    }
                     
                     // Update progress
                     updateProgress(45);

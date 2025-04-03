@@ -7,6 +7,7 @@ error_reporting(E_ALL);
 // Include database connection
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/includes/functions.php';
+require_once __DIR__ . '/includes/recaptcha-config.php';
 
 // Define base URL
 $base_url = '/KE-Site-php';
@@ -85,6 +86,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_comment'])) {
     $email = trim($_POST['email'] ?? '');
     $content = trim($_POST['content'] ?? '');
     $post_id = $post['id'];
+    $recaptcha_token = $_POST['recaptcha_token'] ?? '';
     
     // Simple validation
     if (empty($name) || empty($email) || empty($content)) {
@@ -92,22 +94,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_comment'])) {
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $comment_error = "Please enter a valid email address";
     } else {
-        // Set status based on auto-approval setting (for now, require approval)
-        $status = 'pending'; // Or 'approved' if you want auto-approval
+        // Verify reCAPTCHA first
+        $recaptcha_result = verifyRecaptchaV3($recaptcha_token, 'comment');
         
-        $insert_comment = "INSERT INTO blog_comments (post_id, name, email, content, status, created_at) 
-                           VALUES (?, ?, ?, ?, ?, NOW())";
-        $stmt = $conn->prepare($insert_comment);
-        $stmt->bind_param("issss", $post_id, $name, $email, $content, $status);
-        
-        if ($stmt->execute()) {
-            $comment_success = "Thank you for your comment! It will be visible after approval.";
-            // Clear form data after successful submission
-            unset($_POST['name'], $_POST['email'], $_POST['content']);
+        if (!$recaptcha_result['success']) {
+            $comment_error = "Security verification failed. Please try again.";
+            error_log('reCAPTCHA verification failed for comment: ' . ($recaptcha_result['error'] ?? 'unknown error'));
         } else {
-            $comment_error = "Error: " . $stmt->error;
+            // Set status based on auto-approval setting (for now, require approval)
+            $status = 'pending'; // Or 'approved' if you want auto-approval
+            
+            $insert_comment = "INSERT INTO blog_comments (post_id, name, email, content, status, created_at) 
+                               VALUES (?, ?, ?, ?, ?, NOW())";
+            $stmt = $conn->prepare($insert_comment);
+            $stmt->bind_param("issss", $post_id, $name, $email, $content, $status);
+            
+            if ($stmt->execute()) {
+                $comment_success = "Thank you for your comment! It will be visible after approval.";
+                // Clear form data after successful submission
+                unset($_POST['name'], $_POST['email'], $_POST['content']);
+            } else {
+                $comment_error = "Error: " . $stmt->error;
+            }
+            $stmt->close();
         }
-        $stmt->close();
     }
 }
 
@@ -129,6 +139,9 @@ $page_title = htmlspecialchars($post['title']) . " | Karma Experience";
 // Include header
 include 'kheader.php';
 ?>
+
+<!-- Add reCAPTCHA v3 script -->
+<script src="https://www.google.com/recaptcha/api.js?render=<?php echo RECAPTCHA_V3_SITE_KEY; ?>"></script>
 
 <div class="breadcumb-wrapper" data-bg-src="<?php echo $base_url; ?>/assets/img/bg/breadcumb-bg.jpg">
     <div class="container">
@@ -251,9 +264,9 @@ include 'kheader.php';
                         <div id="comment-form" class="comment-form-wrap mt-5 pt-4">
                             <h3 class="blog-inner-title mb-4">Leave a Comment</h3>
                             
-                            <?php if ($comment_submitted): ?>
+                            <?php if ($comment_success): ?>
                                 <div class="alert alert-success mb-4">
-                                    Thank you for your comment! It is pending approval and will appear soon.
+                                    <?php echo htmlspecialchars($comment_success); ?>
                                 </div>
                             <?php endif; ?>
                             
@@ -263,7 +276,7 @@ include 'kheader.php';
                                 </div>
                             <?php endif; ?>
                             
-                            <form action="#comment-form" method="POST" class="comment-form">
+                            <form action="#comment-form" method="POST" class="comment-form" id="commentForm">
                                 <input type="hidden" name="parent_id" id="parent_id" value="">
                                 <div class="row">
                                     <div class="col-md-6">
@@ -294,6 +307,9 @@ include 'kheader.php';
                                     Replying to: <span id="reply-to-name"></span>
                                     <a href="#" id="cancel-reply" class="ms-2">(Cancel)</a>
                                 </div>
+                                
+                                <!-- Hidden reCAPTCHA token field -->
+                                <input type="hidden" name="recaptcha_token" id="recaptchaToken">
                             </form>
                         </div>
                     </div>
@@ -342,6 +358,17 @@ include 'kheader.php';
             });
         });
     });
+
+document.getElementById('commentForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    grecaptcha.ready(function() {
+        grecaptcha.execute('<?php echo RECAPTCHA_V3_SITE_KEY; ?>', {action: 'comment'})
+            .then(function(token) {
+                document.getElementById('recaptchaToken').value = token;
+                document.getElementById('commentForm').submit();
+            });
+    });
+});
 </script>
 
 <?php include 'kfooter.php'; ?> 
