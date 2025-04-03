@@ -1,5 +1,5 @@
 <?php
-include_once('kheader.php');
+include_once('kheader-new1.php');
 ?>
 
 <div class="th-hero-wrapper hero-1" id="hero">
