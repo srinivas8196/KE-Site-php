@@ -2,11 +2,14 @@
 // Start session
 session_start();
 
+// Include auth helper for role-based features
+require_once 'auth_helper.php';
+
 // Debug: Log access to dashboard page
-error_log("Dashboard page accessed. Session status: " . (isset($_SESSION['user']) ? "User logged in" : "No user session"));
+error_log("Dashboard page accessed. Session status: " . (isset($_SESSION['user_id']) ? "User logged in" : "No user session"));
 
 // Check if user is logged in before anything else
-if (!isset($_SESSION['user'])) {
+if (!isset($_SESSION['user_id'])) {
     error_log("No user session found, redirecting to login.php");
     header("Location: login.php");
     exit();
@@ -15,43 +18,88 @@ if (!isset($_SESSION['user'])) {
 // Include database connection
 require_once 'db.php';
 
-// Ensure we have a valid PDO connection
-if (!isset($pdo) || !$pdo) {
-    $pdo = require 'db.php'; // Get a fresh connection if needed
+// Ensure we have a valid connection
+if (!isset($conn) || !$conn) {
+    require_once 'db.php'; // Get a fresh connection if needed
 }
 
-// Get user information from session
-$user = $_SESSION['user'];
-error_log("User logged in: " . $user['username'] . " (ID: " . $user['id'] . ")");
+// Fetch user information
+$user_id = $_SESSION['user_id'];
+$stmt = $conn->prepare("SELECT * FROM users WHERE id = ?");
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$result = $stmt->get_result();
 
-// Ensure user_type is set
-if (!isset($user['user_type'])) {
-    $user['user_type'] = 'user'; // Default to 'user' if not set
+if ($result->num_rows === 0) {
+    // User not found in database
+    session_destroy();
+    header("Location: login.php");
+    exit();
 }
+
+$user = $result->fetch_assoc();
+$_SESSION['user_type'] = $user['user_type']; // Ensure user_type is in session
 
 // Now include the bheader which has navigation elements
 require_once 'bheader.php'; 
 
 // Fetch statistics
-$stats = $pdo->query("SELECT 
-    (SELECT COUNT(*) FROM destinations) as total_destinations,
-    (SELECT COUNT(*) FROM resorts) as total_resorts,
-    (SELECT COUNT(*) FROM resort_enquiries) as total_enquiries,
-    (SELECT COUNT(*) FROM users) as total_users")->fetch(PDO::FETCH_ASSOC);
+$stats = array();
 
-// Fetch recent activities
-$recentEnquiries = $pdo->query("SELECT 
-    e.*, r.resort_name, d.destination_name 
-    FROM resort_enquiries e 
-    LEFT JOIN resorts r ON e.resort_id = r.id 
-    LEFT JOIN destinations d ON e.destination_id = d.id 
-    ORDER BY e.created_at DESC LIMIT 5")->fetchAll();
+// Only query what the user has permission to see
+$query = "SELECT ";
+$queryParts = array();
 
-$recentResorts = $pdo->query("SELECT * FROM resorts ORDER BY created_at DESC LIMIT 5")->fetchAll();
+if (hasPermission('campaign_manager')) {
+    $queryParts[] = "(SELECT COUNT(*) FROM destinations) as total_destinations";
+    $queryParts[] = "(SELECT COUNT(*) FROM resorts) as total_resorts";
+    $queryParts[] = "(SELECT COUNT(*) FROM resort_enquiries) as total_enquiries";
+}
 
-$recentDestinations = $pdo->query("SELECT * FROM destinations ORDER BY created_at DESC LIMIT 5")->fetchAll();
+if (hasPermission('super_admin')) {
+    $queryParts[] = "(SELECT COUNT(*) FROM users) as total_users";
+}
 
-$recentUsers = $pdo->query("SELECT * FROM users ORDER BY created_at DESC LIMIT 5")->fetchAll();
+if (!empty($queryParts)) {
+    $query .= implode(", ", $queryParts);
+    $result = $conn->query($query);
+    $stats = $result->fetch_assoc();
+}
+
+// Fetch recent activities based on permissions
+$recentEnquiries = array();
+$recentResorts = array();
+$recentDestinations = array();
+$recentUsers = array();
+
+if (hasPermission('campaign_manager')) {
+    // Enquiries
+    $stmt = $conn->prepare("SELECT 
+        e.*, r.resort_name, d.destination_name 
+        FROM resort_enquiries e 
+        LEFT JOIN resorts r ON e.resort_id = r.id 
+        LEFT JOIN destinations d ON e.destination_id = d.id 
+        ORDER BY e.created_at DESC LIMIT 5");
+    $stmt->execute();
+    $recentEnquiries = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    
+    // Resorts
+    $stmt = $conn->prepare("SELECT * FROM resorts ORDER BY created_at DESC LIMIT 5");
+    $stmt->execute();
+    $recentResorts = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    
+    // Destinations
+    $stmt = $conn->prepare("SELECT * FROM destinations ORDER BY created_at DESC LIMIT 5");
+    $stmt->execute();
+    $recentDestinations = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+}
+
+if (hasPermission('super_admin')) {
+    // Users
+    $stmt = $conn->prepare("SELECT * FROM users ORDER BY created_at DESC LIMIT 5");
+    $stmt->execute();
+    $recentUsers = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+}
 
 ?>
 <!DOCTYPE html>
@@ -124,12 +172,13 @@ $recentUsers = $pdo->query("SELECT * FROM users ORDER BY created_at DESC LIMIT 5
 
         <!-- Statistics Cards -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <?php if (hasPermission('campaign_manager')): ?>
           <!-- Destinations Card -->
           <a href="destination_list.php" class="stat-card bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg shadow-lg p-6 text-white no-underline block">
             <div class="flex items-center justify-between">
               <div>
                 <p class="text-sm opacity-75">Total Destinations</p>
-                <h3 class="text-3xl font-bold"><?php echo $stats['total_destinations']; ?></h3>
+                <h3 class="text-3xl font-bold"><?php echo $stats['total_destinations'] ?? 0; ?></h3>
               </div>
               <div class="bg-white rounded-full p-4 shadow-lg">
                 <i class="fas fa-map-marker-alt text-blue-500 fa-2x"></i>
@@ -148,7 +197,7 @@ $recentUsers = $pdo->query("SELECT * FROM users ORDER BY created_at DESC LIMIT 5
             <div class="flex items-center justify-between">
               <div>
                 <p class="text-sm opacity-75">Total Resorts</p>
-                <h3 class="text-3xl font-bold"><?php echo $stats['total_resorts']; ?></h3>
+                <h3 class="text-3xl font-bold"><?php echo $stats['total_resorts'] ?? 0; ?></h3>
               </div>
               <div class="bg-white rounded-full p-4 shadow-lg">
                 <i class="fas fa-hotel text-green-500 fa-2x"></i>
@@ -167,7 +216,7 @@ $recentUsers = $pdo->query("SELECT * FROM users ORDER BY created_at DESC LIMIT 5
             <div class="flex items-center justify-between">
               <div>
                 <p class="text-sm opacity-75">Total Enquiries</p>
-                <h3 class="text-3xl font-bold"><?php echo $stats['total_enquiries']; ?></h3>
+                <h3 class="text-3xl font-bold"><?php echo $stats['total_enquiries'] ?? 0; ?></h3>
               </div>
               <div class="bg-white rounded-full p-4 shadow-lg">
                 <i class="fas fa-envelope text-orange-500 fa-2x"></i>
@@ -180,13 +229,15 @@ $recentUsers = $pdo->query("SELECT * FROM users ORDER BY created_at DESC LIMIT 5
               </span>
             </div>
           </a>
+          <?php endif; ?>
 
+          <?php if (hasPermission('super_admin')): ?>
           <!-- Users Card -->
           <a href="manage_users.php" class="stat-card bg-gradient-to-br from-purple-400 to-purple-600 rounded-lg shadow-lg p-6 text-white no-underline block">
             <div class="flex items-center justify-between">
               <div>
                 <p class="text-sm opacity-75">Total Users</p>
-                <h3 class="text-3xl font-bold"><?php echo $stats['total_users']; ?></h3>
+                <h3 class="text-3xl font-bold"><?php echo $stats['total_users'] ?? 0; ?></h3>
               </div>
               <div class="bg-white rounded-full p-4 shadow-lg">
                 <i class="fas fa-users text-purple-500 fa-2x"></i>
@@ -199,10 +250,12 @@ $recentUsers = $pdo->query("SELECT * FROM users ORDER BY created_at DESC LIMIT 5
               </span>
             </div>
           </a>
+          <?php endif; ?>
         </div>
 
         <!-- Recent Activities Section -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <?php if (hasPermission('campaign_manager') && !empty($recentEnquiries)): ?>
           <!-- Recent Enquiries -->
           <div class="bg-white rounded-lg shadow-lg p-6">
             <div class="flex justify-between items-center mb-4">
@@ -227,6 +280,7 @@ $recentUsers = $pdo->query("SELECT * FROM users ORDER BY created_at DESC LIMIT 5
               <?php endforeach; ?>
             </div>
           </div>
+          <?php endif; ?>
 
           <!-- Recent Activities -->
           <div class="bg-white rounded-lg shadow-lg p-6">
@@ -234,6 +288,7 @@ $recentUsers = $pdo->query("SELECT * FROM users ORDER BY created_at DESC LIMIT 5
               <h2 class="text-xl font-semibold text-gray-800">Recent Activities</h2>
             </div>
             <div class="space-y-4">
+              <?php if (hasPermission('campaign_manager')): ?>
               <!-- Recent Resorts -->
               <?php foreach ($recentResorts as $resort): ?>
               <div class="activity-item flex items-center p-3 rounded-lg border border-gray-100">
@@ -247,34 +302,23 @@ $recentUsers = $pdo->query("SELECT * FROM users ORDER BY created_at DESC LIMIT 5
                 </div>
               </div>
               <?php endforeach; ?>
+              <?php endif; ?>
 
-              <!-- Recent Destinations -->
-              <?php foreach ($recentDestinations as $destination): ?>
+              <?php if (hasPermission('super_admin')): ?>
+              <!-- Recent Users -->
+              <?php foreach ($recentUsers as $recentUser): ?>
               <div class="activity-item flex items-center p-3 rounded-lg border border-gray-100">
                 <div class="bg-green-100 rounded-full p-2 mr-4">
-                  <i class="fas fa-map-marker-alt text-green-500"></i>
+                  <i class="fas fa-user text-green-500"></i>
                 </div>
                 <div>
-                  <h4 class="font-medium text-gray-800">New Destination Added</h4>
-                  <p class="text-sm text-gray-600"><?php echo htmlspecialchars($destination['destination_name']); ?></p>
-                  <p class="text-xs text-gray-500 mt-1"><?php echo date('M j, Y', strtotime($destination['created_at'])); ?></p>
+                  <h4 class="font-medium text-gray-800">New User Registered</h4>
+                  <p class="text-sm text-gray-600"><?php echo htmlspecialchars($recentUser['username']); ?> (<?php echo formatRoleName($recentUser['user_type']); ?>)</p>
+                  <p class="text-xs text-gray-500 mt-1"><?php echo date('M j, Y', strtotime($recentUser['created_at'])); ?></p>
                 </div>
               </div>
               <?php endforeach; ?>
-
-              <!-- Recent Users -->
-              <?php foreach ($recentUsers as $user): ?>
-              <div class="activity-item flex items-center p-3 rounded-lg border border-gray-100">
-                <div class="bg-red-100 rounded-full p-2 mr-4">
-                  <i class="fas fa-user text-red-500"></i>
-                </div>
-                <div>
-                  <h4 class="font-medium text-gray-800">New User Added</h4>
-                  <p class="text-sm text-gray-600"><?php echo htmlspecialchars($user['username']); ?></p>
-                  <p class="text-xs text-gray-500 mt-1"><?php echo date('M j, Y', strtotime($user['created_at'])); ?></p>
-                </div>
-              </div>
-              <?php endforeach; ?>
+              <?php endif; ?>
             </div>
           </div>
         </div>
@@ -288,18 +332,33 @@ $recentUsers = $pdo->query("SELECT * FROM users ORDER BY created_at DESC LIMIT 5
     });
   </script>
   <?php
+  function formatRoleName($role) {
+    switch ($role) {
+        case 'super_admin':
+            return 'Super Admin';
+        case 'admin':
+            return 'Admin';
+        case 'campaign_manager':
+            return 'Campaign Manager';
+        case 'user':
+            return 'Regular User';
+        default:
+            return ucfirst($role);
+    }
+  }
+
   function getStatusClass($status) {
-    switch($status) {
-      case 'new':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'contacted':
-        return 'bg-blue-100 text-blue-800';
-      case 'converted':
-        return 'bg-green-100 text-green-800';
-      case 'closed':
-        return 'bg-gray-100 text-gray-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
+    switch ($status) {
+        case 'new':
+            return 'bg-blue-100 text-blue-800';
+        case 'in_progress':
+            return 'bg-yellow-100 text-yellow-800';
+        case 'completed':
+            return 'bg-green-100 text-green-800';
+        case 'cancelled':
+            return 'bg-red-100 text-red-800';
+        default:
+            return 'bg-gray-100 text-gray-800';
     }
   }
   ?>

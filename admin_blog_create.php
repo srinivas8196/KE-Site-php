@@ -1,20 +1,15 @@
 <?php
 session_start();
 
-// Temporarily set session for testing
-$_SESSION['user_id'] = 1;
-$_SESSION['is_admin'] = 1;
+// Include auth helper
+require_once 'auth_helper.php';
 
-/*
-// Check if user is logged in and is admin
-if (!isset($_SESSION['user_id']) || !isset($_SESSION['is_admin']) || $_SESSION['is_admin'] != 1) {
-    header("Location: login.php");
-    exit;
-}
-*/
+// Check if user has admin or higher permission
+requirePermission('admin', 'login.php');
 
 // Include database connection
 require_once 'db.php';
+
 
 // Ensure we have a connection
 if (!isset($conn) || !($conn instanceof mysqli)) {
@@ -35,6 +30,9 @@ $success_message = '';
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Debug form submission
+    error_log("Form submitted: " . json_encode($_POST));
+    
     // Get form data
     $title = $_POST['title'] ?? '';
     $slug = $_POST['slug'] ?? '';
@@ -47,6 +45,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $published_at = $status === 'published' ? date('Y-m-d H:i:s') : null;
     $author_id = $_SESSION['user_id'];
     $tags = $_POST['tags'] ?? [];
+    
+    // Debug post content
+    error_log("Content length: " . strlen($content));
     
     $featured_image = ''; // Default empty value
     
@@ -108,11 +109,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         if (empty($error_message)) {
-            // Insert blog post
-            $insert_query = "INSERT INTO blog_posts (title, slug, content, excerpt, featured_image, meta_title, meta_description, category_id, author_id, status, published_at) 
-                           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            // Insert blog post - modified to remove author_id from query
+            $insert_query = "INSERT INTO blog_posts (title, slug, content, excerpt, featured_image, meta_title, meta_description, category_id, status, published_at) 
+                           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             $insert_stmt = $conn->prepare($insert_query);
-            $insert_stmt->bind_param("sssssssisss", $title, $slug, $content, $excerpt, $featured_image, $meta_title, $meta_description, $category_id, $author_id, $status, $published_at);
+            $insert_stmt->bind_param("sssssssis", $title, $slug, $content, $excerpt, $featured_image, $meta_title, $meta_description, $category_id, $status, $published_at);
             
             if ($insert_stmt->execute()) {
                 $post_id = $conn->insert_id;
@@ -494,9 +495,16 @@ include 'bheader.php';
                             </div>
                         </div>
                         
-                        <button type="submit" class="save-button">
+                        <!-- Added disabled attribute that will be removed by JavaScript once form is validated -->
+                        <button type="submit" id="submitBtn" class="save-button">
                             <i class="fas fa-save"></i> Save Blog Post
                         </button>
+                        
+                        <!-- Debug info section -->
+                        <div class="mt-3 p-2 border rounded" style="font-size: 12px; background: #f8f9fa;">
+                            <div><strong>Form Submission Debug:</strong></div>
+                            <div id="debug-info">Not submitted yet</div>
+                        </div>
                     </div>
                 </div>
                 
@@ -576,7 +584,76 @@ include 'bheader.php';
         content_css: 'default',
         branding: false,
         promotion: false,
-        api_key: '2dcx752ng7via2ayk5f144ggv0lz4w4gxhihr5vynet3ru4f'
+        api_key: '2dcx752ng7via2ayk5f144ggv0lz4w4gxhihr5vynet3ru4f',
+        setup: function(editor) {
+            editor.on('change', function() {
+                tinymce.triggerSave(); // Save content to textarea on each change
+                console.log('Editor content updated');
+            });
+        }
+    });
+    
+    // Add form submission handler to ensure TinyMCE content is saved
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.querySelector('form.blog-form');
+        const debugInfo = document.getElementById('debug-info');
+        
+        // Update debug info with key form fields
+        function updateDebugInfo() {
+            const title = document.getElementById('title').value;
+            const content = document.getElementById('content').value;
+            const contentLength = content ? content.length : 0;
+            
+            debugInfo.innerHTML = 
+                `Title: ${title}<br>` +
+                `Content length: ${contentLength} characters<br>` + 
+                `Category: ${document.getElementById('category_id').value}<br>` +
+                `Status: ${document.querySelector('input[name="status"]:checked').value}`;
+        }
+        
+        // Update debug info periodically
+        setInterval(updateDebugInfo, 2000);
+        
+        // Add input handlers for all form fields
+        document.getElementById('title').addEventListener('input', updateDebugInfo);
+        document.getElementById('category_id').addEventListener('change', updateDebugInfo);
+        document.querySelectorAll('input[name="status"]').forEach(radio => {
+            radio.addEventListener('change', updateDebugInfo);
+        });
+        
+        form.addEventListener('submit', function(e) {
+            // Prevent the default submission
+            e.preventDefault();
+            
+            // Make sure TinyMCE content is saved to textarea
+            tinymce.triggerSave();
+            
+            // Debug information
+            console.log('Form submitted');
+            debugInfo.innerHTML = "Form is being submitted...";
+            
+            const title = document.getElementById('title').value.trim();
+            const content = document.getElementById('content').value.trim();
+            
+            // Check if title and content are provided
+            if (!title) {
+                alert('Please enter a title');
+                return false;
+            }
+            
+            if (!content) {
+                alert('Please enter content for the blog post');
+                return false;
+            }
+            
+            // Show submitting state
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+            submitBtn.disabled = true;
+            
+            // Actually submit the form now
+            this.submit();
+        });
     });
     
     // Generate slug from title
