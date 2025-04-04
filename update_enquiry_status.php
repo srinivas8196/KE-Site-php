@@ -82,12 +82,23 @@ try {
             throw new Exception('Failed to update status');
         }
 
-        // Log the status change
-        $log_stmt = $pdo->prepare("INSERT INTO activity_log (user_id, action, details) VALUES (?, 'update_enquiry_status', ?)");
-        $log_stmt->execute([
-            $_SESSION['user']['id'],
-            "Updated enquiry #$enquiry_id status to $status"
-        ]);
+        // Try to log the status change, but continue if the table doesn't exist
+        try {
+            // Check if activity_log table exists
+            $table_check = $pdo->query("SHOW TABLES LIKE 'activity_log'");
+            if ($table_check->rowCount() > 0) {
+                $log_stmt = $pdo->prepare("INSERT INTO activity_log (user_id, action, details) VALUES (?, 'update_enquiry_status', ?)");
+                $log_stmt->execute([
+                    $_SESSION['user']['id'],
+                    "Updated enquiry #$enquiry_id status to $status"
+                ]);
+            } else {
+                error_log("Activity log table does not exist - skipping logging");
+            }
+        } catch (Exception $log_error) {
+            // Just log the error but don't fail the main operation
+            error_log("Error logging activity: " . $log_error->getMessage());
+        }
 
         // Commit transaction
         $pdo->commit();

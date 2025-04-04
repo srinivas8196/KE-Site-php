@@ -106,7 +106,7 @@ require 'kheader.php';
 .thank-you-banner {
     width: 100%;
     height: 350px;
-    background-image: url('assets/images/slider/India-Banner.webp');
+    background-image: url('assets/images/banners/Common.jpg');
     background-size: cover;
     background-position: center;
     position: relative;

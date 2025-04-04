@@ -66,7 +66,7 @@ $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 .gallery-banner {
     position: relative;
     height: 500px;
-    background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('assets/images/banner/gallery-banner.jpg');
+    background-image: linear-gradient(rgba(0, 0, 0, 0.06), rgba(0, 0, 0, 0.27)), url('assets/images/banners/Common2.jpg');
     background-size: cover;
     background-position: center;
     background-attachment: fixed;

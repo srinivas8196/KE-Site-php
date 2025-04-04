@@ -3,8 +3,9 @@ include_once('kheader.php');
 ?>
 <!--body start-->
 <!--banner section start-->
-<div class="breadcumb-wrapper" data-bg-src="assets/img/bg/about-bg.webp">
-        <div class="container">
+<div class="breadcumb-wrapper position-relative" data-bg-src="assets/img/bg/about-bg.webp"> 
+    <div class="overlay-bg" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);"></div>
+        <div class="container position-relative">
             <div class="breadcumb-content">
                 <h1 class="breadcumb-title">About Us</h1>
                 <ul class="breadcumb-menu">
@@ -53,11 +54,11 @@ include_once('kheader.php');
                                 <div class="about-item_img"><img src="assets/img/icon/about_1_3.svg" alt=""></div>
                                 <div class="about-item_centent">
                                     <h5 class="box-title">Adventure & Relaxation</h5>
-                                    <p class="about-item_text">Whether you crave excitement or peace, you’ll find the perfect balance with Karma Experience.</p>
+                                    <p class="about-item_text">Whether you crave excitement or peace, you'll find the perfect balance with Karma Experience.</p>
                                 </div>
                             </div>
                         </div>
-                        <p class="about-item_text">Don’t miss this opportunity to explore the Karma verse and experience the very best!</p>
+                        <p class="about-item_text">Don't miss this opportunity to explore the Karma verse and experience the very best!</p>
                         <!-- <div class="mt-35"><a href="contact.html" class="th-btn style3 th-icon">Contact With Us</a>
                         </div> -->
                     </div>

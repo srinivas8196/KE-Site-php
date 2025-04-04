@@ -32,8 +32,8 @@ $destination_base_path = 'assets/destinations/'; // Base path for destination im
     /* Main banner styling - Fixed overlap issue */
     .main-banner {
         height: 50vh;
-        min-height: 400px;
-        background-image: url('assets/images/destinations-banner.jpg'); /* CHANGE THIS PATH to your banner image */
+        min-height: 500px;
+        background-image: url('assets/images/banners/Common2.jpg'); /* CHANGE THIS PATH to your banner image */
         background-size: cover;
         background-position: center;
         position: relative;

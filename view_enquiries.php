@@ -320,11 +320,19 @@ include 'bheader.php';
                         WHERE 1=1");
                     $stats = $statsStmt->fetch();
                     ?>
+                    <!-- Stats Title with Refresh Button -->
+                    <div class="md:col-span-4 flex justify-between items-center">
+                        <h2 class="text-lg font-semibold text-gray-800">Status Summary</h2>
+                        <button id="refreshStats" class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-sm flex items-center">
+                            <i class="fas fa-sync-alt mr-1"></i> Refresh Counts
+                        </button>
+                    </div>
+                    
                     <div class="bg-white p-4 rounded-lg shadow">
                         <div class="flex items-center justify-between">
                             <div>
                                 <p class="text-sm text-gray-500">Total Enquiries</p>
-                                <p class="text-2xl font-semibold"><?php echo $stats['total']; ?></p>
+                                <p class="text-2xl font-semibold" id="total-count"><?php echo $stats['total']; ?></p>
                             </div>
                             <div class="bg-blue-100 p-3 rounded-full">
                                 <i class="fas fa-clipboard-list text-blue-500"></i>
@@ -335,7 +343,7 @@ include 'bheader.php';
                         <div class="flex items-center justify-between">
                             <div>
                                 <p class="text-sm text-gray-500">New</p>
-                                <p class="text-2xl font-semibold"><?php echo $stats['new_count']; ?></p>
+                                <p class="text-2xl font-semibold" id="new-count"><?php echo $stats['new_count']; ?></p>
                             </div>
                             <div class="bg-yellow-100 p-3 rounded-full">
                                 <i class="fas fa-envelope text-yellow-500"></i>
@@ -346,7 +354,7 @@ include 'bheader.php';
                         <div class="flex items-center justify-between">
                             <div>
                                 <p class="text-sm text-gray-500">Contacted</p>
-                                <p class="text-2xl font-semibold"><?php echo $stats['contacted_count']; ?></p>
+                                <p class="text-2xl font-semibold" id="contacted-count"><?php echo $stats['contacted_count']; ?></p>
                             </div>
                             <div class="bg-blue-100 p-3 rounded-full">
                                 <i class="fas fa-phone text-blue-500"></i>
@@ -357,7 +365,7 @@ include 'bheader.php';
                         <div class="flex items-center justify-between">
                             <div>
                                 <p class="text-sm text-gray-500">Converted</p>
-                                <p class="text-2xl font-semibold"><?php echo $stats['converted_count']; ?></p>
+                                <p class="text-2xl font-semibold" id="converted-count"><?php echo $stats['converted_count']; ?></p>
                             </div>
                             <div class="bg-green-100 p-3 rounded-full">
                                 <i class="fas fa-check-circle text-green-500"></i>
@@ -456,6 +464,20 @@ include 'bheader.php';
                 $('#advancedFilters').show();
             }
             
+            // Manual refresh button for counts
+            $('#refreshStats').on('click', function() {
+                // Show spinning animation on the icon
+                $(this).find('i').addClass('fa-spin');
+                $(this).prop('disabled', true);
+                
+                // Update the counts
+                updateStatusCounts(function() {
+                    // Remove spinning and re-enable button when complete
+                    $('#refreshStats').find('i').removeClass('fa-spin');
+                    $('#refreshStats').prop('disabled', false);
+                });
+            });
+            
             // Status change handler
             $('.status-select').on('change', function() {
                 const enquiryId = $(this).data('enquiry-id');
@@ -498,6 +520,9 @@ include 'bheader.php';
                                 setTimeout(() => row.removeClass('bg-green-50'), 3000);
                             }
                             
+                            // Explicitly update the status counts immediately
+                            updateStatusCounts();
+                            
                             // Reinitialize the event handler on the new select
                             selectCell.find('.status-select').on('change', function() {
                                 $(this).trigger('change');
@@ -517,6 +542,67 @@ include 'bheader.php';
                     }
                 });
             });
+            
+            // Function to update the status counts
+            function updateStatusCounts(callback) {
+                console.log('Updating status counts...');
+                
+                // Show loading indicators on counts
+                $('#total-count, #new-count, #contacted-count, #converted-count').addClass('opacity-50');
+                
+                // Make the AJAX request with full URL
+                $.ajax({
+                    url: `${baseUrl}/get_enquiry_counts.php?t=${new Date().getTime()}`, // Add timestamp to prevent caching
+                    method: 'GET',
+                    dataType: 'json',
+                    cache: false, // Prevent caching
+                    success: function(data) {
+                        console.log('Received count data:', data);
+                        
+                        if (data && data.success) {
+                            // Update the counts in the UI
+                            $('#total-count').text(data.counts.total);
+                            $('#new-count').text(data.counts.new_count);
+                            $('#contacted-count').text(data.counts.contacted_count);
+                            $('#converted-count').text(data.counts.converted_count);
+                            
+                            // Add a subtle animation to highlight the changes
+                            $('#total-count, #new-count, #contacted-count, #converted-count')
+                                .removeClass('opacity-50')
+                                .addClass('text-blue-600 font-bold');
+                                
+                            setTimeout(function() {
+                                $('#total-count, #new-count, #contacted-count, #converted-count')
+                                    .removeClass('text-blue-600 font-bold');
+                                
+                                // Call callback if provided
+                                if (typeof callback === 'function') {
+                                    callback();
+                                }
+                            }, 1500);
+                        } else {
+                            console.error('Invalid response format:', data);
+                            $('#total-count, #new-count, #contacted-count, #converted-count').removeClass('opacity-50');
+                            
+                            // Call callback if provided
+                            if (typeof callback === 'function') {
+                                callback();
+                            }
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error fetching updated counts:', error);
+                        console.error('Status:', status);
+                        console.error('Response:', xhr.responseText);
+                        $('#total-count, #new-count, #contacted-count, #converted-count').removeClass('opacity-50');
+                        
+                        // Call callback if provided
+                        if (typeof callback === 'function') {
+                            callback();
+                        }
+                    }
+                });
+            }
             
             // Initialize DataTable with improved styling
             var table = $('#enquiriesTable').DataTable({
@@ -644,30 +730,43 @@ include 'bheader.php';
                             
                             $('#markConverted').on('click', function() {
                                 const id = $(this).data('id');
-                        fetch(`${baseUrl}/update_enquiry_status.php`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Accept': 'application/json'
-                            },
-                            body: JSON.stringify({
+                                fetch(`${baseUrl}/update_enquiry_status.php`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'Accept': 'application/json'
+                                    },
+                                    body: JSON.stringify({
                                         enquiry_id: id,
                                         status: 'converted'
-                            })
-                        })
-                        .then(response => response.json())
-                        .then(response => {
-                            if (response.success) {
+                                    })
+                                })
+                                .then(response => response.json())
+                                .then(response => {
+                                    if (response.success) {
                                         $('#enquiryDetailModal').addClass('hidden');
                                         toastr.success('Enquiry marked as converted');
-                                        location.reload();
-                            } else {
-                                throw new Error(response.message || 'Failed to update status');
-                            }
-                        })
-                        .catch(error => {
-                                        console.error('Error updating status:', error);
-                            toastr.error('Failed to update status: ' + error.message);
+                                        
+                                        // Update the status counts
+                                        updateStatusCounts();
+                                        
+                                        // Update the row in the table without reloading
+                                        const row = $(`tr:has(button[data-enquiry-id="${id}"])`);
+                                        if (row.length) {
+                                            row.removeClass('status-new status-contacted status-converted status-closed')
+                                               .addClass('status-converted');
+                                            row.find('.status-select').val('converted');
+                                        } else {
+                                            // If we can't find the row, just reload the page
+                                            location.reload();
+                                        }
+                                    } else {
+                                        throw new Error(response.message || 'Failed to update status');
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('Error updating status:', error);
+                                    toastr.error('Failed to update status: ' + error.message);
                                 });
                             });
                 })
