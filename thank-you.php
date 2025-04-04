@@ -15,6 +15,14 @@ require 'kheader.php';
 ?>
 
 <div class="thank-you-wrapper">
+    <div class="thank-you-banner">
+        <div class="banner-overlay"></div>
+        <div class="banner-content">
+            <h1>Thank You</h1>
+            <p>We appreciate your interest in Karma Experience</p>
+        </div>
+    </div>
+    
     <div class="thank-you-container">
         <div class="success-animation">
             <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
@@ -82,15 +90,69 @@ require 'kheader.php';
     --border-radius: 12px;
     --box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
     --transition: all 0.3s ease;
+    --gold-color: #B4975A;
 }
 
 .thank-you-wrapper {
     min-height: 80vh;
     display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4ecf7 100%);
+    padding: 0 0 60px 0;
+}
+
+/* New Banner Styles */
+.thank-you-banner {
+    width: 100%;
+    height: 350px;
+    background-image: url('assets/images/slider/India-Banner.webp');
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, #f5f7fa 0%, #e4ecf7 100%);
-    padding: 60px 20px;
+    margin-bottom: 40px;
+    padding-top: 100px;
+}
+
+.banner-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+}
+
+.banner-content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    color: white;
+    background-color: rgba(0, 0, 0, 0.4);
+    border-radius: 8px;
+    padding: 30px 60px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    margin-top: 30px;
+}
+
+.banner-content h1 {
+    font-size: 4rem;
+    font-weight: 800;
+    margin: 0 0 10px 0;
+    letter-spacing: 2px;
+    text-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
+    color: white;
+    text-transform: uppercase;
+}
+
+.banner-content p {
+    font-size: 1.2rem;
+    margin: 0;
+    text-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    opacity: 0.9;
 }
 
 .thank-you-container {
@@ -101,6 +163,7 @@ require 'kheader.php';
     box-shadow: var(--box-shadow);
     overflow: hidden;
     position: relative;
+    margin: 0 20px;
 }
 
 /* Animation */
@@ -175,7 +238,7 @@ require 'kheader.php';
 }
 
 .highlight {
-    color: var(--accent-color);
+    color: var(--gold-color);
 }
 
 .main-message {
@@ -195,7 +258,7 @@ require 'kheader.php';
 }
 
 .card-header {
-    background: var(--primary-color);
+    background: var(--gold-color);
     color: white;
     padding: 15px 20px;
     display: flex;
@@ -245,7 +308,7 @@ require 'kheader.php';
     align-items: center;
     justify-content: center;
     margin-right: 15px;
-    color: var(--primary-color);
+    color: var(--gold-color);
     box-shadow: 0 3px 8px rgba(0,0,0,0.05);
     flex-shrink: 0;
 }
@@ -292,15 +355,15 @@ require 'kheader.php';
 }
 
 .btn-primary {
-    background: var(--primary-color);
+    background: var(--gold-color);
     color: white;
-    box-shadow: 0 4px 12px rgba(91, 142, 179, 0.3);
+    box-shadow: 0 4px 12px rgba(180, 151, 90, 0.3);
 }
 
 .btn-primary:hover {
-    background: #4a7b9e;
+    background: #96793D;
     transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(91, 142, 179, 0.4);
+    box-shadow: 0 6px 15px rgba(180, 151, 90, 0.4);
 }
 
 .btn-secondary {
@@ -340,8 +403,26 @@ require 'kheader.php';
 
 /* Make it responsive */
 @media (max-width: 768px) {
+    .thank-you-banner {
+        height: 280px;
+        padding-top: 80px;
+    }
+    
+    .banner-content {
+        padding: 20px 30px;
+        margin-top: 20px;
+    }
+    
+    .banner-content h1 {
+        font-size: 2.5rem;
+    }
+    
+    .banner-content p {
+        font-size: 1rem;
+    }
+    
     .thank-you-wrapper {
-        padding: 40px 15px;
+        padding: 0 0 40px 0;
     }
     
     .thank-you-content {

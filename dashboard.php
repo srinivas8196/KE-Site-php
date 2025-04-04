@@ -79,6 +79,7 @@ $recentUsers = $pdo->query("SELECT * FROM users ORDER BY created_at DESC LIMIT 5
       transition: all 0.3s ease;
       position: relative;
       overflow: hidden;
+      cursor: pointer;
     }
     .stat-card::before {
       content: '';
@@ -124,7 +125,7 @@ $recentUsers = $pdo->query("SELECT * FROM users ORDER BY created_at DESC LIMIT 5
         <!-- Statistics Cards -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <!-- Destinations Card -->
-          <div class="stat-card bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg shadow-lg p-6 text-white">
+          <a href="destination_list.php" class="stat-card bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg shadow-lg p-6 text-white no-underline block">
             <div class="flex items-center justify-between">
               <div>
                 <p class="text-sm opacity-75">Total Destinations</p>
@@ -135,15 +136,15 @@ $recentUsers = $pdo->query("SELECT * FROM users ORDER BY created_at DESC LIMIT 5
               </div>
             </div>
             <div class="mt-4">
-              <a href="destinations.php" class="text-sm text-white hover:text-blue-100 flex items-center">
+              <span class="text-sm text-white hover:text-blue-100 flex items-center">
                 View all destinations 
                 <i class="fas fa-chevron-right ml-2"></i>
-              </a>
+              </span>
             </div>
-          </div>
+          </a>
 
           <!-- Resorts Card -->
-          <div class="stat-card bg-gradient-to-br from-green-400 to-green-600 rounded-lg shadow-lg p-6 text-white">
+          <a href="resort_list.php" class="stat-card bg-gradient-to-br from-green-400 to-green-600 rounded-lg shadow-lg p-6 text-white no-underline block">
             <div class="flex items-center justify-between">
               <div>
                 <p class="text-sm opacity-75">Total Resorts</p>
@@ -154,15 +155,15 @@ $recentUsers = $pdo->query("SELECT * FROM users ORDER BY created_at DESC LIMIT 5
               </div>
             </div>
             <div class="mt-4">
-              <a href="resorts.php" class="text-sm text-white hover:text-green-100 flex items-center">
+              <span class="text-sm text-white hover:text-green-100 flex items-center">
                 View all resorts
                 <i class="fas fa-chevron-right ml-2"></i>
-              </a>
+              </span>
             </div>
-          </div>
+          </a>
 
           <!-- Enquiries Card -->
-          <div class="stat-card bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg shadow-lg p-6 text-white">
+          <a href="view_enquiries.php" class="stat-card bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg shadow-lg p-6 text-white no-underline block">
             <div class="flex items-center justify-between">
               <div>
                 <p class="text-sm opacity-75">Total Enquiries</p>
@@ -173,15 +174,15 @@ $recentUsers = $pdo->query("SELECT * FROM users ORDER BY created_at DESC LIMIT 5
               </div>
             </div>
             <div class="mt-4">
-              <a href="view_enquiries.php" class="text-sm text-white hover:text-orange-100 flex items-center">
+              <span class="text-sm text-white hover:text-orange-100 flex items-center">
                 View all enquiries
                 <i class="fas fa-chevron-right ml-2"></i>
-              </a>
+              </span>
             </div>
-          </div>
+          </a>
 
           <!-- Users Card -->
-          <div class="stat-card bg-gradient-to-br from-purple-400 to-purple-600 rounded-lg shadow-lg p-6 text-white">
+          <a href="manage_users.php" class="stat-card bg-gradient-to-br from-purple-400 to-purple-600 rounded-lg shadow-lg p-6 text-white no-underline block">
             <div class="flex items-center justify-between">
               <div>
                 <p class="text-sm opacity-75">Total Users</p>
@@ -192,12 +193,12 @@ $recentUsers = $pdo->query("SELECT * FROM users ORDER BY created_at DESC LIMIT 5
               </div>
             </div>
             <div class="mt-4">
-              <a href="users.php" class="text-sm text-white hover:text-purple-100 flex items-center">
+              <span class="text-sm text-white hover:text-purple-100 flex items-center">
                 View all users
                 <i class="fas fa-chevron-right ml-2"></i>
-              </a>
+              </span>
             </div>
-          </div>
+          </a>
         </div>
 
         <!-- Recent Activities Section -->
@@ -206,7 +207,7 @@ $recentUsers = $pdo->query("SELECT * FROM users ORDER BY created_at DESC LIMIT 5
           <div class="bg-white rounded-lg shadow-lg p-6">
             <div class="flex justify-between items-center mb-4">
               <h2 class="text-xl font-semibold text-gray-800">Recent Enquiries</h2>
-              <a href="view_enquiries.php" class="text-blue-500 hover:text-blue-600">View all</a>
+              <a href="view_enquiries.php" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm">View all</a>
             </div>
             <div class="space-y-4">
               <?php foreach ($recentEnquiries as $enquiry): ?>

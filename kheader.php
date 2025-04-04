@@ -929,7 +929,7 @@
             <li><a href="Blogs.php">Our Blogs</a></li>
             <li><a href="redeem-voucher.php">Redeem Voucher</a></li>
             <li><a href="enquire-now.php">Enquire</a></li>
-            <li><a href="pay-now.php">Pay Now</a></li>
+            <li><a href="pay-now">Pay Now</a></li>
         </ul>
     </div>
 
@@ -1153,7 +1153,7 @@
                         </div>
                         <div class="col-auto d-none d-xl-block">
                             <div class="header-button">
-                                <a href="pay-now.php" class="th-btn style3 th-icon">Pay Now</a>
+                                <a href="pay-now" class="th-btn style3 th-icon">Pay Now</a>
                             </div>
                         </div>
                     </div>

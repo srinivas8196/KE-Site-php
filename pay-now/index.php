@@ -1208,7 +1208,7 @@
 
                         <div class="col-auto d-none d-xl-block">
                             <div class="header-button">
-                                <a href="/KE-Site-Php/pay-now.php" class="th-btn style3">Pay Now</a>
+                                <a href="/KE-Site-Php/pay-now" class="th-btn style3">Pay Now</a>
                             </div>
                         </div>
                     </div>
