@@ -43,6 +43,20 @@ if (!isset($pdo)) {
     <link rel="stylesheet" href="assets/css/swiper-bundle.min.css">
     <link rel="stylesheet" href="assets/css/style.css">
     <style>
+    /* Partner Hotel Styles */
+    .mega-menu .resort-link .partner-label,
+    .mobile-submenu .resort-link .partner-label {
+        font-size: 12px;
+        color: #B4975A;
+        font-style: italic;
+        margin-left: 6px;
+        font-weight: 500;
+        display: inline-block;
+        background-color: rgba(180, 151, 90, 0.1);
+        padding: 1px 6px;
+        border-radius: 3px;
+    }
+
     /* Header Styles for Resort Pages */
     .th-header {
         position: fixed;
@@ -605,17 +619,6 @@ if (!isset($pdo)) {
         margin-left: 4px;
     }
 
-    /* Partner Hotel Style */
-    .mega-menu .resort-link .partner-label,
-    .mobile-submenu .resort-link .partner-label {
-        font-size: 12px;
-        color: #B4975A;
-        font-style: italic;
-        margin-left: 6px;
-        font-weight: 500;
-        display: inline-block;
-    }
-
     /* Responsive Design */
     @media (max-width: 1400px) {
         .mega-menu .menu-column {
@@ -760,7 +763,7 @@ if (!isset($pdo)) {
             $menuDestinations = [];
             
             $sql = "SELECT d.id as dest_id, d.destination_name, 
-                           r.id as resort_id, r.resort_name, r.resort_slug, r.is_active
+                           r.id as resort_id, r.resort_name, r.resort_slug, r.is_active, r.is_partner
                     FROM destinations d
                     LEFT JOIN resorts r ON d.id = r.destination_id
                     WHERE r.id IS NOT NULL
@@ -783,7 +786,8 @@ if (!isset($pdo)) {
                 $menuDestinations[$destId]['resorts'][] = [
                     'id' => $row['resort_id'],
                     'name' => $row['resort_name'],
-                    'slug' => $row['resort_slug']
+                    'slug' => $row['resort_slug'],
+                    'is_partner' => $row['is_partner']
                 ];
             }
             
@@ -897,13 +901,9 @@ if (!isset($pdo)) {
                                     <div class="resort-list">
                                         <?php 
                                         foreach ($indiaDestination['resorts'] as $resort):
-                                            // Check if this is a partner hotel
+                                            // Get partner status from database column
+                                            $isPartner = !empty($resort['is_partner']);
                                             $resortName = $resort['name'];
-                                            $isPartner = (stripos($resortName, 'Partner Hotel') !== false);
-                                            
-                                            // Clean up the resort name
-                                            $resortName = str_replace('(Partner Hotel)', '', $resortName);
-                                            $resortName = str_replace('Partner Hotel', '', $resortName);
                                             
                                             // Extract location if it exists (after the comma)
                                             $location = '';
@@ -920,7 +920,7 @@ if (!isset($pdo)) {
                                                     
                                                     // Directly output partner hotel text if this is a partner hotel
                                                     if ($isPartner) {
-                                                        echo ' <span style="color:#B4975A; font-style:italic;">(Partner Hotel)</span>';
+                                                        echo ' <span class="partner-label">Partner Hotel</span>';
                                                     }
                                                     
                                                     if ($location) {
@@ -978,13 +978,9 @@ if (!isset($pdo)) {
                                         <div class="resort-list">
                                             <?php 
                                             foreach ($destination['resorts'] as $resort):
-                                                // Check if this is a partner hotel
+                                                // Get partner status from database column
+                                                $isPartner = !empty($resort['is_partner']);
                                                 $resortName = $resort['name'];
-                                                $isPartner = (stripos($resortName, 'Partner Hotel') !== false);
-                                                
-                                                // Clean up the resort name
-                                                $resortName = str_replace('(Partner Hotel)', '', $resortName);
-                                                $resortName = str_replace('Partner Hotel', '', $resortName);
                                                 
                                                 // Extract location if it exists (after the comma)
                                                 $location = '';
@@ -1001,7 +997,7 @@ if (!isset($pdo)) {
                                                         
                                                         // Directly output partner hotel text if this is a partner hotel
                                                         if ($isPartner) {
-                                                            echo ' <span style="color:#B4975A; font-style:italic;">(Partner Hotel)</span>';
+                                                            echo ' <span class="partner-label">Partner Hotel</span>';
                                                         }
                                                         
                                                         if ($location) {
@@ -1136,13 +1132,9 @@ if (!isset($pdo)) {
                                                 <a href="<?php echo $resort['slug']; ?>.php" 
                                                    class="resort-link <?php echo $isActive ? 'active' : ''; ?>">
                                                     <?php 
-                                                    // Check if this is a partner hotel
+                                                    // Get partner status from database column
+                                                    $isPartner = !empty($resort['is_partner']);
                                                     $resortName = $resort['name'];
-                                                    $isPartner = (stripos($resortName, 'Partner Hotel') !== false);
-                                                    
-                                                    // Clean up the resort name
-                                                    $resortName = str_replace('(Partner Hotel)', '', $resortName);
-                                                    $resortName = str_replace('Partner Hotel', '', $resortName);
                                                     
                                                     // Extract location if it exists (after the comma)
                                                     $location = '';
@@ -1155,7 +1147,7 @@ if (!isset($pdo)) {
                                                         
                                                         // Directly output partner hotel text if this is a partner hotel
                                                         if ($isPartner) {
-                                                            echo ' <span style="color:#B4975A; font-style:italic;">(Partner Hotel)</span>';
+                                                            echo ' <span class="partner-label">Partner Hotel</span>';
                                                         }
                                                         
                                                         if ($location) {
@@ -1183,13 +1175,9 @@ if (!isset($pdo)) {
                                                 <a href="<?php echo $resort['slug']; ?>.php" 
                                                    class="resort-link <?php echo $isActive ? 'active' : ''; ?>">
                                                     <?php 
-                                                    // Check if this is a partner hotel
+                                                    // Get partner status from database column
+                                                    $isPartner = !empty($resort['is_partner']);
                                                     $resortName = $resort['name'];
-                                                    $isPartner = (stripos($resortName, 'Partner Hotel') !== false);
-                                                    
-                                                    // Clean up the resort name
-                                                    $resortName = str_replace('(Partner Hotel)', '', $resortName);
-                                                    $resortName = str_replace('Partner Hotel', '', $resortName);
                                                     
                                                     // Extract location if it exists (after the comma)
                                                     $location = '';
@@ -1202,7 +1190,7 @@ if (!isset($pdo)) {
                                                         
                                                         // Directly output partner hotel text if this is a partner hotel
                                                         if ($isPartner) {
-                                                            echo ' <span style="color:#B4975A; font-style:italic;">(Partner Hotel)</span>';
+                                                            echo ' <span class="partner-label">Partner Hotel</span>';
                                                         }
                                                         
                                                         if ($location) {

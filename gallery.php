@@ -58,98 +58,8 @@ $stmt->execute();
 $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
-<!-- Add Fancybox CSS -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css"/>
-
-<!-- Banner Section -->
-<div class="gallery-banner">
-    <div class="banner-overlay"></div>
-    <div class="banner-container">
-        <div class="banner-content">
-            <h1 class="banner-title">OUR GALLERY</h1>
-            <div class="banner-divider"></div>
-            <p class="banner-subtitle">Explore the beauty of our resorts through our stunning collection of images</p>
-        </div>
-    </div>
-</div>
-
-<!-- Gallery Section -->
-<div class="gallery-page-wrapper">
-    <div class="container">
-        <!-- Filters -->
-        <div class="gallery-filters">
-            <div class="filter-header">
-                <h3>Filter Gallery</h3>
-                <p>Select destination or resort to view specific images</p>
-            </div>
-            <div class="filter-form" id="filterForm">
-                <div class="filter-group">
-                    <label for="destination">Destination</label>
-                    <select name="destination" id="destination" class="form-select">
-                        <option value="">All Destinations</option>
-                        <?php foreach ($destinations as $destination): ?>
-                            <option value="<?php echo $destination['id']; ?>" <?php echo $selected_destination == $destination['id'] ? 'selected' : ''; ?>>
-                                <?php echo htmlspecialchars($destination['destination_name']); ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label for="resort">Resort</label>
-                    <select name="resort" id="resort" class="form-select">
-                        <option value="">All Resorts</option>
-                        <?php foreach ($resorts as $resort): ?>
-                            <option value="<?php echo $resort['id']; ?>" 
-                                    data-destination="<?php echo $resort['destination_id']; ?>"
-                                    <?php echo $selected_resort == $resort['id'] ? 'selected' : ''; ?>>
-                                <?php echo htmlspecialchars($resort['resort_name']); ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <div class="filter-actions">
-                    <?php if ($selected_destination || $selected_resort): ?>
-                        <a href="javascript:void(0)" class="reset-btn" id="resetFilters">Reset</a>
-                    <?php endif; ?>
-                </div>
-            </div>
-        </div>
-
-        <!-- Gallery Grid -->
-        <div class="gallery-grid" id="galleryGrid">
-            <?php if (empty($results)): ?>
-                <div class="no-results">
-                    <i class="fas fa-images"></i>
-                    <h3>No images found</h3>
-                    <p>Try selecting a different destination or resort</p>
-                </div>
-            <?php else: ?>
-                <?php foreach ($results as $result): 
-                    $gallery_images = json_decode($result['gallery'] ?? '[]', true);
-                    if (!empty($gallery_images)):
-                        foreach ($gallery_images as $image):
-                            $resortFolder = "assets/resorts/" . $result['resort_slug'];
-                            $imagePath = $resortFolder . '/' . $image;
-                ?>
-                    <div class="gallery-item" data-resort="<?php echo htmlspecialchars($result['resort_name']); ?>" data-destination="<?php echo htmlspecialchars($result['destination_name']); ?>">
-                        <a href="<?php echo $imagePath; ?>" data-fancybox="gallery" class="gallery-link" data-caption="<?php echo htmlspecialchars($result['resort_name']); ?> - <?php echo htmlspecialchars($result['destination_name']); ?>">
-                            <img src="<?php echo $imagePath; ?>" alt="<?php echo htmlspecialchars($result['resort_name']); ?>" class="gallery-image">
-                            <div class="gallery-overlay">
-                                <div class="gallery-info">
-                                    <h4><?php echo htmlspecialchars($result['resort_name']); ?></h4>
-                                    <p><?php echo htmlspecialchars($result['destination_name']); ?></p>
-                                </div>
-                            </div>
-                        </a>
-                    </div>
-                <?php 
-                        endforeach;
-                    endif;
-                endforeach; ?>
-            <?php endif; ?>
-        </div>
-    </div>
-</div>
+<!-- Link to all CSS first -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/css/lightbox.min.css" />
 
 <style>
 /* Banner Styles */
@@ -542,6 +452,40 @@ $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
         grid-template-columns: 1fr;
     }
 }
+
+/* Lightbox custom styles */
+.lb-data .lb-caption {
+    font-size: 16px;
+    font-weight: bold;
+    color: #fff;
+}
+
+.lb-data .lb-details {
+    width: 100%;
+    text-align: center;
+}
+
+.lb-closeContainer {
+    position: absolute;
+    top: 0;
+    right: 0;
+}
+
+.lb-nav a.lb-prev,
+.lb-nav a.lb-next {
+    opacity: 0.5;
+}
+
+.lb-nav a.lb-prev:hover,
+.lb-nav a.lb-next:hover {
+    opacity: 1;
+}
+
+.lb-close {
+    background-color: #B4975A;
+    border-radius: 50%;
+    padding: 5px;
+}
 </style>
 
 <!-- Loading Indicator -->
@@ -549,170 +493,216 @@ $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <i class="fas fa-spinner"></i> Loading gallery images...
 </div>
 
-<!-- Add Fancybox JS before closing body tag -->
-<script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js"></script>
-<script>
-// Function to initialize Fancybox
-function initFancybox() {
-    Fancybox.bind("[data-fancybox]", {
-        // Custom options
-        Carousel: {
-            infinite: true
-        },
-        Thumbs: {
-            autoStart: true,
-            type: "classic"
-        },
-        Toolbar: {
-            display: {
-                left: ["prev"],
-                middle: ["zoomIn", "zoomOut", "toggle1to1", "rotateCCW", "rotateCW", "flipX", "flipY"],
-                right: ["next"],
-            },
-        },
-        Images: {
-            zoom: true,
-        },
-        // Make sure to destroy existing instances before reinitializing
-        on: {
-            destroy: () => {
-                // Cleanup when gallery is closed
-            }
-        }
-    });
-}
+<!-- Banner Section -->
+<div class="gallery-banner">
+    <div class="banner-overlay"></div>
+    <div class="banner-container">
+        <div class="banner-content">
+            <h1 class="banner-title">OUR GALLERY</h1>
+            <div class="banner-divider"></div>
+            <p class="banner-subtitle">Explore the beauty of our resorts through our stunning collection of images</p>
+        </div>
+    </div>
+</div>
 
+<!-- Gallery Section -->
+<div class="gallery-page-wrapper">
+    <div class="container">
+        <!-- Filters -->
+        <div class="gallery-filters">
+            <div class="filter-header">
+                <h3>Filter Gallery</h3>
+                <p>Select destination or resort to view specific images</p>
+            </div>
+            <div class="filter-form" id="filterForm">
+                <div class="filter-group">
+                    <label for="destination">Destination</label>
+                    <select name="destination" id="destination" class="form-select">
+                        <option value="">All Destinations</option>
+                        <?php foreach ($destinations as $destination): ?>
+                            <option value="<?php echo $destination['id']; ?>" <?php echo $selected_destination == $destination['id'] ? 'selected' : ''; ?>>
+                                <?php echo htmlspecialchars($destination['destination_name']); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="resort">Resort</label>
+                    <select name="resort" id="resort" class="form-select">
+                        <option value="">All Resorts</option>
+                        <?php foreach ($resorts as $resort): ?>
+                            <option value="<?php echo $resort['id']; ?>" 
+                                    data-destination="<?php echo $resort['destination_id']; ?>"
+                                    <?php echo $selected_resort == $resort['id'] ? 'selected' : ''; ?>>
+                                <?php echo htmlspecialchars($resort['resort_name']); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="filter-actions">
+                    <?php if ($selected_destination || $selected_resort): ?>
+                        <a href="javascript:void(0)" class="reset-btn" id="resetFilters">Reset</a>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gallery Grid -->
+        <div class="gallery-grid" id="galleryGrid">
+            <?php if (empty($results)): ?>
+                <div class="no-results">
+                    <i class="fas fa-images"></i>
+                    <h3>No images found</h3>
+                    <p>Try selecting a different destination or resort</p>
+                </div>
+            <?php else: ?>
+                <?php foreach ($results as $result): 
+                    $gallery_images = json_decode($result['gallery'] ?? '[]', true);
+                    if (!empty($gallery_images)):
+                        foreach ($gallery_images as $image):
+                            $resortFolder = "assets/resorts/" . $result['resort_slug'];
+                            $imagePath = $resortFolder . '/' . $image;
+                            $caption = htmlspecialchars($result['resort_name']) . ' - ' . htmlspecialchars($result['destination_name']);
+                ?>
+                    <div class="gallery-item" data-resort="<?php echo htmlspecialchars($result['resort_name']); ?>" data-destination="<?php echo htmlspecialchars($result['destination_name']); ?>">
+                        <a href="<?php echo $imagePath; ?>" data-lightbox="gallery" data-title="<?php echo $caption; ?>" class="gallery-link">
+                            <img src="<?php echo $imagePath; ?>" alt="<?php echo htmlspecialchars($result['resort_name']); ?>" class="gallery-image">
+                            <div class="gallery-overlay">
+                                <div class="gallery-info">
+                                    <h4><?php echo htmlspecialchars($result['resort_name']); ?></h4>
+                                    <p><?php echo htmlspecialchars($result['destination_name']); ?></p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                <?php 
+                        endforeach;
+                    endif;
+                endforeach; ?>
+            <?php endif; ?>
+        </div>
+    </div>
+</div>
+
+<!-- Load scripts at the end -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/js/lightbox.min.js"></script>
+
+<script>
 // Store all resorts data for JavaScript filtering
 const allResorts = <?php echo json_encode($all_resorts); ?>;
 
-// Function to update resort options based on selected destination
-function updateResortOptions() {
-    const destinationSelect = document.getElementById('destination');
-    const resortSelect = document.getElementById('resort');
-    const selectedDestination = destinationSelect.value;
-    
-    // Clear current options except the first one
-    while (resortSelect.options.length > 1) {
-        resortSelect.remove(1);
-    }
-    
-    // Add filtered resort options
-    allResorts.forEach(resort => {
-        if (!selectedDestination || resort.destination_id == selectedDestination) {
-            const option = document.createElement('option');
-            option.value = resort.id;
-            option.textContent = resort.resort_name;
-            option.setAttribute('data-destination', resort.destination_id);
-            resortSelect.appendChild(option);
-        }
+$(document).ready(function() {
+    // Configure Lightbox
+    lightbox.option({
+        'resizeDuration': 200,
+        'wrapAround': true,
+        'positionFromTop': 50,
+        'showImageNumberLabel': false,
+        'alwaysShowNavOnTouchDevices': true,
+        'albumLabel': "%1 / %2"
     });
     
-    // Update gallery without page refresh
-    updateGallery();
-}
-
-// Function to handle resort selection change
-function handleResortChange() {
-    // Update gallery without page refresh
-    updateGallery();
-}
-
-// Function to update the gallery content via AJAX
-function updateGallery() {
-    const destinationSelect = document.getElementById('destination');
-    const resortSelect = document.getElementById('resort');
-    const selectedDestination = destinationSelect.value;
-    const selectedResort = resortSelect.value;
-    
-    // Show loading indicator
-    document.getElementById('loadingIndicator').style.display = 'block';
-    
-    // Create URL with filter parameters
-    let url = 'gallery_ajax.php';
-    const params = new URLSearchParams();
-    
-    if (selectedDestination) {
-        params.append('destination', selectedDestination);
-    }
-    
-    if (selectedResort) {
-        params.append('resort', selectedResort);
-    }
-    
-    if (params.toString()) {
-        url += '?' + params.toString();
-    }
-    
-    // Fetch gallery content
-    fetch(url)
-        .then(response => response.text())
-        .then(html => {
-            // Update gallery grid
-            document.getElementById('galleryGrid').innerHTML = html;
-            
-            // Hide loading indicator
-            document.getElementById('loadingIndicator').style.display = 'none';
-            
-            // Reinitialize Fancybox for new content
-            Fancybox.destroy();
-            initFancybox();
-            
-            // Update URL without refreshing the page
-            const newUrl = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
-            window.history.pushState({}, '', newUrl);
-            
-            // Update reset button visibility
-            const resetBtn = document.getElementById('resetFilters');
-            if (selectedDestination || selectedResort) {
-                if (!resetBtn) {
-                    const filterActions = document.querySelector('.filter-actions');
-                    const newResetBtn = document.createElement('a');
-                    newResetBtn.href = 'javascript:void(0)';
-                    newResetBtn.className = 'reset-btn';
-                    newResetBtn.id = 'resetFilters';
-                    newResetBtn.textContent = 'Reset';
-                    newResetBtn.onclick = resetFilters;
-                    filterActions.appendChild(newResetBtn);
-                }
-            } else if (resetBtn) {
-                resetBtn.remove();
+    // Function to update resort options based on selected destination
+    function updateResortOptions() {
+        const destinationSelect = document.getElementById('destination');
+        const resortSelect = document.getElementById('resort');
+        const selectedDestination = destinationSelect.value;
+        
+        // Clear current options except the first one
+        while (resortSelect.options.length > 1) {
+            resortSelect.remove(1);
+        }
+        
+        // Add filtered resort options
+        allResorts.forEach(resort => {
+            if (!selectedDestination || resort.destination_id == selectedDestination) {
+                const option = document.createElement('option');
+                option.value = resort.id;
+                option.textContent = resort.resort_name;
+                option.setAttribute('data-destination', resort.destination_id);
+                resortSelect.appendChild(option);
             }
-        })
-        .catch(error => {
-            console.error('Error fetching gallery:', error);
-            document.getElementById('loadingIndicator').style.display = 'none';
         });
-}
-
-// Function to reset all filters
-function resetFilters() {
-    const destinationSelect = document.getElementById('destination');
-    const resortSelect = document.getElementById('resort');
+        
+        // Update gallery without page refresh
+        updateGallery();
+    }
     
-    destinationSelect.value = '';
-    resortSelect.value = '';
+    // Function to update the gallery content via AJAX
+    function updateGallery() {
+        const destinationSelect = document.getElementById('destination');
+        const resortSelect = document.getElementById('resort');
+        const selectedDestination = destinationSelect.value;
+        const selectedResort = resortSelect.value;
+        
+        // Show loading indicator
+        $('#loadingIndicator').show();
+        
+        // Create URL with filter parameters
+        let url = 'gallery_ajax.php';
+        const params = new URLSearchParams();
+        
+        if (selectedDestination) {
+            params.append('destination', selectedDestination);
+        }
+        
+        if (selectedResort) {
+            params.append('resort', selectedResort);
+        }
+        
+        if (params.toString()) {
+            url += '?' + params.toString();
+        }
+        
+        // Fetch gallery content
+        fetch(url)
+            .then(response => response.text())
+            .then(html => {
+                // Update gallery grid
+                $('#galleryGrid').html(html);
+                
+                // Hide loading indicator
+                $('#loadingIndicator').hide();
+                
+                // Refresh Lightbox bindings for the new content
+                lightbox.reload();
+                
+                // Update URL without refreshing the page
+                const newUrl = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+                window.history.pushState({}, '', newUrl);
+                
+                // Update reset button visibility
+                if (selectedDestination || selectedResort) {
+                    if ($('#resetFilters').length === 0) {
+                        $('.filter-actions').append('<a href="javascript:void(0)" class="reset-btn" id="resetFilters">Reset</a>');
+                        $('#resetFilters').click(resetFilters);
+                    }
+                } else {
+                    $('#resetFilters').remove();
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching gallery:', error);
+                $('#loadingIndicator').hide();
+            });
+    }
     
-    // Update resort options
-    updateResortOptions();
-    
-    // Update gallery
-    updateGallery();
-}
-
-// Initialize on page load
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize Fancybox
-    initFancybox();
+    // Function to reset all filters
+    function resetFilters() {
+        document.getElementById('destination').value = '';
+        document.getElementById('resort').value = '';
+        
+        // Update resort options
+        updateResortOptions();
+    }
     
     // Set up event listeners
-    document.getElementById('destination').addEventListener('change', updateResortOptions);
-    document.getElementById('resort').addEventListener('change', handleResortChange);
+    $('#destination').on('change', updateResortOptions);
+    $('#resort').on('change', updateGallery);
     
     // Set up reset button if filters are active
-    const resetBtn = document.getElementById('resetFilters');
-    if (resetBtn) {
-        resetBtn.onclick = resetFilters;
-    }
+    $('#resetFilters').on('click', resetFilters);
 });
 </script>
 

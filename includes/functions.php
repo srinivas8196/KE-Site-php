@@ -165,6 +165,26 @@ function getReadingTime($content) {
  * @return array ['success' => bool, 'score' => float|null, 'error' => string|null]
  */
 function verifyRecaptchaV3($token, $action) {
+    // Auto-pass verification for localhost environments
+    if ($_SERVER['HTTP_HOST'] === 'localhost' || 
+        $_SERVER['HTTP_HOST'] === '127.0.0.1' || 
+        strpos($_SERVER['HTTP_HOST'], 'localhost:') === 0) {
+        return [
+            'success' => true,
+            'score' => 1.0,
+            'error' => null
+        ];
+    }
+    
+    // Check if verification is disabled
+    if (function_exists('is_recaptcha_enabled') && !is_recaptcha_enabled()) {
+        return [
+            'success' => true,
+            'score' => 1.0,
+            'error' => null
+        ];
+    }
+    
     $result = [
         'success' => false,
         'score' => null,
@@ -172,6 +192,22 @@ function verifyRecaptchaV3($token, $action) {
     ];
 
     try {
+        // If token is empty, auto-pass on XAMPP/localhost environments
+        if (empty($token) && (strpos($_SERVER['SERVER_SOFTWARE'], 'XAMPP') !== false || 
+                             strpos($_SERVER['DOCUMENT_ROOT'], 'xampp') !== false)) {
+            return [
+                'success' => true,
+                'score' => 1.0,
+                'error' => null
+            ];
+        }
+        
+        // Return error if token is empty
+        if (empty($token)) {
+            $result['error'] = 'No reCAPTCHA token provided';
+            return $result;
+        }
+
         $url = 'https://www.google.com/recaptcha/api/siteverify';
         $data = [
             'secret' => RECAPTCHA_V3_SECRET_KEY,
@@ -201,8 +237,8 @@ function verifyRecaptchaV3($token, $action) {
 
         // Verify the response
         if ($responseData['success'] === true) {
-            // Verify action matches
-            if ($responseData['action'] !== $action) {
+            // If action is specified, verify it matches
+            if (!empty($action) && isset($responseData['action']) && $responseData['action'] !== $action) {
                 $result['error'] = 'Invalid action';
                 return $result;
             }

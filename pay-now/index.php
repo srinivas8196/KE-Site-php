@@ -24,7 +24,7 @@
         global $pdo;
         
         $sql = "SELECT d.id as dest_id, d.destination_name, 
-                       r.id as resort_id, r.resort_name, r.resort_slug, r.is_active
+                       r.id as resort_id, r.resort_name, r.resort_slug, r.is_active, r.is_partner
                 FROM destinations d
                 LEFT JOIN resorts r ON d.id = r.destination_id
                 WHERE r.id IS NOT NULL
@@ -49,7 +49,8 @@
                 $menuDestinations[$destId]['resorts'][] = [
                     'id' => $row['resort_id'],
                     'name' => $row['resort_name'],
-                    'slug' => $row['resort_slug']
+                    'slug' => $row['resort_slug'],
+                    'is_partner' => $row['is_partner']
                 ];
             }
             
@@ -496,7 +497,13 @@
             color: #B4975A;
             font-style: italic;
             margin-left: 6px;
-            font-weight: 500;
+            font-weight: 600;
+            display: inline-block;
+            background-color: rgba(180, 151, 90, 0.15);
+            padding: 2px 8px;
+            border-radius: 3px;
+            border: 1px solid rgba(180, 151, 90, 0.3);
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
         }
 
         /* Header Styles */
@@ -1085,11 +1092,7 @@
                                                                 <div class="resort-list">
                                                                     <?php foreach ($indiaDestination['resorts'] as $resort): 
                                                                         $resortName = $resort['name'];
-                                                                        $isPartner = (stripos($resortName, 'Partner Hotel') !== false);
-                                                                        
-                                                                        // Clean up resort name
-                                                                        $resortName = str_replace('(Partner Hotel)', '', $resortName);
-                                                                        $resortName = str_replace('Partner Hotel', '', $resortName);
+                                                                        $isPartner = !empty($resort['is_partner']);
                                                                         
                                                                         // Extract location if exists
                                                                         $location = '';
@@ -1149,10 +1152,7 @@
                                                                     <div class="resort-list">
                                                                         <?php foreach ($destination['resorts'] as $resort): 
                                                                             $resortName = $resort['name'];
-                                                                            $isPartner = (stripos($resortName, 'Partner Hotel') !== false);
-                                                                            
-                                                                            $resortName = str_replace('(Partner Hotel)', '', $resortName);
-                                                                            $resortName = str_replace('Partner Hotel', '', $resortName);
+                                                                            $isPartner = !empty($resort['is_partner']);
                                                                             
                                                                             $location = '';
                                                                             if (strpos($resortName, ',') !== false) {

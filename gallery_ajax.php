@@ -1,6 +1,13 @@
 <?php
 require 'db.php';
 
+// Ensure $pdo is initialized
+if (!$pdo) {
+    // Handle error appropriately - maybe log and exit, or return an error message
+    // For now, we'll just exit to prevent further errors.
+    exit('Database connection failed.');
+}
+
 // Get filter parameters
 $selected_destination = isset($_GET['destination']) && $_GET['destination'] !== '' ? (int)$_GET['destination'] : null;
 $selected_resort = isset($_GET['resort']) && $_GET['resort'] !== '' ? (int)$_GET['resort'] : null;
@@ -26,6 +33,7 @@ $stmt = $pdo->prepare($query);
 if ($selected_destination) {
     $stmt->bindParam(':destination_id', $selected_destination, PDO::PARAM_INT);
 }
+
 if ($selected_resort) {
     $stmt->bindParam(':resort_id', $selected_resort, PDO::PARAM_INT);
 }
@@ -33,34 +41,35 @@ if ($selected_resort) {
 $stmt->execute();
 $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Output gallery grid HTML
+// Output filtered gallery items
 if (empty($results)): ?>
     <div class="no-results">
         <i class="fas fa-images"></i>
         <h3>No images found</h3>
         <p>Try selecting a different destination or resort</p>
     </div>
-<?php else: 
-    foreach ($results as $result): 
+<?php else: ?>
+    <?php foreach ($results as $result): 
         $gallery_images = json_decode($result['gallery'] ?? '[]', true);
         if (!empty($gallery_images)):
             foreach ($gallery_images as $image):
                 $resortFolder = "assets/resorts/" . $result['resort_slug'];
                 $imagePath = $resortFolder . '/' . $image;
-?>
-                <div class="gallery-item" data-resort="<?php echo htmlspecialchars($result['resort_name']); ?>" data-destination="<?php echo htmlspecialchars($result['destination_name']); ?>">
-                    <a href="<?php echo $imagePath; ?>" data-fancybox="gallery" class="gallery-link" data-caption="<?php echo htmlspecialchars($result['resort_name']); ?> - <?php echo htmlspecialchars($result['destination_name']); ?>">
-                        <img src="<?php echo $imagePath; ?>" alt="<?php echo htmlspecialchars($result['resort_name']); ?>" class="gallery-image">
-                        <div class="gallery-overlay">
-                            <div class="gallery-info">
-                                <h4><?php echo htmlspecialchars($result['resort_name']); ?></h4>
-                                <p><?php echo htmlspecialchars($result['destination_name']); ?></p>
-                            </div>
-                        </div>
-                    </a>
+                $caption = htmlspecialchars($result['resort_name']) . ' - ' . htmlspecialchars($result['destination_name']);
+    ?>
+        <div class="gallery-item" data-resort="<?php echo htmlspecialchars($result['resort_name']); ?>" data-destination="<?php echo htmlspecialchars($result['destination_name']); ?>">
+            <a href="<?php echo $imagePath; ?>" data-lightbox="gallery" data-title="<?php echo $caption; ?>" class="gallery-link">
+                <img src="<?php echo $imagePath; ?>" alt="<?php echo htmlspecialchars($result['resort_name']); ?>" class="gallery-image">
+                <div class="gallery-overlay">
+                    <div class="gallery-info">
+                        <h4><?php echo htmlspecialchars($result['resort_name']); ?></h4>
+                        <p><?php echo htmlspecialchars($result['destination_name']); ?></p>
+                    </div>
                 </div>
-<?php 
+            </a>
+        </div>
+    <?php 
             endforeach;
         endif;
-    endforeach; 
-endif; ?> 
+    endforeach; ?>
+<?php endif; ?> 

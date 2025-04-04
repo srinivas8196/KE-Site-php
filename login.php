@@ -5,6 +5,7 @@ session_start();
 // Include database
 require_once 'db.php';
 require_once 'includes/recaptcha-config.php';
+require_once 'includes/functions.php';
 
 // Debug: Log the request method and session info
 error_log("Login page accessed via " . $_SERVER['REQUEST_METHOD'] . " method");
