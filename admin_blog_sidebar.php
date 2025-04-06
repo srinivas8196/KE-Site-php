@@ -162,7 +162,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
             </a>
         </li>
         <li>
-            <a href="admin_category.php" <?php echo ($current_page == 'admin_category.php') ? 'class="active"' : ''; ?>>
+            <a href="admin_blog_categories.php" <?php echo ($current_page == 'admin_blog_categories.php') ? 'class="active"' : ''; ?>>
                 <i class="fas fa-folder"></i>
                 Blog Categories
             </a>

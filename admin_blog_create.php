@@ -113,7 +113,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $insert_query = "INSERT INTO blog_posts (title, slug, content, excerpt, featured_image, meta_title, meta_description, category_id, status, published_at) 
                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             $insert_stmt = $conn->prepare($insert_query);
-            $insert_stmt->bind_param("sssssssis", $title, $slug, $content, $excerpt, $featured_image, $meta_title, $meta_description, $category_id, $status, $published_at);
+            $insert_stmt->bind_param("sssssssiss", $title, $slug, $content, $excerpt, $featured_image, $meta_title, $meta_description, $category_id, $status, $published_at);
             
             if ($insert_stmt->execute()) {
                 $post_id = $conn->insert_id;

@@ -43,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ];
         }
     } elseif (isset($_POST['test_user_credentials'])) {
-        // Test user credentials email
+        // Test user credential email
         $userData = [
             'id' => 999,
             'username' => 'test_user',
@@ -53,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ];
         
         try {
-            $sent = sendUserCredentials($userData, 'TestPassword123!');
+            $sent = sendUserCredentials($userData, 'Test1234!');
             $result = [
                 'success' => $sent,
                 'message' => $sent ? 'User credentials sent successfully!' : 'Failed to send user credentials.',
@@ -66,25 +66,62 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'type' => 'user_credentials'
             ];
         }
-    } elseif (isset($_POST['test_smtp'])) {
-        // Test direct SMTP sending
+    } elseif (isset($_POST['test_direct_email'])) {
+        // Test direct email
         try {
-            $sent = sendEmailViaSmtp(
-                $_POST['test_email'],
-                'SMTP Test Email',
-                '<h1>SMTP Test</h1><p>This is a test email sent directly via SMTP.</p>',
-                'Test Email System'
-            );
+            $email = $_POST['test_email'];
+            $subject = "Test Email from Karma Experience";
+            $message = "
+            <html>
+            <head>
+                <style>
+                    body { font-family: Arial, sans-serif; }
+                    .container { padding: 20px; }
+                    .header { background: #f5f5f5; padding: 10px; }
+                </style>
+            </head>
+            <body>
+                <div class='container'>
+                    <div class='header'>
+                        <h2>Test Email</h2>
+                    </div>
+                    <p>This is a test email sent at " . date('Y-m-d H:i:s') . "</p>
+                    <p>If you received this email, your email configuration is working properly.</p>
+                </div>
+            </body>
+            </html>
+            ";
+            
+            $sentCount = sendEmailViaSmtp($email, $subject, $message);
             $result = [
-                'success' => $sent,
-                'message' => $sent ? 'SMTP test email sent successfully!' : 'Failed to send SMTP test email.',
-                'type' => 'smtp_test'
+                'success' => $sentCount > 0,
+                'message' => $sentCount > 0 ? 'Direct test email sent successfully!' : 'Failed to send direct test email.',
+                'type' => 'direct_email'
             ];
         } catch (Exception $e) {
             $result = [
                 'success' => false,
                 'message' => 'Error: ' . $e->getMessage(),
-                'type' => 'smtp_test'
+                'type' => 'direct_email'
+            ];
+        }
+    } elseif (isset($_POST['view_smtp_settings'])) {
+        // View SMTP settings
+        try {
+            $smtpSettings = getSmtpSettings();
+            // Hide password
+            $smtpSettings['password'] = str_repeat('*', strlen($smtpSettings['password']));
+            $result = [
+                'success' => true,
+                'message' => 'SMTP Settings loaded successfully',
+                'type' => 'smtp_settings',
+                'data' => $smtpSettings
+            ];
+        } catch (Exception $e) {
+            $result = [
+                'success' => false,
+                'message' => 'Error loading SMTP settings: ' . $e->getMessage(),
+                'type' => 'smtp_settings'
             ];
         }
     }
@@ -99,62 +136,106 @@ include_once 'header.php';
         <h1 class="text-2xl font-bold mb-6 text-gray-800">Test Email Functionality</h1>
         
         <?php if (!empty($result)): ?>
-            <div class="mb-6 p-4 rounded-md <?php echo $result['success'] ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'; ?>">
-                <p class="font-medium"><?php echo htmlspecialchars($result['message']); ?></p>
-                <?php if (!$result['success']): ?>
-                    <p class="mt-2 text-sm">Check the server logs for more details.</p>
+            <div class="alert alert-<?php echo $result['success'] ? 'success' : 'danger'; ?> mb-4">
+                <h4 class="alert-heading"><?php echo $result['success'] ? 'Success!' : 'Error!'; ?></h4>
+                <p><?php echo htmlspecialchars($result['message']); ?></p>
+                
+                <?php if ($result['type'] === 'smtp_settings' && $result['success'] && isset($result['data'])): ?>
+                    <hr>
+                    <h5>SMTP Settings:</h5>
+                    <ul>
+                        <?php foreach ($result['data'] as $key => $value): ?>
+                            <li><strong><?php echo ucfirst($key); ?>:</strong> <?php echo htmlspecialchars($value); ?></li>
+                        <?php endforeach; ?>
+                    </ul>
                 <?php endif; ?>
             </div>
         <?php endif; ?>
         
-        <div class="grid md:grid-cols-3 gap-6">
-            <!-- Test Admin Notification -->
-            <div class="bg-blue-50 p-4 rounded-lg">
-                <h2 class="text-xl font-semibold mb-4 text-blue-800">Test Admin Notification</h2>
-                <form method="POST" action="">
-                    <div class="mb-4">
-                        <label for="admin_email" class="block text-sm font-medium text-gray-700 mb-1">Test Email Address</label>
-                        <input type="email" id="admin_email" name="test_email" required 
-                               class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+        <div class="row row-cols-1 row-cols-md-2 g-4">
+            <!-- View SMTP Settings -->
+            <div class="col">
+                <div class="card h-100 border-primary">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">View SMTP Settings</h5>
                     </div>
-                    <button type="submit" name="test_admin_notification" 
-                            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition duration-200">
-                        Send Admin Notification
-                    </button>
-                </form>
+                    <div class="card-body">
+                        <p>View your current SMTP configuration settings.</p>
+                        <form method="post" action="">
+                            <div class="d-grid">
+                                <button type="submit" name="view_smtp_settings" class="btn btn-primary">Show Settings</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Test Direct Email -->
+            <div class="col">
+                <div class="card h-100 border-success">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">Test Direct Email</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Send a simple test email to verify your email configuration.</p>
+                        <form method="post" action="">
+                            <div class="mb-3">
+                                <label for="direct_email" class="form-label">Email Address</label>
+                                <input type="email" class="form-control" id="direct_email" name="test_email" required>
+                            </div>
+                            <div class="d-grid">
+                                <button type="submit" name="test_direct_email" class="btn btn-success">Send Test Email</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Test Admin Notification -->
+            <div class="col">
+                <div class="card h-100 border-info">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">Test Admin Notification</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Test sending a new user notification to admins.</p>
+                        <form method="post" action="">
+                            <div class="mb-3">
+                                <label for="admin_email" class="form-label">Admin Email Address</label>
+                                <input type="email" class="form-control" id="admin_email" name="test_email" required>
+                            </div>
+                            <div class="d-grid">
+                                <button type="submit" name="test_admin_notification" class="btn btn-info">Send Admin Notification</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </div>
             
             <!-- Test User Credentials -->
-            <div class="bg-purple-50 p-4 rounded-lg">
-                <h2 class="text-xl font-semibold mb-4 text-purple-800">Test User Credentials</h2>
-                <form method="POST" action="">
-                    <div class="mb-4">
-                        <label for="user_email" class="block text-sm font-medium text-gray-700 mb-1">Test Email Address</label>
-                        <input type="email" id="user_email" name="test_email" required 
-                               class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+            <div class="col">
+                <div class="card h-100 border-warning">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0">Test User Credentials</h5>
                     </div>
-                    <button type="submit" name="test_user_credentials" 
-                            class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-md transition duration-200">
-                        Send User Credentials
-                    </button>
-                </form>
-            </div>
-            
-            <!-- Test Direct SMTP -->
-            <div class="bg-green-50 p-4 rounded-lg">
-                <h2 class="text-xl font-semibold mb-4 text-green-800">Test Direct SMTP</h2>
-                <form method="POST" action="">
-                    <div class="mb-4">
-                        <label for="smtp_email" class="block text-sm font-medium text-gray-700 mb-1">Test Email Address</label>
-                        <input type="email" id="smtp_email" name="test_email" required 
-                               class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                    <div class="card-body">
+                        <p>Test sending login credentials to a new user.</p>
+                        <form method="post" action="">
+                            <div class="mb-3">
+                                <label for="user_email" class="form-label">User Email Address</label>
+                                <input type="email" class="form-control" id="user_email" name="test_email" required>
+                            </div>
+                            <div class="d-grid">
+                                <button type="submit" name="test_user_credentials" class="btn btn-warning">Send User Credentials</button>
+                            </div>
+                        </form>
                     </div>
-                    <button type="submit" name="test_smtp" 
-                            class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md transition duration-200">
-                        Send SMTP Test
-                    </button>
-                </form>
+                </div>
             </div>
+        </div>
+        
+        <div class="mt-4 text-center">
+            <a href="dashboard.php" class="btn btn-secondary">Back to Dashboard</a>
         </div>
     </div>
     

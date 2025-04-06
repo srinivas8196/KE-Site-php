@@ -41,42 +41,280 @@ function sendNewUserNotification($userData) {
         // Format the user type properly
         $userType = formatRoleName($userData['user_type']);
         
-        // Create email body
+        // Create email body with improved styling (matching the user credential email)
         $message = "
+        <!DOCTYPE html>
         <html>
         <head>
+            <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">
+            <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">
+            <title>New User Registration</title>
             <style>
-                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-                .header { background-color: #f5f5f5; padding: 15px; border-bottom: 3px solid #4f46e5; }
-                .content { padding: 20px; }
-                .user-info { background-color: #f9fafb; padding: 15px; margin: 15px 0; border-left: 3px solid #4f46e5; }
-                .footer { font-size: 12px; color: #666; margin-top: 30px; padding-top: 15px; border-top: 1px solid #eee; }
+                @media only screen and (max-width: 620px) {
+                    table.body h1 {
+                        font-size: 28px !important;
+                        margin-bottom: 10px !important;
+                    }
+                    table.body p,
+                    table.body ul,
+                    table.body ol,
+                    table.body td,
+                    table.body span {
+                        font-size: 16px !important;
+                    }
+                    table.body .container {
+                        padding: 0 !important;
+                        width: 100% !important;
+                    }
+                    table.body .content {
+                        padding: 0 !important;
+                    }
+                    table.body .wrapper {
+                        padding: 10px !important;
+                    }
+                }
+                
+                body {
+                    background-color: #f6f6f6;
+                    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+                    -webkit-font-smoothing: antialiased;
+                    font-size: 16px;
+                    line-height: 1.4;
+                    margin: 0;
+                    padding: 0;
+                    -ms-text-size-adjust: 100%;
+                    -webkit-text-size-adjust: 100%;
+                }
+                
+                table {
+                    border-collapse: separate;
+                    mso-table-lspace: 0pt;
+                    mso-table-rspace: 0pt;
+                    width: 100%;
+                }
+                
+                table td {
+                    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+                    font-size: 16px;
+                    vertical-align: top;
+                }
+                
+                .body {
+                    background-color: #f6f6f6;
+                    width: 100%;
+                }
+                
+                .container {
+                    display: block;
+                    margin: 0 auto !important;
+                    max-width: 580px;
+                    padding: 10px;
+                }
+                
+                .content {
+                    box-sizing: border-box;
+                    display: block;
+                    margin: 0 auto;
+                    max-width: 580px;
+                    padding: 10px;
+                }
+                
+                .main {
+                    background: #ffffff;
+                    border-radius: 4px;
+                    width: 100%;
+                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                }
+                
+                .wrapper {
+                    box-sizing: border-box;
+                    padding: 20px;
+                }
+                
+                .content-block {
+                    padding-bottom: 10px;
+                    padding-top: 10px;
+                }
+                
+                .header {
+                    padding: 20px 0;
+                    text-align: center;
+                    background-color: #4834d4;
+                    border-top-left-radius: 4px;
+                    border-top-right-radius: 4px;
+                }
+                
+                .header h1 {
+                    color: #ffffff;
+                    font-size: 26px;
+                    font-weight: 700;
+                    margin: 0;
+                }
+                
+                .footer {
+                    clear: both;
+                    margin-top: 10px;
+                    text-align: center;
+                    width: 100%;
+                }
+                
+                .footer td,
+                .footer p,
+                .footer span,
+                .footer a {
+                    color: #999999;
+                    font-size: 13px;
+                    text-align: center;
+                }
+                
+                h1, h2, h3, h4 {
+                    color: #333333;
+                    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+                    font-weight: 400;
+                    line-height: 1.4;
+                    margin: 0 0 20px;
+                }
+                
+                h1 {
+                    font-size: 26px;
+                    font-weight: 700;
+                    text-align: center;
+                }
+                
+                p, ul, ol {
+                    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+                    font-size: 16px;
+                    font-weight: normal;
+                    margin: 0 0 15px;
+                }
+                
+                .user-info {
+                    background-color: #f8f9ff;
+                    padding: 15px;
+                    border-radius: 6px;
+                    border-left: 4px solid #4834d4;
+                    margin-bottom: 20px;
+                }
+                
+                .btn {
+                    box-sizing: border-box;
+                    width: 100%;
+                }
+                
+                .btn > tbody > tr > td {
+                    padding-bottom: 15px;
+                }
+                
+                .btn table {
+                    width: auto;
+                }
+                
+                .btn table td {
+                    background-color: #ffffff;
+                    border-radius: 5px;
+                    text-align: center;
+                }
+                
+                .btn a {
+                    background-color: #4834d4;
+                    border: solid 1px #4834d4;
+                    border-radius: 5px;
+                    box-sizing: border-box;
+                    color: #ffffff;
+                    cursor: pointer;
+                    display: inline-block;
+                    font-size: 16px;
+                    font-weight: bold;
+                    margin: 0;
+                    padding: 12px 25px;
+                    text-decoration: none;
+                    text-transform: capitalize;
+                }
+                
+                .btn-primary a {
+                    background-color: #4834d4;
+                    border-color: #4834d4;
+                    color: #ffffff;
+                }
+                
+                .btn-primary a:hover {
+                    background-color: #3a2bbd;
+                    border-color: #3a2bbd;
+                }
+                
+                .align-center {
+                    text-align: center;
+                }
             </style>
         </head>
         <body>
-            <div class='container'>
-                <div class='header'>
-                    <h2>New User Registration</h2>
-                </div>
-                <div class='content'>
-                    <p>A new user has been registered in the Karma Experience system.</p>
-                    
-                    <div class='user-info'>
-                        <p><strong>Username:</strong> {$userData['username']}</p>
-                        <p><strong>Email:</strong> {$userData['email']}</p>
-                        <p><strong>Role:</strong> {$userType}</p>
-                        <p><strong>Created At:</strong> " . date('Y-m-d H:i:s') . "</p>
-                    </div>
-                    
-                    <p>You can review this user's details in the admin dashboard.</p>
-                    <p><a href='" . getBaseUrl() . "/manage_users.php'>Go to User Management</a></p>
-                </div>
-                <div class='footer'>
-                    <p>This is an automated message. Please do not reply to this email.</p>
-                    <p>&copy; " . date('Y') . " Karma Experience. All rights reserved.</p>
-                </div>
-            </div>
+            <table role=\"presentation\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" class=\"body\">
+                <tr>
+                    <td>&nbsp;</td>
+                    <td class=\"container\">
+                        <div class=\"content\">
+                            <div class=\"header\">
+                                <h1>New User Registration</h1>
+                            </div>
+                            
+                            <!-- START MAIN CONTENT AREA -->
+                            <table role=\"presentation\" class=\"main\">
+                                <tr>
+                                    <td class=\"wrapper\">
+                                        <table role=\"presentation\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\">
+                                            <tr>
+                                                <td>
+                                                    <p>A new user has been registered in the Karma Experience system.</p>
+                                                    
+                                                    <div class=\"user-info\">
+                                                        <p><strong>Username:</strong> {$userData['username']}</p>
+                                                        <p><strong>Email:</strong> {$userData['email']}</p>
+                                                        <p><strong>Role:</strong> {$userType}</p>
+                                                        <p><strong>Created At:</strong> " . date('Y-m-d H:i:s') . "</p>
+                                                    </div>
+                                                    
+                                                    <p>You can review this user's details in the admin dashboard.</p>
+                                                    
+                                                    <table role=\"presentation\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" class=\"btn btn-primary\">
+                                                        <tbody>
+                                                            <tr>
+                                                                <td align=\"center\">
+                                                                    <table role=\"presentation\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\">
+                                                                        <tbody>
+                                                                            <tr>
+                                                                                <td><a href=\"" . getBaseUrl() . "/manage_users.php\" target=\"_blank\">View User Management</a></td>
+                                                                            </tr>
+                                                                        </tbody>
+                                                                    </table>
+                                                                </td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                            <!-- END MAIN CONTENT AREA -->
+                            
+                            <!-- START FOOTER -->
+                            <div class=\"footer\">
+                                <table role=\"presentation\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\">
+                                    <tr>
+                                        <td class=\"content-block\">
+                                            <p>This is an automated message. Please do not reply to this email.</p>
+                                            <p>&copy; " . date('Y') . " Karma Experience. All rights reserved.</p>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <!-- END FOOTER -->
+                        </div>
+                    </td>
+                    <td>&nbsp;</td>
+                </tr>
+            </table>
         </body>
         </html>
         ";
@@ -215,19 +453,39 @@ function sendEmailViaSmtp($recipients, $subject, $body, $fromName = '') {
  * @return array SMTP configuration settings
  */
 function getSmtpSettings() {
-    // Default SMTP settings if not found in .env
+    // Load environment variables if not already loaded
+    if (!function_exists('getenv') || empty(getenv('SMTP_HOST'))) {
+        // Try to load .env file manually if dotenv isn't available
+        if (file_exists(__DIR__ . '/.env')) {
+            $envFile = file_get_contents(__DIR__ . '/.env');
+            $lines = explode("\n", $envFile);
+            foreach ($lines as $line) {
+                if (strpos($line, '=') !== false && strpos($line, '#') !== 0) {
+                    list($key, $value) = explode('=', $line, 2);
+                    $key = trim($key);
+                    $value = trim($value);
+                    // Remove quotes if present
+                    $value = trim($value, '"\'');
+                    $_ENV[$key] = $value;
+                    putenv("$key=$value");
+                }
+            }
+        }
+    }
+
+    // Get settings from environment or use defaults
     $settings = [
-        'host' => $_ENV['SMTP_HOST'] ?? 'smtp.example.com',
-        'port' => $_ENV['SMTP_PORT'] ?? 587,
-        'username' => $_ENV['SMTP_USERNAME'] ?? '',
-        'password' => $_ENV['SMTP_PASSWORD'] ?? '',
-        'encryption' => $_ENV['SMTP_ENCRYPTION'] ?? 'tls', // tls or ssl
-        'from_email' => $_ENV['SMTP_FROM_EMAIL'] ?? 'noreply@karmaexperience.in',
-        'from_name' => $_ENV['SMTP_FROM_NAME'] ?? 'Karma Experience'
+        'host' => getenv('SMTP_HOST') ?: ($_ENV['SMTP_HOST'] ?? 'smtp.example.com'),
+        'port' => getenv('SMTP_PORT') ?: ($_ENV['SMTP_PORT'] ?? 587),
+        'username' => getenv('SMTP_USERNAME') ?: ($_ENV['SMTP_USERNAME'] ?? ''),
+        'password' => getenv('SMTP_PASSWORD') ?: ($_ENV['SMTP_PASSWORD'] ?? ''),
+        'encryption' => getenv('SMTP_ENCRYPTION') ?: ($_ENV['SMTP_ENCRYPTION'] ?? 'tls'),
+        'from_email' => getenv('MAIL_FROM_ADDRESS') ?: getenv('SMTP_FROM_EMAIL') ?: ($_ENV['MAIL_FROM_ADDRESS'] ?? $_ENV['SMTP_FROM_EMAIL'] ?? 'noreply@karmaexperience.in'),
+        'from_name' => getenv('MAIL_FROM_NAME') ?: getenv('SMTP_FROM_NAME') ?: ($_ENV['MAIL_FROM_NAME'] ?? $_ENV['SMTP_FROM_NAME'] ?? 'Karma Experience')
     ];
     
     // Log settings (without password)
-    error_log("SMTP Settings loaded - Host: {$settings['host']}, Port: {$settings['port']}, Username: {$settings['username']}");
+    error_log("SMTP Settings loaded - Host: {$settings['host']}, Port: {$settings['port']}, Username: {$settings['username']}, From Email: {$settings['from_email']}");
     
     return $settings;
 }
@@ -307,51 +565,318 @@ function sendUserCredentials($userData, $password) {
     // Debug log
     error_log("Sending login credentials to new user: " . $userData['username']);
     
+    global $conn; // Access the database connection
+    
+    // Generate a password reset token
+    $reset_token = bin2hex(random_bytes(32));
+    $user_id = $userData['id'];
+    
+    // Store the reset token in the database
+    try {
+        $stmt = $conn->prepare("UPDATE users SET reset_token = ?, reset_token_expires = DATE_ADD(NOW(), INTERVAL 72 HOUR) WHERE id = ?");
+        $stmt->bind_param("si", $reset_token, $user_id);
+        $stmt->execute();
+        error_log("Reset token stored for user ID: $user_id");
+    } catch (Exception $e) {
+        error_log("Error storing reset token: " . $e->getMessage());
+        // Continue anyway to send the basic email
+    }
+    
+    // Reset link with token
+    $reset_link = getBaseUrl() . "/reset-password.php?token=" . urlencode($reset_token) . "&email=" . urlencode($userData['email']) . "&first_time=1";
+    
     // Email content
     $subject = "Your New Account at Karma Experience";
     
     // Format the user type properly
     $userType = formatRoleName($userData['user_type']);
     
-    // Create email body
+    // Create email body with improved styling
     $message = "
+    <!DOCTYPE html>
     <html>
     <head>
+        <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">
+        <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">
+        <title>Welcome to Karma Experience</title>
         <style>
-            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-            .header { background-color: #f5f5f5; padding: 15px; border-bottom: 3px solid #4f46e5; }
-            .content { padding: 20px; }
-            .credentials { background-color: #f9fafb; padding: 15px; margin: 15px 0; border-left: 3px solid #4f46e5; }
-            .footer { font-size: 12px; color: #666; margin-top: 30px; padding-top: 15px; border-top: 1px solid #eee; }
-            .button { display: inline-block; background-color: #4f46e5; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; }
+            @media only screen and (max-width: 620px) {
+                table.body h1 {
+                    font-size: 28px !important;
+                    margin-bottom: 10px !important;
+                }
+                table.body p,
+                table.body ul,
+                table.body ol,
+                table.body td,
+                table.body span {
+                    font-size: 16px !important;
+                }
+                table.body .container {
+                    padding: 0 !important;
+                    width: 100% !important;
+                }
+                table.body .content {
+                    padding: 0 !important;
+                }
+                table.body .wrapper {
+                    padding: 10px !important;
+                }
+            }
+            
+            body {
+                background-color: #f6f6f6;
+                font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+                -webkit-font-smoothing: antialiased;
+                font-size: 16px;
+                line-height: 1.4;
+                margin: 0;
+                padding: 0;
+                -ms-text-size-adjust: 100%;
+                -webkit-text-size-adjust: 100%;
+            }
+            
+            table {
+                border-collapse: separate;
+                mso-table-lspace: 0pt;
+                mso-table-rspace: 0pt;
+                width: 100%;
+            }
+            
+            table td {
+                font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+                font-size: 16px;
+                vertical-align: top;
+            }
+            
+            .body {
+                background-color: #f6f6f6;
+                width: 100%;
+            }
+            
+            .container {
+                display: block;
+                margin: 0 auto !important;
+                max-width: 580px;
+                padding: 10px;
+            }
+            
+            .content {
+                box-sizing: border-box;
+                display: block;
+                margin: 0 auto;
+                max-width: 580px;
+                padding: 10px;
+            }
+            
+            .main {
+                background: #ffffff;
+                border-radius: 4px;
+                width: 100%;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            }
+            
+            .wrapper {
+                box-sizing: border-box;
+                padding: 20px;
+            }
+            
+            .content-block {
+                padding-bottom: 10px;
+                padding-top: 10px;
+            }
+            
+            .header {
+                padding: 20px 0;
+                text-align: center;
+                background-color: #4834d4;
+                border-top-left-radius: 4px;
+                border-top-right-radius: 4px;
+            }
+            
+            .header h1 {
+                color: #ffffff;
+                font-size: 26px;
+                font-weight: 700;
+                margin: 0;
+            }
+            
+            .footer {
+                clear: both;
+                margin-top: 10px;
+                text-align: center;
+                width: 100%;
+            }
+            
+            .footer td,
+            .footer p,
+            .footer span,
+            .footer a {
+                color: #999999;
+                font-size: 13px;
+                text-align: center;
+            }
+            
+            h1, h2, h3, h4 {
+                color: #333333;
+                font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+                font-weight: 400;
+                line-height: 1.4;
+                margin: 0 0 20px;
+            }
+            
+            h1 {
+                font-size: 26px;
+                font-weight: 700;
+                text-align: center;
+            }
+            
+            p, ul, ol {
+                font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+                font-size: 16px;
+                font-weight: normal;
+                margin: 0 0 15px;
+            }
+            
+            .creds-box {
+                background-color: #f8f9ff;
+                padding: 15px;
+                border-radius: 6px;
+                border-left: 4px solid #4834d4;
+                margin-bottom: 20px;
+            }
+            
+            .important {
+                color: #e63946;
+                font-weight: bold;
+            }
+            
+            .btn {
+                box-sizing: border-box;
+                width: 100%;
+            }
+            
+            .btn > tbody > tr > td {
+                padding-bottom: 15px;
+            }
+            
+            .btn table {
+                width: auto;
+            }
+            
+            .btn table td {
+                background-color: #ffffff;
+                border-radius: 5px;
+                text-align: center;
+            }
+            
+            .btn a {
+                background-color: #4834d4;
+                border: solid 1px #4834d4;
+                border-radius: 5px;
+                box-sizing: border-box;
+                color: #ffffff;
+                cursor: pointer;
+                display: inline-block;
+                font-size: 16px;
+                font-weight: bold;
+                margin: 0;
+                padding: 12px 25px;
+                text-decoration: none;
+                text-transform: capitalize;
+            }
+            
+            .btn-primary a {
+                background-color: #4834d4;
+                border-color: #4834d4;
+                color: #ffffff;
+            }
+            
+            .btn-primary a:hover {
+                background-color: #3a2bbd;
+                border-color: #3a2bbd;
+            }
+            
+            .align-center {
+                text-align: center;
+            }
         </style>
     </head>
     <body>
-        <div class='container'>
-            <div class='header'>
-                <h2>Welcome to Karma Experience</h2>
-            </div>
-            <div class='content'>
-                <p>Hello " . htmlspecialchars($userData['username']) . ",</p>
-                <p>Your account has been created successfully. Below are your login credentials:</p>
-                
-                <div class='credentials'>
-                    <p><strong>Username:</strong> " . htmlspecialchars($userData['username']) . "</p>
-                    <p><strong>Password:</strong> " . htmlspecialchars($password) . "</p>
-                    <p><strong>Role:</strong> " . htmlspecialchars($userType) . "</p>
-                </div>
-                
-                <p>Please keep these credentials safe and change your password after your first login.</p>
-                
-                <p style='margin-top: 20px;'><a href='" . getBaseUrl() . "/login.php' class='button'>Login to Your Account</a></p>
-            </div>
-            <div class='footer'>
-                <p>This is an automated message. Please do not reply to this email.</p>
-                <p>If you did not request this account, please contact us immediately.</p>
-                <p>&copy; " . date('Y') . " Karma Experience. All rights reserved.</p>
-            </div>
-        </div>
+        <table role=\"presentation\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" class=\"body\">
+            <tr>
+                <td>&nbsp;</td>
+                <td class=\"container\">
+                    <div class=\"content\">
+                        <div class=\"header\">
+                            <h1>Welcome to Karma Experience</h1>
+                        </div>
+                        
+                        <!-- START MAIN CONTENT AREA -->
+                        <table role=\"presentation\" class=\"main\">
+                            <tr>
+                                <td class=\"wrapper\">
+                                    <table role=\"presentation\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\">
+                                        <tr>
+                                            <td>
+                                                <p>Hello " . htmlspecialchars($userData['username']) . ",</p>
+                                                <p>Your account has been created successfully. Below are your login credentials:</p>
+                                                
+                                                <div class=\"creds-box\">
+                                                    <p><strong>Username:</strong> " . htmlspecialchars($userData['username']) . "</p>
+                                                    <p><strong>Temporary Password:</strong> " . htmlspecialchars($password) . "</p>
+                                                    <p><strong>Role:</strong> " . htmlspecialchars($userType) . "</p>
+                                                </div>
+                                                
+                                                <p class=\"important\">For security reasons, you are required to change your password on first login.</p>
+                                                
+                                                <p>Please click the button below to set your own password:</p>
+                                                
+                                                <table role=\"presentation\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" class=\"btn btn-primary\">
+                                                    <tbody>
+                                                        <tr>
+                                                            <td align=\"center\">
+                                                                <table role=\"presentation\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\">
+                                                                    <tbody>
+                                                                        <tr>
+                                                                            <td><a href=\"" . $reset_link . "\" target=\"_blank\">Set Your Password</a></td>
+                                                                        </tr>
+                                                                    </tbody>
+                                                                </table>
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                                
+                                                <p>This link will expire in 72 hours. If you don't set your password within this time, please contact your administrator.</p>
+                                                
+                                                <p>After setting your password, you can login at: <a href=\"" . getBaseUrl() . "/login.php\">" . getBaseUrl() . "/login.php</a></p>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                        <!-- END MAIN CONTENT AREA -->
+                        
+                        <!-- START FOOTER -->
+                        <div class=\"footer\">
+                            <table role=\"presentation\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\">
+                                <tr>
+                                    <td class=\"content-block\">
+                                        <p>This is an automated message. Please do not reply to this email.</p>
+                                        <p>If you did not request this account, please contact us immediately.</p>
+                                        <p>&copy; " . date('Y') . " Karma Experience. All rights reserved.</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <!-- END FOOTER -->
+                    </div>
+                </td>
+                <td>&nbsp;</td>
+            </tr>
+        </table>
     </body>
     </html>
     ";

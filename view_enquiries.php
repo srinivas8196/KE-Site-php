@@ -1,10 +1,13 @@
 <?php
 session_start();
-if (!isset($_SESSION['user'])) {
-    header("Location: login.php");
-    exit();
-}
-$user = $_SESSION['user'];
+
+// Include auth helper
+require_once 'auth_helper.php';
+
+// Check if user has campaign_manager or higher permission
+requirePermission('campaign_manager', 'login.php');
+
+// Include database connection
 $pdo = require_once 'db.php';
 
 // Get the base URL dynamically
@@ -306,7 +309,7 @@ include 'bheader.php';
                 </div>
                 
                 <!-- Summary Stats -->
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
                     <?php
                     // Count total enquiries
                     $statsStmt = $pdo->query("SELECT 
@@ -321,7 +324,7 @@ include 'bheader.php';
                     $stats = $statsStmt->fetch();
                     ?>
                     <!-- Stats Title with Refresh Button -->
-                    <div class="md:col-span-4 flex justify-between items-center">
+                    <div class="md:col-span-5 flex justify-between items-center">
                         <h2 class="text-lg font-semibold text-gray-800">Status Summary</h2>
                         <button id="refreshStats" class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-sm flex items-center">
                             <i class="fas fa-sync-alt mr-1"></i> Refresh Counts
@@ -369,6 +372,17 @@ include 'bheader.php';
                             </div>
                             <div class="bg-green-100 p-3 rounded-full">
                                 <i class="fas fa-check-circle text-green-500"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg shadow">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-500">Closed</p>
+                                <p class="text-2xl font-semibold" id="closed-count"><?php echo $stats['closed_count']; ?></p>
+                            </div>
+                            <div class="bg-gray-100 p-3 rounded-full">
+                                <i class="fas fa-archive text-gray-500"></i>
                             </div>
                         </div>
                     </div>
@@ -454,6 +468,42 @@ include 'bheader.php';
     <script>
         // Initialize DataTable
         $(document).ready(function() {
+            // Forced refresh function to clear any browser cache
+            function forceRefreshCounts() {
+                $.ajax({
+                    url: `${baseUrl}/get_enquiry_counts.php?nocache=${new Date().getTime()}`,
+                    method: 'GET',
+                    dataType: 'json',
+                    cache: false,
+                    headers: {
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache',
+                        'Expires': '0'
+                    },
+                    success: function(data) {
+                        console.log('Forced refresh of counts completed:', data);
+                        if (data && data.success) {
+                            $('#total-count').text(data.counts.total);
+                            $('#new-count').text(data.counts.new_count);
+                            $('#contacted-count').text(data.counts.contacted_count);
+                            $('#converted-count').text(data.counts.converted_count);
+                            $('#closed-count').text(data.counts.closed_count || 0);
+                        }
+                    }
+                });
+            }
+            
+            // Force a refresh immediately on page load
+            forceRefreshCounts();
+            
+            // Initial load of status counts with regular function
+            updateStatusCounts();
+            
+            // Set up periodic refresh every 30 seconds
+            const refreshInterval = setInterval(function() {
+                updateStatusCounts();
+            }, 30000);
+            
             // Show/hide advanced filters
             $('#btnAdvancedFilters').click(function() {
                 $('#advancedFilters').toggle();
@@ -520,8 +570,27 @@ include 'bheader.php';
                                 setTimeout(() => row.removeClass('bg-green-50'), 3000);
                             }
                             
-                            // Explicitly update the status counts immediately
-                            updateStatusCounts();
+                            // Update the counts directly from the response if available
+                            if (response.counts) {
+                                console.log('Updating counts from status update response:', response.counts);
+                                $('#total-count').text(response.counts.total);
+                                $('#new-count').text(response.counts.new_count);
+                                $('#contacted-count').text(response.counts.contacted_count);
+                                $('#converted-count').text(response.counts.converted_count);
+                                $('#closed-count').text(response.counts.closed_count || 0);
+                                
+                                // Highlight the changes
+                                $('#total-count, #new-count, #contacted-count, #converted-count, #closed-count')
+                                    .addClass('text-blue-600 font-bold');
+                                    
+                                setTimeout(function() {
+                                    $('#total-count, #new-count, #contacted-count, #converted-count, #closed-count')
+                                        .removeClass('text-blue-600 font-bold');
+                                }, 1500);
+                            } else {
+                                // Fall back to the separate counts update if not available in the response
+                                updateStatusCounts();
+                            }
                             
                             // Reinitialize the event handler on the new select
                             selectCell.find('.status-select').on('change', function() {
@@ -548,14 +617,19 @@ include 'bheader.php';
                 console.log('Updating status counts...');
                 
                 // Show loading indicators on counts
-                $('#total-count, #new-count, #contacted-count, #converted-count').addClass('opacity-50');
+                $('#total-count, #new-count, #contacted-count, #converted-count, #closed-count').addClass('opacity-50');
                 
-                // Make the AJAX request with full URL
+                // Make the AJAX request with full URL and cache busting
                 $.ajax({
                     url: `${baseUrl}/get_enquiry_counts.php?t=${new Date().getTime()}`, // Add timestamp to prevent caching
                     method: 'GET',
                     dataType: 'json',
                     cache: false, // Prevent caching
+                    headers: {
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache',
+                        'Expires': '0'
+                    },
                     success: function(data) {
                         console.log('Received count data:', data);
                         
@@ -565,14 +639,15 @@ include 'bheader.php';
                             $('#new-count').text(data.counts.new_count);
                             $('#contacted-count').text(data.counts.contacted_count);
                             $('#converted-count').text(data.counts.converted_count);
+                            $('#closed-count').text(data.counts.closed_count || 0);
                             
                             // Add a subtle animation to highlight the changes
-                            $('#total-count, #new-count, #contacted-count, #converted-count')
+                            $('#total-count, #new-count, #contacted-count, #converted-count, #closed-count')
                                 .removeClass('opacity-50')
                                 .addClass('text-blue-600 font-bold');
                                 
                             setTimeout(function() {
-                                $('#total-count, #new-count, #contacted-count, #converted-count')
+                                $('#total-count, #new-count, #contacted-count, #converted-count, #closed-count')
                                     .removeClass('text-blue-600 font-bold');
                                 
                                 // Call callback if provided
@@ -582,7 +657,7 @@ include 'bheader.php';
                             }, 1500);
                         } else {
                             console.error('Invalid response format:', data);
-                            $('#total-count, #new-count, #contacted-count, #converted-count').removeClass('opacity-50');
+                            $('#total-count, #new-count, #contacted-count, #converted-count, #closed-count').removeClass('opacity-50');
                             
                             // Call callback if provided
                             if (typeof callback === 'function') {
@@ -594,7 +669,7 @@ include 'bheader.php';
                         console.error('Error fetching updated counts:', error);
                         console.error('Status:', status);
                         console.error('Response:', xhr.responseText);
-                        $('#total-count, #new-count, #contacted-count, #converted-count').removeClass('opacity-50');
+                        $('#total-count, #new-count, #contacted-count, #converted-count, #closed-count').removeClass('opacity-50');
                         
                         // Call callback if provided
                         if (typeof callback === 'function') {
@@ -747,8 +822,27 @@ include 'bheader.php';
                                         $('#enquiryDetailModal').addClass('hidden');
                                         toastr.success('Enquiry marked as converted');
                                         
-                                        // Update the status counts
-                                        updateStatusCounts();
+                                        // Update the status counts from the response if available
+                                        if (response.counts) {
+                                            console.log('Updating counts from status update response:', response.counts);
+                                            $('#total-count').text(response.counts.total);
+                                            $('#new-count').text(response.counts.new_count);
+                                            $('#contacted-count').text(response.counts.contacted_count);
+                                            $('#converted-count').text(response.counts.converted_count);
+                                            $('#closed-count').text(response.counts.closed_count || 0);
+                                            
+                                            // Highlight the changes
+                                            $('#total-count, #new-count, #contacted-count, #converted-count, #closed-count')
+                                                .addClass('text-blue-600 font-bold');
+                                                
+                                            setTimeout(function() {
+                                                $('#total-count, #new-count, #contacted-count, #converted-count, #closed-count')
+                                                    .removeClass('text-blue-600 font-bold');
+                                            }, 1500);
+                                        } else {
+                                            // If counts not in response, do separate request
+                                            updateStatusCounts();
+                                        }
                                         
                                         // Update the row in the table without reloading
                                         const row = $(`tr:has(button[data-enquiry-id="${id}"])`);

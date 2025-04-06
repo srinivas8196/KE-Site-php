@@ -9,8 +9,10 @@ if (isset($_SESSION['LAST_ACTIVITY']) && (time() - $_SESSION['LAST_ACTIVITY'] > 
     // Last activity was more than 1 hour ago, destroy the session
     session_unset();
     session_destroy();
-    header("Location: login.php?timeout=1"); // Added timeout parameter for login page
-    exit();
+    if (!strpos($_SERVER['PHP_SELF'], 'login.php')) {
+        header("Location: login.php?timeout=1"); // Added timeout parameter for login page
+        exit();
+    }
 }
 $_SESSION['LAST_ACTIVITY'] = time(); // Update last activity time
 

@@ -2,42 +2,56 @@
 // Start session
 session_start();
 
+// Debug info
+error_log("Dashboard accessed - Session ID: " . session_id());
+error_log("Dashboard - Session data: " . json_encode($_SESSION));
+
 // Include auth helper for role-based features
 require_once 'auth_helper.php';
 
 // Debug: Log access to dashboard page
-error_log("Dashboard page accessed. Session status: " . (isset($_SESSION['user_id']) ? "User logged in" : "No user session"));
+error_log("Dashboard page accessed. Session status: " . (isset($_SESSION['user_id']) ? "User logged in (ID: {$_SESSION['user_id']})" : "No user session"));
 
 // Check if user is logged in before anything else
 if (!isset($_SESSION['user_id'])) {
-    error_log("No user session found, redirecting to login.php");
-    header("Location: login.php");
+    error_log("No user session found on dashboard, redirecting to login.php");
+    
+    // Clear any potential session data
+    session_unset();
+    session_destroy();
+    
+    // Redirect to login page
+    header("Location: login.php?nosession=1");
     exit();
 }
 
 // Include database connection
-require_once 'db.php';
+$pdo = require_once 'db.php';
 
 // Ensure we have a valid connection
-if (!isset($conn) || !$conn) {
-    require_once 'db.php'; // Get a fresh connection if needed
+if (!isset($pdo) || !$pdo) {
+    error_log("Database connection failed in dashboard");
+    die("Database connection error");
 }
 
-// Fetch user information
+// Fetch user information using PDO
 $user_id = $_SESSION['user_id'];
-$stmt = $conn->prepare("SELECT * FROM users WHERE id = ?");
-$stmt->bind_param("i", $user_id);
-$stmt->execute();
-$result = $stmt->get_result();
+error_log("Fetching user data for ID: " . $user_id);
 
-if ($result->num_rows === 0) {
+$stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
+$stmt->execute([$user_id]);
+$user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+if (!$user) {
     // User not found in database
+    error_log("User ID {$user_id} not found in database");
+    session_unset();
     session_destroy();
-    header("Location: login.php");
+    header("Location: login.php?invalid_user=1");
     exit();
 }
 
-$user = $result->fetch_assoc();
+error_log("User data found: " . json_encode($user));
 $_SESSION['user_type'] = $user['user_type']; // Ensure user_type is in session
 
 // Now include the bheader which has navigation elements
@@ -47,23 +61,18 @@ require_once 'bheader.php';
 $stats = array();
 
 // Only query what the user has permission to see
-$query = "SELECT ";
-$queryParts = array();
-
 if (hasPermission('campaign_manager')) {
-    $queryParts[] = "(SELECT COUNT(*) FROM destinations) as total_destinations";
-    $queryParts[] = "(SELECT COUNT(*) FROM resorts) as total_resorts";
-    $queryParts[] = "(SELECT COUNT(*) FROM resort_enquiries) as total_enquiries";
+    $stmt = $pdo->query("SELECT 
+        (SELECT COUNT(*) FROM destinations) as total_destinations,
+        (SELECT COUNT(*) FROM resorts) as total_resorts,
+        (SELECT COUNT(*) FROM resort_enquiries) as total_enquiries");
+    $stats = $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
 if (hasPermission('super_admin')) {
-    $queryParts[] = "(SELECT COUNT(*) FROM users) as total_users";
-}
-
-if (!empty($queryParts)) {
-    $query .= implode(", ", $queryParts);
-    $result = $conn->query($query);
-    $stats = $result->fetch_assoc();
+    $stmt = $pdo->query("SELECT COUNT(*) as total_users FROM users");
+    $user_stats = $stmt->fetch(PDO::FETCH_ASSOC);
+    $stats['total_users'] = $user_stats['total_users'];
 }
 
 // Fetch recent activities based on permissions
@@ -74,31 +83,31 @@ $recentUsers = array();
 
 if (hasPermission('campaign_manager')) {
     // Enquiries
-    $stmt = $conn->prepare("SELECT 
+    $stmt = $pdo->prepare("SELECT 
         e.*, r.resort_name, d.destination_name 
         FROM resort_enquiries e 
         LEFT JOIN resorts r ON e.resort_id = r.id 
         LEFT JOIN destinations d ON e.destination_id = d.id 
         ORDER BY e.created_at DESC LIMIT 5");
     $stmt->execute();
-    $recentEnquiries = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $recentEnquiries = $stmt->fetchAll();
     
     // Resorts
-    $stmt = $conn->prepare("SELECT * FROM resorts ORDER BY created_at DESC LIMIT 5");
+    $stmt = $pdo->prepare("SELECT * FROM resorts ORDER BY created_at DESC LIMIT 5");
     $stmt->execute();
-    $recentResorts = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $recentResorts = $stmt->fetchAll();
     
     // Destinations
-    $stmt = $conn->prepare("SELECT * FROM destinations ORDER BY created_at DESC LIMIT 5");
+    $stmt = $pdo->prepare("SELECT * FROM destinations ORDER BY created_at DESC LIMIT 5");
     $stmt->execute();
-    $recentDestinations = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $recentDestinations = $stmt->fetchAll();
 }
 
 if (hasPermission('super_admin')) {
     // Users
-    $stmt = $conn->prepare("SELECT * FROM users ORDER BY created_at DESC LIMIT 5");
+    $stmt = $pdo->prepare("SELECT * FROM users ORDER BY created_at DESC LIMIT 5");
     $stmt->execute();
-    $recentUsers = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $recentUsers = $stmt->fetchAll();
 }
 
 ?>

@@ -1,10 +1,11 @@
 <?php
 session_start();
-if (!isset($_SESSION['user'])) {
-    header("Location: login.php");
-    exit();
-}
-$user = $_SESSION['user'];
+
+// Include auth helper
+require_once 'auth_helper.php';
+
+// Check if user has campaign_manager or higher permission
+requirePermission('campaign_manager', 'login.php');
 
 // Fix database connection
 $pdo = require 'db.php';

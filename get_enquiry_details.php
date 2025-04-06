@@ -1,7 +1,12 @@
 <?php
 ob_start(); // Start output buffering
 session_start();
-if (!isset($_SESSION['user'])) {
+
+// Include auth_helper for proper permission checking
+require_once 'auth_helper.php';
+
+// Check for proper authentication using requirePermission
+if (!isset($_SESSION['user_id']) || !hasPermission('campaign_manager')) {
     header('Content-Type: application/json');
     echo json_encode(['success' => false, 'message' => 'Not authorized']);
     exit();

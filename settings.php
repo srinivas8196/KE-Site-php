@@ -1,11 +1,12 @@
 <?php
 ob_start();
 session_start();
-if (!isset($_SESSION['user'])) {
+// Check for user_id which is the correct session variable used throughout the system
+if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit();
 }
-$user = $_SESSION['user'];
+// We don't need to set $user variable since it's not used
 require 'db.php';
 
 // Include database connection

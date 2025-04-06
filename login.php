@@ -1,6 +1,11 @@
 <?php
-// Start session
+// Start session with secure parameters
 session_start();
+
+// Debug: Log session info
+error_log("Login page - Session ID: " . session_id());
+error_log("PHP Session Path: " . session_save_path());
+error_log("Session Cookie Parameters: " . json_encode(session_get_cookie_params()));
 
 // Include database
 require_once 'db.php';
@@ -9,8 +14,8 @@ require_once 'includes/functions.php';
 
 // Debug: Log the request method and session info
 error_log("Login page accessed via " . $_SERVER['REQUEST_METHOD'] . " method");
-if (isset($_SESSION['user'])) {
-    error_log("User already logged in, redirecting to dashboard");
+if (isset($_SESSION['user_id'])) {
+    error_log("User already logged in (ID: " . $_SESSION['user_id'] . "), redirecting to dashboard");
     header("Location: dashboard.php");
     exit;
 }
@@ -24,6 +29,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = isset($_POST['username']) ? trim($_POST['username']) : '';
     $password = isset($_POST['password']) ? $_POST['password'] : '';
     $recaptcha_token = $_POST['recaptcha_token'] ?? '';
+    
+    // Debug
+    error_log("Login attempt for username: " . $username);
     
     // Validate input
     if (empty($username) || empty($password)) {
@@ -47,23 +55,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 // Check password
                 if ($user && password_verify($password, $user['password'])) {
+                    // Clear any existing session data
+                    session_unset();
+                    
                     // Set session variables
-                    $_SESSION['user'] = [
-                        'id' => $user['id'],
-                        'username' => $user['username'],
-                        'role' => $user['role'],
-                        'user_type' => $user['user_type']
-                    ];
+                    $_SESSION['user_id'] = $user['id'];
+                    $_SESSION['username'] = $user['username'];
+                    $_SESSION['user_type'] = $user['user_type'];
                     
                     // Set activity timestamps
                     $_SESSION['LAST_ACTIVITY'] = time();
                     $_SESSION['CREATED'] = time();
                     
-                    // Debug: Log successful login
-                    error_log("Login successful for user: {$username}, redirecting to dashboard.php");
+                    // Force session write
+                    session_write_close();
                     
-                    // Redirect to dashboard with absolute path
-                    header("Location: " . $_SERVER['REQUEST_SCHEME'] . '://' . $_SERVER['HTTP_HOST'] . dirname($_SERVER['PHP_SELF']) . '/dashboard.php');
+                    // Debug: Log successful login
+                    error_log("Login successful for user: {$username} (ID: {$user['id']}), redirecting to dashboard.php");
+                    error_log("Session after login - user_id: " . $_SESSION['user_id']);
+                    
+                    // Redirect to dashboard with absolute path and SameSite cookie property
+                    $path = dirname($_SERVER['PHP_SELF']);
+                    if ($path == '/' || $path == '\\') {
+                        $path = '';
+                    }
+                    
+                    // Use direct path for redirection
+                    header("Location: dashboard.php");
                     exit;
                 } else {
                     // Debug: Log failed login
@@ -173,9 +191,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </form>
         
         <div class="text-center mt-4">
-            <a href="index.php" class="text-decoration-none" style="font-size: 0.9rem; color: #666;">
-                Return to Website
+            <a href="forgot-password.php" class="text-decoration-none" style="font-size: 0.9rem; color: #1E5F74;">
+                Forgot your password?
             </a>
+            <div class="mt-2">
+                <a href="index.php" class="text-decoration-none" style="font-size: 0.9rem; color: #666;">
+                    Return to Website
+                </a>
+            </div>
         </div>
     </div>
     
