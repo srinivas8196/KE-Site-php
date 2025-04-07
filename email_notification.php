@@ -575,8 +575,12 @@ function sendUserCredentials($userData, $password) {
     try {
         $stmt = $conn->prepare("UPDATE users SET reset_token = ?, reset_token_expires = DATE_ADD(NOW(), INTERVAL 72 HOUR) WHERE id = ?");
         $stmt->bind_param("si", $reset_token, $user_id);
-        $stmt->execute();
-        error_log("Reset token stored for user ID: $user_id");
+        $result = $stmt->execute();
+        if ($result) {
+            error_log("Reset token stored for user ID: $user_id");
+        } else {
+            error_log("Failed to store reset token for user ID: $user_id. Error: " . $conn->error);
+        }
     } catch (Exception $e) {
         error_log("Error storing reset token: " . $e->getMessage());
         // Continue anyway to send the basic email

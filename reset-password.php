@@ -94,6 +94,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Clear the token parameters
                 $token = null;
                 $email = null;
+                
+                // Redirect to login after 3 seconds
+                header("refresh:3;url=login.php");
             } else {
                 $error = "Failed to update password. Please try again.";
             }
@@ -132,6 +135,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 if ($stmt->execute()) {
                     $success = "Your password has been updated successfully. You can now log in with your new password.";
+                    
+                    // Redirect to login after 3 seconds
+                    header("refresh:3;url=login.php");
                 } else {
                     $error = "Failed to update password. Please try again.";
                 }
@@ -271,6 +277,7 @@ if (isset($_SESSION['user_id'])) {
             <div class="alert alert-success" role="alert">
                 <?php echo $success; ?>
                 <div class="text-center mt-3">
+                    <p>Redirecting to login page...</p>
                     <a href="login.php" class="btn btn-primary">Go to Login</a>
                 </div>
             </div>

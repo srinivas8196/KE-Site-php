@@ -80,6 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 if (sendEmailViaSmtp($email, $subject, $message)) {
                     $success = "Password reset instructions have been sent to your email address.";
                 } else {
+                    error_log("Failed to send password reset email to $email");
                     $error = "Failed to send password reset email. Please try again later.";
                 }
             } catch (Exception $e) {
