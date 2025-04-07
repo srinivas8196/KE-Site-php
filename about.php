@@ -33,7 +33,7 @@ include_once('kheader.php');
                             <h2 class="sec-title mb-20 pe-xl-5 me-xl-5 heading">Enjoy a Luxury Experience
                             </h2>
                         </div>
-                        <p class="pe-xl-5">Discover the world of luxury with Karma Experience, the marketing division of the award-winning Karma Group. We specialize in offering exclusive, heavily discounted promotional holidays, giving you the chance to explore the globe while experiencing the exceptional hospitality and luxurious comfort that define the Karma brand.</p>
+                        <p class="pe-xl-5">Discover the world of luxury with Karma Experience, the Holiday Preview Division of the award-winning Karma Group. We specialize in offering exclusive, heavily discounted promotional holidays, giving you the chance to explore the globe while experiencing the exceptional hospitality and comfort that define the Karma brand.</p>
                         <!-- //<p class="mb-30 pe-xl-5">Our carefully curated destinations include everything from sun-kissed beaches and vibrant cityscapes to peaceful mountain retreats. Whether you're seeking adventure, relaxation, or cultural exploration, Karma Experience has something special for every traveler.</p> -->
                         <div class="about-item-wrap">
                             <div class="about-item style2">
@@ -58,7 +58,7 @@ include_once('kheader.php');
                                 </div>
                             </div>
                         </div>
-                        <p class="about-item_text">Don't miss this opportunity to explore the Karma verse and experience the very best!</p>
+                        <p class="about-item_text">Don't miss this opportunity to explore the Karmaverse and experience the very best!</p>
                         <!-- <div class="mt-35"><a href="contact.html" class="th-btn style3 th-icon">Contact With Us</a>
                         </div> -->
                     </div>

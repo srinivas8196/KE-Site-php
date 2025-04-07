@@ -188,6 +188,14 @@ include_once('kheader.php');
                              and Goa to the cultural treasures of Europe and the enchanting Nile river cruise — unlock access to the world’s most sought-after destinations.</p>
                     </div>
                     <div class="about-item-wrap">
+                    <div class="about-item">
+                            <div class="about-item_img"><img src="assets/img/icon/guide.svg" alt=""></div>
+                            <div class="about-item_centent">
+                                <h5 class="box-title">Unmatched Hospitality</h5>
+                                <p class="about-item_text">With over 30 years of expertise, experience luxury, comfort, and world-class service at every destination.</p>
+                            </div>
+                        </div>
+                        
                         <div class="about-item">
                             <div class="about-item_img"><img src="assets/img/icon/map3.svg" alt=""></div>
                             <div class="about-item_centent">
@@ -195,13 +203,7 @@ include_once('kheader.php');
                                 <p class="about-item_text">Relax on exotic beaches or explore hidden cultural gems — your dream getaway awaits with Karma Experience.</p>
                             </div>
                         </div>
-                        <div class="about-item">
-                            <div class="about-item_img"><img src="assets/img/icon/guide.svg" alt=""></div>
-                            <div class="about-item_centent">
-                                <h5 class="box-title">Unmatched Hospitality</h5>
-                                <p class="about-item_text">With over 30 years of expertise, experience luxury, comfort, and world-class service at every destination.</p>
-                            </div>
-                        </div>
+                        
                     </div>
                     <!-- <div class="mt-35"><a href="about.html" class="th-btn style3 th-icon">Learn More</a></div> -->
                 </div>

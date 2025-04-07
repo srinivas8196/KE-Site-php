@@ -40,7 +40,7 @@
                                 <ul class="menu">
                                     <li><a href="index.php">Home</a></li>
                                     <li><a href="about.php">About us</a></li>
-                                    <li><a href="#">Destinations</a></li>
+                                    <li><a href="our-destinations.php">Destinations</a></li>
                                 </ul>
                             </div>
                         </div>
