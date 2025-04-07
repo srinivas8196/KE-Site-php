@@ -6,17 +6,26 @@ require_once 'db.php';
 function verifyTemporaryPassword($username, $password) {
     global $conn;
     
-    $stmt = $conn->prepare("SELECT password FROM users WHERE username = ?");
+    error_log("Verifying temporary password for username: " . $username);
+    
+    $stmt = $conn->prepare("SELECT id, password FROM users WHERE username = ?");
     $stmt->bind_param("s", $username);
     $stmt->execute();
     $result = $stmt->get_result();
     
     if ($result->num_rows === 0) {
+        error_log("Username not found: " . $username);
         return false;
     }
     
     $user = $result->fetch_assoc();
-    return password_verify($password, $user['password']);
+    $hashed_password = $user['password'];
+    $user_id = $user['id'];
+    
+    $matches = password_verify($password, $hashed_password);
+    error_log("Password verification for user ID " . $user_id . ": " . ($matches ? "Success" : "Failed"));
+    
+    return $matches;
 }
 
 $error = '';
@@ -83,22 +92,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $user = $result->fetch_assoc();
             $user_id = $user['id'];
             
+            // Add debugging
+            error_log("Resetting password for user ID: " . $user_id);
+            
             // Update password and clear token
             $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
             $stmt = $conn->prepare("UPDATE users SET password = ?, reset_token = NULL, reset_token_expires = NULL WHERE id = ?");
             $stmt->bind_param("si", $hashed_password, $user_id);
             
             if ($stmt->execute()) {
+                error_log("Password updated successfully for user ID: " . $user_id);
                 $success = "Your password has been updated successfully. You can now log in with your new password.";
                 
-                // Clear the token parameters
+                // Clear the token parameters but preserve first_time
+                $first_time_val = $first_time ? '1' : '0';
                 $token = null;
                 $email = null;
                 
-                // Redirect to login after 3 seconds
-                header("refresh:3;url=login.php");
+                // We'll use JavaScript redirect instead of PHP header
+                $_SESSION['redirect_after_reset'] = true;
             } else {
-                $error = "Failed to update password. Please try again.";
+                error_log("Failed to update password for user ID: " . $user_id . ". Error: " . $stmt->error);
+                $error = "Failed to update password. Please try again. Error: " . $stmt->error;
             }
         }
     } 
@@ -109,23 +124,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $new_password = $_POST['new_password'];
         $confirm_password = $_POST['confirm_password'];
         
+        error_log("Processing first-time password setup for: " . $username);
+        
         // Verify the temporary credentials
-        $stmt = $conn->prepare("SELECT id, password FROM users WHERE username = ?");
+        $stmt = $conn->prepare("SELECT id, password, email FROM users WHERE username = ?");
         $stmt->bind_param("s", $username);
         $stmt->execute();
         $result = $stmt->get_result();
         
         if ($result->num_rows === 0) {
+            error_log("Username not found in database: " . $username);
             $error = "Invalid username.";
         } else {
             $user = $result->fetch_assoc();
+            $user_id = $user['id'];
+            $user_email = $user['email'];
+            
+            error_log("Found user ID: " . $user_id . " with email: " . $user_email);
             
             // Verify the temporary password
             if (!password_verify($temp_password, $user['password'])) {
+                error_log("Temporary password verification failed for user ID: " . $user_id);
                 $error = "Temporary password is incorrect.";
             } else if ($new_password !== $confirm_password) {
+                error_log("New passwords do not match for user ID: " . $user_id);
                 $error = "New passwords do not match.";
             } else if (strlen($new_password) < 8) {
+                error_log("New password too short for user ID: " . $user_id);
                 $error = "Password must be at least 8 characters long.";
             } else {
                 // Update password
@@ -134,12 +159,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt->bind_param("si", $hashed_password, $user['id']);
                 
                 if ($stmt->execute()) {
+                    error_log("Password updated successfully for user ID: " . $user_id);
                     $success = "Your password has been updated successfully. You can now log in with your new password.";
                     
-                    // Redirect to login after 3 seconds
-                    header("refresh:3;url=login.php");
+                    // We'll use JavaScript redirect instead of PHP header
+                    $_SESSION['redirect_after_reset'] = true;
                 } else {
-                    $error = "Failed to update password. Please try again.";
+                    error_log("Failed to update password for user ID: " . $user_id . ". Error: " . $stmt->error);
+                    $error = "Failed to update password. Please try again. Error: " . $stmt->error;
                 }
             }
         }
@@ -174,7 +201,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->bind_param("si", $hashed_password, $_SESSION['user_id']);
             
             if ($stmt->execute()) {
-                $success = "Your password has been updated successfully.";
+                $success = "Your password has been updated successfully. You can now log in with your new password.";
+                
+                // We'll use JavaScript redirect instead of PHP header
+                $_SESSION['redirect_after_reset'] = true;
             } else {
                 $error = "Failed to update password. Please try again.";
             }
@@ -199,15 +229,19 @@ if (isset($_SESSION['user_id'])) {
     <?php endif; ?>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
+        <?php if (!isset($_SESSION['user_id'])): ?>
         body {
-            background: <?php echo isset($_SESSION['user_id']) ? '#f8f9fa' : 'linear-gradient(135deg, #1E5F74, #133B5C)'; ?>;
-            <?php if (!isset($_SESSION['user_id'])): ?>
+            background: linear-gradient(135deg, #1E5F74, #133B5C);
             height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            <?php endif; ?>
         }
+        <?php else: ?>
+        body {
+            background: #f8f9fa;
+        }
+        <?php endif; ?>
         .reset-container {
             background: white;
             border-radius: 10px;
@@ -281,6 +315,19 @@ if (isset($_SESSION['user_id'])) {
                     <a href="login.php" class="btn btn-primary">Go to Login</a>
                 </div>
             </div>
+            
+            <?php if (isset($_SESSION['redirect_after_reset']) && $_SESSION['redirect_after_reset']): ?>
+            <script>
+                // Redirect to login page after 5 seconds
+                setTimeout(function() {
+                    window.location.href = 'login.php';
+                }, 5000);
+            </script>
+            <?php 
+                // Clear the redirect flag
+                $_SESSION['redirect_after_reset'] = false;
+            ?>
+            <?php endif; ?>
         <?php elseif (!isset($token) || !isset($email)): ?>
             <ul class="nav nav-tabs mb-4" id="resetTabs" role="tablist">
                 <li class="nav-item" role="presentation">
@@ -313,7 +360,7 @@ if (isset($_SESSION['user_id'])) {
                         <p>If you have a temporary password from your account creation email, enter it below to set your new password.</p>
                     </div>
                     
-                    <form method="POST" action="reset-password.php" id="firstTimeForm">
+                    <form method="POST" action="reset-password.php?first_time=1" id="firstTimeForm">
                         <input type="hidden" name="first_time_setup" value="1">
                         
                         <div class="mb-3">
@@ -362,7 +409,7 @@ if (isset($_SESSION['user_id'])) {
         <?php elseif (isset($token) && isset($email)): ?>
             <p>Hello <strong><?php echo htmlspecialchars($username); ?></strong>, please set your new password below.</p>
             
-            <form method="POST" action="reset-password.php" id="resetForm">
+            <form method="POST" action="reset-password.php?token=<?php echo htmlspecialchars($token); ?>&email=<?php echo htmlspecialchars($email); ?>&first_time=<?php echo $first_time ? '1' : '0'; ?>" id="resetForm">
                 <input type="hidden" name="token" value="<?php echo htmlspecialchars($token); ?>">
                 <input type="hidden" name="email" value="<?php echo htmlspecialchars($email); ?>">
                 

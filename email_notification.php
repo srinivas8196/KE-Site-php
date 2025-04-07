@@ -539,8 +539,16 @@ function getAdminEmails() {
 function getBaseUrl() {
     $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
     $host = $_SERVER['HTTP_HOST'];
-    $path = dirname($_SERVER['PHP_SELF']);
     
+    // Get the directory where the script is located
+    $path = rtrim(dirname($_SERVER['PHP_SELF']), '/');
+    
+    // If we're in the root directory, return just the host
+    if ($path === '' || $path === '/' || $path === '\\') {
+        return $protocol . '://' . $host;
+    }
+    
+    // Otherwise return the full path
     return $protocol . '://' . $host . $path;
 }
 

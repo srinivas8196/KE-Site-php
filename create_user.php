@@ -75,6 +75,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 try {
                     if (sendUserCredentials($userData, $password)) {
                         $success_message .= ' Login credentials sent to user.';
+                    } else {
+                        error_log("Failed to send credentials to user: " . $userData['email']);
                     }
                 } catch (Exception $e) {
                     error_log("Error sending credentials to user: " . $e->getMessage());
