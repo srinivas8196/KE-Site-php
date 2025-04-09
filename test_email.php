@@ -1,299 +1,213 @@
 <?php
-// Start session
 session_start();
-
-// Include authentication helper
-include_once 'auth_helper.php';
-requirePermission('super_admin');
-
-// Include database connection
-include_once 'db.php';
-
-// Include email functions
-include_once 'email_notification.php';
-
-// Define page title
-$page_title = "Test Email Functionality";
-
-// Process form submission
-$result = [];
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (isset($_POST['test_admin_notification'])) {
-        // Test admin notification
-        $userData = [
-            'id' => 999,
-            'username' => 'test_user',
-            'email' => $_POST['test_email'],
-            'user_type' => 'admin',
-            'phone_number' => '555-123-4567'
-        ];
-        
-        try {
-            $sent = sendNewUserNotification($userData);
-            $result = [
-                'success' => $sent,
-                'message' => $sent ? 'Admin notification sent successfully!' : 'Failed to send admin notification.',
-                'type' => 'admin_notification'
-            ];
-        } catch (Exception $e) {
-            $result = [
-                'success' => false,
-                'message' => 'Error: ' . $e->getMessage(),
-                'type' => 'admin_notification'
-            ];
-        }
-    } elseif (isset($_POST['test_user_credentials'])) {
-        // Test user credential email
-        $userData = [
-            'id' => 999,
-            'username' => 'test_user',
-            'email' => $_POST['test_email'],
-            'user_type' => 'user',
-            'phone_number' => '555-123-4567'
-        ];
-        
-        try {
-            $sent = sendUserCredentials($userData, 'Test1234!');
-            $result = [
-                'success' => $sent,
-                'message' => $sent ? 'User credentials sent successfully!' : 'Failed to send user credentials.',
-                'type' => 'user_credentials'
-            ];
-        } catch (Exception $e) {
-            $result = [
-                'success' => false,
-                'message' => 'Error: ' . $e->getMessage(),
-                'type' => 'user_credentials'
-            ];
-        }
-    } elseif (isset($_POST['test_direct_email'])) {
-        // Test direct email
-        try {
-            $email = $_POST['test_email'];
-            $subject = "Test Email from Karma Experience";
-            $message = "
-            <html>
-            <head>
-                <style>
-                    body { font-family: Arial, sans-serif; }
-                    .container { padding: 20px; }
-                    .header { background: #f5f5f5; padding: 10px; }
-                </style>
-            </head>
-            <body>
-                <div class='container'>
-                    <div class='header'>
-                        <h2>Test Email</h2>
-                    </div>
-                    <p>This is a test email sent at " . date('Y-m-d H:i:s') . "</p>
-                    <p>If you received this email, your email configuration is working properly.</p>
-                </div>
-            </body>
-            </html>
-            ";
-            
-            $sentCount = sendEmailViaSmtp($email, $subject, $message);
-            $result = [
-                'success' => $sentCount > 0,
-                'message' => $sentCount > 0 ? 'Direct test email sent successfully!' : 'Failed to send direct test email.',
-                'type' => 'direct_email'
-            ];
-        } catch (Exception $e) {
-            $result = [
-                'success' => false,
-                'message' => 'Error: ' . $e->getMessage(),
-                'type' => 'direct_email'
-            ];
-        }
-    } elseif (isset($_POST['view_smtp_settings'])) {
-        // View SMTP settings
-        try {
-            $smtpSettings = getSmtpSettings();
-            // Hide password
-            $smtpSettings['password'] = str_repeat('*', strlen($smtpSettings['password']));
-            $result = [
-                'success' => true,
-                'message' => 'SMTP Settings loaded successfully',
-                'type' => 'smtp_settings',
-                'data' => $smtpSettings
-            ];
-        } catch (Exception $e) {
-            $result = [
-                'success' => false,
-                'message' => 'Error loading SMTP settings: ' . $e->getMessage(),
-                'type' => 'smtp_settings'
-            ];
-        }
-    }
+// Check for user authentication
+if (!isset($_SESSION['user_id'])) {
+    header('Content-Type: application/json');
+    echo json_encode(['status' => 'error', 'message' => 'Authentication required']);
+    exit();
 }
 
-// Include header
-include_once 'header.php';
-?>
+// Include necessary files
+require_once 'db.php';
+require_once 'vendor/phpmailer/phpmailer/src/Exception.php';
+require_once 'vendor/phpmailer/phpmailer/src/PHPMailer.php';
+require_once 'vendor/phpmailer/phpmailer/src/SMTP.php';
 
-<div class="container mx-auto px-4 py-8">
-    <div class="bg-white shadow-md rounded-lg p-6 mb-8">
-        <h1 class="text-2xl font-bold mb-6 text-gray-800">Test Email Functionality</h1>
-        
-        <?php if (!empty($result)): ?>
-            <div class="alert alert-<?php echo $result['success'] ? 'success' : 'danger'; ?> mb-4">
-                <h4 class="alert-heading"><?php echo $result['success'] ? 'Success!' : 'Error!'; ?></h4>
-                <p><?php echo htmlspecialchars($result['message']); ?></p>
-                
-                <?php if ($result['type'] === 'smtp_settings' && $result['success'] && isset($result['data'])): ?>
-                    <hr>
-                    <h5>SMTP Settings:</h5>
-                    <ul>
-                        <?php foreach ($result['data'] as $key => $value): ?>
-                            <li><strong><?php echo ucfirst($key); ?>:</strong> <?php echo htmlspecialchars($value); ?></li>
-                        <?php endforeach; ?>
-                    </ul>
-                <?php endif; ?>
-            </div>
-        <?php endif; ?>
-        
-        <div class="row row-cols-1 row-cols-md-2 g-4">
-            <!-- View SMTP Settings -->
-            <div class="col">
-                <div class="card h-100 border-primary">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0">View SMTP Settings</h5>
-                    </div>
-                    <div class="card-body">
-                        <p>View your current SMTP configuration settings.</p>
-                        <form method="post" action="">
-                            <div class="d-grid">
-                                <button type="submit" name="view_smtp_settings" class="btn btn-primary">Show Settings</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Test Direct Email -->
-            <div class="col">
-                <div class="card h-100 border-success">
-                    <div class="card-header bg-success text-white">
-                        <h5 class="mb-0">Test Direct Email</h5>
-                    </div>
-                    <div class="card-body">
-                        <p>Send a simple test email to verify your email configuration.</p>
-                        <form method="post" action="">
-                            <div class="mb-3">
-                                <label for="direct_email" class="form-label">Email Address</label>
-                                <input type="email" class="form-control" id="direct_email" name="test_email" required>
-                            </div>
-                            <div class="d-grid">
-                                <button type="submit" name="test_direct_email" class="btn btn-success">Send Test Email</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Test Admin Notification -->
-            <div class="col">
-                <div class="card h-100 border-info">
-                    <div class="card-header bg-info text-white">
-                        <h5 class="mb-0">Test Admin Notification</h5>
-                    </div>
-                    <div class="card-body">
-                        <p>Test sending a new user notification to admins.</p>
-                        <form method="post" action="">
-                            <div class="mb-3">
-                                <label for="admin_email" class="form-label">Admin Email Address</label>
-                                <input type="email" class="form-control" id="admin_email" name="test_email" required>
-                            </div>
-                            <div class="d-grid">
-                                <button type="submit" name="test_admin_notification" class="btn btn-info">Send Admin Notification</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Test User Credentials -->
-            <div class="col">
-                <div class="card h-100 border-warning">
-                    <div class="card-header bg-warning text-dark">
-                        <h5 class="mb-0">Test User Credentials</h5>
-                    </div>
-                    <div class="card-body">
-                        <p>Test sending login credentials to a new user.</p>
-                        <form method="post" action="">
-                            <div class="mb-3">
-                                <label for="user_email" class="form-label">User Email Address</label>
-                                <input type="email" class="form-control" id="user_email" name="test_email" required>
-                            </div>
-                            <div class="d-grid">
-                                <button type="submit" name="test_user_credentials" class="btn btn-warning">Send User Credentials</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="mt-4 text-center">
-            <a href="dashboard.php" class="btn btn-secondary">Back to Dashboard</a>
-        </div>
-    </div>
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+use PHPMailer\PHPMailer\SMTP;
+
+// Function to get settings from database
+function get_setting($key, $default = '') {
+    global $pdo, $conn;
     
-    <div class="bg-white shadow-md rounded-lg p-6">
-        <h2 class="text-xl font-bold mb-4 text-gray-800">Email Configuration Status</h2>
-        
-        <?php
-        // Check .env file exists
-        $envExists = file_exists('.env');
-        
-        // Check PHPMailer installation
-        $phpmailerExists = class_exists('PHPMailer\PHPMailer\PHPMailer');
-        
-        // Check SMTP configuration
-        $smtpConfigured = false;
-        if ($envExists) {
-            $env = parse_ini_file('.env');
-            $smtpConfigured = !empty($env['SMTP_HOST']) && !empty($env['SMTP_USERNAME']) && !empty($env['SMTP_PASSWORD']);
+    try {
+        // Try using PDO
+        if (isset($pdo) && $pdo) {
+            $stmt = $pdo->prepare("SELECT setting_value FROM settings WHERE setting_key = ?");
+            $stmt->execute([$key]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $result ? $result['setting_value'] : $default;
+        } 
+        // Try using mysqli
+        elseif (isset($conn) && $conn) {
+            $key = $conn->real_escape_string($key);
+            $result = $conn->query("SELECT setting_value FROM settings WHERE setting_key = '$key'");
+            if ($result && $row = $result->fetch_assoc()) {
+                return $row['setting_value'];
+            }
         }
-        ?>
-        
-        <ul class="space-y-3">
-            <li class="flex items-center">
-                <span class="inline-flex items-center justify-center w-6 h-6 mr-2 rounded-full <?php echo $envExists ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'; ?>">
-                    <?php echo $envExists ? '✓' : '✗'; ?>
-                </span>
-                <span>.env file: <?php echo $envExists ? 'Found' : 'Missing'; ?></span>
-                <?php if (!$envExists): ?>
-                    <span class="ml-2 text-sm text-red-600">Create a .env file based on .env.example</span>
-                <?php endif; ?>
-            </li>
-            
-            <li class="flex items-center">
-                <span class="inline-flex items-center justify-center w-6 h-6 mr-2 rounded-full <?php echo $phpmailerExists ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'; ?>">
-                    <?php echo $phpmailerExists ? '✓' : '!'; ?>
-                </span>
-                <span>PHPMailer: <?php echo $phpmailerExists ? 'Installed' : 'Not installed'; ?></span>
-                <?php if (!$phpmailerExists): ?>
-                    <a href="install_phpmailer.php" class="ml-2 text-sm text-blue-600 hover:underline">Install PHPMailer</a>
-                <?php endif; ?>
-            </li>
-            
-            <li class="flex items-center">
-                <span class="inline-flex items-center justify-center w-6 h-6 mr-2 rounded-full <?php echo $smtpConfigured ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'; ?>">
-                    <?php echo $smtpConfigured ? '✓' : '!'; ?>
-                </span>
-                <span>SMTP Configuration: <?php echo $smtpConfigured ? 'Configured' : 'Not configured'; ?></span>
-                <?php if (!$smtpConfigured): ?>
-                    <span class="ml-2 text-sm text-yellow-600">Update SMTP settings in .env file</span>
-                <?php endif; ?>
-            </li>
-            
-            <li class="flex items-center">
-                <span class="inline-flex items-center justify-center w-6 h-6 mr-2 rounded-full bg-blue-100 text-blue-800">i</span>
-                <span>PHP mail() function: <?php echo function_exists('mail') ? 'Available' : 'Not available'; ?></span>
-            </li>
-        </ul>
-    </div>
-</div>
+    } catch (Exception $e) {
+        error_log('Error getting setting: ' . $e->getMessage());
+    }
+    
+    return $default;
+}
 
-<?php include_once 'footer.php'; ?> 
+// Process only POST requests
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Get test email
+    $test_email = filter_var($_POST['test_email'] ?? '', FILTER_VALIDATE_EMAIL);
+    
+    if (!$test_email) {
+        header('Content-Type: application/json');
+        echo json_encode(['status' => 'error', 'message' => 'Please provide a valid email address']);
+        exit();
+    }
+    
+    // Get SMTP settings from POST (for direct testing) or from database
+    $smtp_host = $_POST['smtp_host'] ?? get_setting('smtp_host', '');
+    $smtp_port = $_POST['smtp_port'] ?? get_setting('smtp_port', '587');
+    $smtp_username = $_POST['smtp_username'] ?? get_setting('smtp_username', '');
+    $smtp_password = $_POST['smtp_password'] ?? get_setting('smtp_password', '');
+    $smtp_encryption = $_POST['smtp_encryption'] ?? get_setting('smtp_encryption', 'tls');
+    $smtp_from_email = $_POST['smtp_from_email'] ?? get_setting('smtp_from_email', '');
+    $smtp_from_name = $_POST['smtp_from_name'] ?? get_setting('smtp_from_name', 'Karma Experience');
+    
+    // Validate required SMTP settings
+    if (empty($smtp_host) || empty($smtp_port) || empty($smtp_from_email)) {
+        header('Content-Type: application/json');
+        echo json_encode([
+            'status' => 'error', 
+            'message' => 'SMTP Host, Port and From Email are required. Please complete your SMTP settings first.'
+        ]);
+        exit();
+    }
+    
+    // Debug log file
+    $log_file = 'email_debug_' . date('Y-m-d') . '.log';
+    $log = fopen($log_file, 'a');
+    fwrite($log, "\n\n=== " . date('Y-m-d H:i:s') . " === Test email to: $test_email\n");
+    
+    try {
+        // Initialize PHPMailer
+        $mail = new PHPMailer(true);
+        
+        // Enable verbose debug output
+        $mail->SMTPDebug = 3;
+        $mail->Debugoutput = function($str, $level) use ($log) {
+            fwrite($log, "$str\n");
+        };
+        
+        // Configure SMTP
+        $mail->isSMTP();
+        $mail->Host = $smtp_host;
+        $mail->Port = $smtp_port;
+        
+        // Set SMTP authentication if username is provided
+        if (!empty($smtp_username)) {
+            $mail->SMTPAuth = true;
+            $mail->Username = $smtp_username;
+            $mail->Password = $smtp_password;
+        } else {
+            $mail->SMTPAuth = false;
+        }
+        
+        // Configure encryption
+        if ($smtp_encryption === 'tls') {
+            $mail->SMTPSecure = 'tls';
+        } elseif ($smtp_encryption === 'ssl') {
+            $mail->SMTPSecure = 'ssl';
+        } else {
+            $mail->SMTPSecure = '';
+            $mail->SMTPAutoTLS = false;
+        }
+        
+        // Optional: Disable SSL certificate verification for testing
+        $mail->SMTPOptions = [
+            'ssl' => [
+                'verify_peer' => false,
+                'verify_peer_name' => false,
+                'allow_self_signed' => true
+            ]
+        ];
+        
+        // Additional debug info
+        fwrite($log, "Configuration summary:\n");
+        fwrite($log, "Host: $smtp_host\n");
+        fwrite($log, "Port: $smtp_port\n");
+        fwrite($log, "Username: $smtp_username\n");
+        fwrite($log, "Encryption: $smtp_encryption\n");
+        fwrite($log, "From Email: $smtp_from_email\n");
+        fwrite($log, "From Name: $smtp_from_name\n");
+        fwrite($log, "SMTPSecure: " . $mail->SMTPSecure . "\n");
+        fwrite($log, "SMTPAuth: " . ($mail->SMTPAuth ? 'true' : 'false') . "\n");
+        
+        // Set sender
+        $mail->setFrom($smtp_from_email, $smtp_from_name);
+        $mail->addReplyTo($smtp_from_email, $smtp_from_name);
+        
+        // Add recipient
+        $mail->addAddress($test_email);
+        
+        // Set email content
+        $mail->isHTML(true);
+        $mail->Subject = 'Test Email from Karma Experience';
+        $mail->Body = '
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
+                <h2 style="color: #B4975A;">Karma Experience - Test Email</h2>
+                <p>Hello,</p>
+                <p>This is a test email sent from the Karma Experience admin panel. If you\'re receiving this email, it means your SMTP settings are configured correctly.</p>
+                <p>SMTP Configuration:</p>
+                <ul>
+                    <li>Host: ' . htmlspecialchars($smtp_host) . '</li>
+                    <li>Port: ' . htmlspecialchars($smtp_port) . '</li>
+                    <li>Encryption: ' . htmlspecialchars($smtp_encryption) . '</li>
+                    <li>From Email: ' . htmlspecialchars($smtp_from_email) . '</li>
+                </ul>
+                <p>Time sent: ' . date('Y-m-d H:i:s') . '</p>
+                <p style="margin-top: 20px;">Best regards,<br>Karma Experience Team</p>
+            </div>
+        ';
+        $mail->AltBody = 'This is a test email from Karma Experience. If you\'re receiving this email, your SMTP settings are configured correctly.';
+        
+        // Send the email
+        $mail->send();
+        fwrite($log, "Email sent successfully!\n");
+        fclose($log);
+        
+        // Return success JSON
+        header('Content-Type: application/json');
+        echo json_encode([
+            'status' => 'success',
+            'message' => 'Test email sent successfully! Please check your inbox (and spam folder).'
+        ]);
+        
+    } catch (Exception $e) {
+        // Log error
+        fwrite($log, "Mailer Error: " . (isset($mail) ? $mail->ErrorInfo : "PHPMailer not initialized") . "\n");
+        fwrite($log, "Exception: " . $e->getMessage() . "\n");
+        fclose($log);
+        
+        // Create a user-friendly error message
+        $errorMsg = $e->getMessage();
+        $friendlyMessage = 'Failed to send test email';
+        
+        // Provide more specific error messages based on common issues
+        if (strpos($errorMsg, 'Could not connect to SMTP host') !== false) {
+            $friendlyMessage = 'Could not connect to SMTP host. Please verify your SMTP Host and Port settings.';
+        } elseif (strpos($errorMsg, 'Authentication failure') !== false || strpos($errorMsg, 'Password not accepted') !== false) {
+            $friendlyMessage = 'Authentication failed. Please check your username and password.';
+        } elseif (strpos($errorMsg, 'Mailbox name not allowed') !== false || strpos($errorMsg, 'Invalid address') !== false) {
+            $friendlyMessage = 'Invalid email address format. Please check your From Email address.';
+        } elseif (strpos($errorMsg, 'ssl') !== false || strpos($errorMsg, 'certificate') !== false) {
+            $friendlyMessage = 'SSL/TLS certificate issue. Try using a different encryption setting.';
+        }
+        
+        // Return error JSON with detailed message
+        header('Content-Type: application/json');
+        echo json_encode([
+            'status' => 'error',
+            'message' => $friendlyMessage,
+            'details' => $errorMsg // Include the original error for debugging
+        ]);
+    }
+} else {
+    // Return error for non-POST requests
+    header('Content-Type: application/json');
+    echo json_encode([
+        'status' => 'error',
+        'message' => 'Invalid request method'
+    ]);
+}
+?> 

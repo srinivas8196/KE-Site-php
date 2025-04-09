@@ -40,10 +40,103 @@ if (!isset($_SESSION['CREATED'])) {
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- Admin CSS -->
+    <link rel="stylesheet" href="assets/css/admin.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="assets/css/style.css">
+
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js"></script>
+    
+    <!-- Admin JS - Ensures toggle functionality works on all pages -->
+    <script src="assets/js/admin.js"></script>
+    
+    <!-- Global Toggle Script - This ensures toggle works on ALL pages -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Define the toggle function globally so it's available everywhere
+        window.toggleSidebar = function() {
+            const sidebar = document.querySelector('.admin-sidebar');
+            const content = document.querySelector('.admin-content');
+            
+            if (sidebar) {
+                sidebar.classList.toggle('collapsed');
+                if (content) {
+                    content.classList.toggle('expanded');
+                }
+                localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
+            }
+            return false;
+        };
+        
+        // Set up the toggle button click handler
+        const toggleBtn = document.getElementById('sidebarToggle');
+        if (toggleBtn) {
+            // Remove any existing handlers by cloning and replacing
+            const newToggle = toggleBtn.cloneNode(true);
+            toggleBtn.parentNode.replaceChild(newToggle, toggleBtn);
+            
+            // Set both event listeners for maximum compatibility
+            newToggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                window.toggleSidebar();
+                return false;
+            });
+            
+            // Also set direct onclick as backup
+            newToggle.onclick = function(e) {
+                if (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+                window.toggleSidebar();
+                return false;
+            };
+        }
+        
+        // Apply saved collapsed state from localStorage
+        if (localStorage.getItem('sidebarCollapsed') === 'true') {
+            const sidebar = document.querySelector('.admin-sidebar');
+            const content = document.querySelector('.admin-content');
+            
+            if (sidebar) {
+                sidebar.classList.add('collapsed');
+                if (content) {
+                    content.classList.add('expanded');
+                }
+            }
+        }
+    });
+    </script>
+    
+    <!-- Stop continuous loading -->
+    <script>
+    // Prevent multiple initializations and continuous loading
+    if (window.headerLoaded) {
+        console.log('Header already loaded, preventing re-initialization');
+        if (window.stop) {
+            window.stop();
+        }
+    }
+    window.headerLoaded = true;
+    
+    // Prevent multiple script execution
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Header DOM loaded');
+        // Cancel any Ajax operations that might be running
+        if (window.jQuery && jQuery.ajax) {
+            jQuery.ajax({
+                global: false
+            });
+        }
+    });
+    </script>
 
     <!-- Custom Admin Styles -->
     <style>

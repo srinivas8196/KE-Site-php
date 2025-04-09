@@ -431,3 +431,327 @@ Result: {
     }
 }
 
+=== 2025-04-08 07:58:41 ===
+Lead data for LeadSquared: {
+    "FirstName": "srini",
+    "LastName": "test",
+    "EmailAddress": "sritest@gmail.com",
+    "Phone": "1231231231",
+    "mx_Date_of_Birth": "1997-12-18",
+    "mx_Has_Passport": "yes",
+    "mx_Resort_Name": "Karma Karnak",
+    "mx_Destination_Name": "Egypt",
+    "mx_Resort_Code": "Karnak",
+    "mx_Country_Code": "UNKNOWN",
+    "mx_Lead_Source": "Web Enquiry",
+    "mx_Lead_Brand": "Timeshare Marketing",
+    "mx_Lead_Sub_Brand": "Karma Experience INT",
+    "mx_Lead_Source_Description": "ROW | Web Enquiry | Karnak",
+    "mx_Lead_Location": "Karma Karnak",
+    "Source": "Web Enquiry",
+    "ProspectStage": "New"
+}
+Checking for duplicates with Phone: 1231231231, Email: sritest@gmail.com
+QuickSearch Response (HTTP 200): []
+QuickSearch Response (HTTP 200): []
+Creating new lead
+Create Lead Response (HTTP 200): {"Status":"Success","Message":{"Id":"8655d0ae-15fb-41fe-9682-b578a59e66a6","RelatedId":"8405dc72-5598-42d6-8d7d-4ffba0ab688b","IsCreated":true}}
+Result: {
+    "status": "success",
+    "message": "Lead created successfully",
+    "data": {
+        "Message": {
+            "Id": null,
+            "Status": "Created"
+        }
+    }
+}
+
+=== 2025-04-08 07:59:16 ===
+Lead data for LeadSquared: {
+    "FirstName": "srini",
+    "LastName": "test",
+    "EmailAddress": "sritest@gmail.com",
+    "Phone": "+911231231231",
+    "mx_Date_of_Birth": "1997-12-10",
+    "mx_Has_Passport": "yes",
+    "mx_Resort_Name": "Karma Karnak",
+    "mx_Destination_Name": "Egypt",
+    "mx_Resort_Code": "Karnak",
+    "mx_Country_Code": "IN",
+    "mx_Lead_Source": "Web Enquiry",
+    "mx_Lead_Brand": "Timeshare Marketing",
+    "mx_Lead_Sub_Brand": "Karma Experience INT",
+    "mx_Lead_Source_Description": "IND | Web Enquiry | Karnak",
+    "mx_Lead_Location": "Karma Karnak",
+    "Source": "Web Enquiry",
+    "ProspectStage": "New"
+}
+Checking for duplicates with Phone: +911231231231, Email: sritest@gmail.com
+QuickSearch Response (HTTP 200): []
+QuickSearch Response (HTTP 200): [{"ServiceOwner":null,"ProspectID":"8405dc72-5598-42d6-8d7d-4ffba0ab688b","ProspectAutoId":"1733063","ProspectActivityId_Max":"8655d0ae-15fb-41fe-9682-b578a59e66a6","ProspectActivityId_Min":"8655d0ae-15fb-41fe-9682-b578a59e66a6","StatusCode":"0","StatusReason":"0","DeletionStatusCode":"0","IsLead":"1","RelatedProspectId":null,"SourceReferrer":null,"NotableEvent":"Modified","NotableEventdate":"2025-04-08 05:58:52.000","LastVisitDate":"2025-04-08 05:58:41.000","RelatedLandingPageId":null,"FirstLandingPageSubmissionId":null,"FirstLandingPageSubmissionDate":null,"ProspectActivityName_Max":"Lead Capture","ProspectActivityDate_Max":"2025-04-08 05:58:41.000","ProspectActivityDate_Min":"2025-04-08 05:58:41.000","Web_Referrer":null,"Web_RefKeyword":null,"LeadLastModifiedOn":"2025-04-08 05:58:53.000","ConversionReferrerURL":null,"SourceReferrerURL":null,"SourceIPAddress":null,"Latitude":null,"Longitude":null,"FirstName":"srini","LastName":"test","EmailAddress":"sritest@gmail.com","Phone":"+91-1231231231","Website":null,"DoNotEmail":"0","DoNotTrack":null,"DoNotCall":"0","Source":"Web Enquiry","Mobile":null,"SourceCampaign":null,"SourceMedium":null,"SourceContent":null,"Notes":null,"Score":"0","EngagementScore":"0","Revenue":null,"ProspectStage":"New","QualityScore01":"5","OwnerId":"92d182ad-613c-11e9-8ffe-02ceb8e07d66","CreatedBy":"92d182ad-613c-11e9-8ffe-02ceb8e07d66","CreatedByName":"System","CreatedOn":"2025-04-08 05:58:41.000","LeadConversionDate":"2025-04-08 05:58:41.000","ModifiedBy":"92d182ad-613c-11e9-8ffe-02ceb8e07d66","ModifiedByName":"System","ModifiedOn":"2025-04-08 05:58:52.000","TimeZone":null,"TotalVisits":"0","PageViewsPerVisit":"0","AvgTimePerVisit":"0","mx_Street1":null,"mx_City":null,"mx_State":null,"mx_Country":null,"mx_Zip":null,"OwnerIdName":"System","OwnerIdEmailAddress":"t20190417181320@leadsquared.com","Origin":"API","MailingPreferences":null,"Groups":null,"TwitterId":null,"PhotoUrl":null,"FacebookId":null,"LinkedInId":null,"SkypeId":null,"GTalkId":null,"GooglePlusId":null,"CurrentOptInStatus":null,"OptInDate":null,"OptInDetails":null,"LastOptInEmailSentDate":null,"LeadAge":"0","mx_Marital_status":null,"mx_Lead_Brand":"Timeshare Marketing","mx_Lead_location":"Karma Karnak","mx_Lead_region":"India","mx_Lead_source_description":"ROW | Web Enquiry | Karnak","mx_Lead_Sub_Brand":"Karma Experience INT","mx_date_of_birth":"1997-12-18 00:00:00.000","mx_Gender":null,"mx_Year_of_Birth":null,"mx_Age":null,"mx_Lead_History":null,"mx_Voucher_date":null,"mx_Voucher_number":null,"mx_Is_Gexit":null,"mx_Is_Ambassador":null,"mx_Destination_phone_number":null,"mx_Nationality":null,"mx_Facebook_DOB":null,"mx_Occupation":null,"mx_Qualification":null,"mx_Spouse_Name":null,"mx_Spouse_Age":null,"mx_Last_Booking_Date":null,"mx_Secondary_account_lead_stage":null,"mx_tdate1":null,"mx_tdate2":null,"mx_Call_back_Date_and_Time":null,"mx_Followup_Date_and_Time":null,"mx_For_testing":null,"mx_Week_Number":null,"mx_Passport":null,"mx_Staff_Name":null,"mx_Lead_submission_counter":"1","mx_Latest_Lead_Source":null,"mx_Resort_Code":"Karnak","mx_Gexit_Venue":null,"mx_Voucher_Age":null,"mx_IP_Address":null,"mx_Freeze_Branding":null,"mx_Spouse_Last_Name":null,"mx_Contacted_Date":null,"mx_Mode_of_Transport":null,"mx_Tentative_Date_of_Arrival":null,"mx_Occupation1":null,"mx_is_KE2":null,"mx_is_AMB":null,"mx_Travel_Destination":null,"mx_KEP_voucher_destination":null,"mx_Ambassador_Relationship":null,"mx_DTS":null,"mx_For_Remarketing_New":null,"mx_Is_DND_New":null,"mx_OTP_verified_New":null,"mx_Special_Campaign_New":null,"mx_Ambassador_Referrer":null,"mx_Ambassador_Membership_ID":null,"mx_Phone_call_status":null,"mx_Latest_Capture_Date":"2025-04-08 05:58:41.000","mx_Term_And_Condition_Date":null,"mx_Temp_phone_number":null,"mx_Remarketing_Date":null,"mx_Contacted_By":null,"mx_Rermarketing_Contacted_Date":null,"mx_Remarketing_Contacted_By":null,"mx_Allocated_Date":null,"mx_Valid_Voucher":null,"mx_KE2_Sales_App":null,"mx_Allocated_Owner":null,"mx_Manual_Allocation":null,"mx_IPC_Agent":null,"mx_IPC_Collected_Date":null,"mx_Tentative_Date_3":null,"mx_Spouse_DOB":null,"mx_Contact_me_Opt_in":null,"mx_Who_would_you_be_travelling_with":null,"mx_Transfer_Leads_Comment":null,"mx_Spouse_phone":null,"mx_Preferred_Language":null,"mx_Spouse_Email":null,"mx_Are_you_a_Member_of_any_Holiday_Club":null,"mx_Please_choose_your_preferenece":null,"mx_Stage":null,"mx_Stage_1_Contacted_Owner":null,"mx_Stage_2_Contacted_Owner":null,"mx_Stage_3_Contacted_Owner":null,"mx_Stage_1_Contacted_Date":null,"mx_Stage_2_Contacted_Date":null,"mx_Stage_3_Contacted_Date":null,"mx_Last_Disposition_Added":null,"mx_Departure_Date":null,"mx_Tour_Date":null,"mx_Marketing_Rep_Owner":null,"mx_Number_of_Allocations":null,"mx_Allocation_Type":null,"mx_Referrals_Verifier":null,"mx_Verification_Call":null,"mx_Team":null,"mx_Number_of_Attempts":null,"mx_Viewpoint_ID":null,"mx_Former_Lead_Source":null,"mx_Former_LSD":null,"mx_Former_Resort_Code":null,"mx_Verification_Call_Status":null,"mx_Former_Lead_Location":null,"mx_Former_Owner":null,"mx_Former_Lead_Disposition":null,"mx_Former_Call_Status":null,"mx_Last_Call_Activity_Date":null,"mx_Former_Lead_Brand":null,"mx_Former_Lead_Sub_Brand":null,"mx_Lead_Voucher_Qual":null,"mx_Voucher_Status":null,"mx_Voucher_Allocation":null,"mx_Booking_Date":null,"mx_Contract_Status":null,"mx_DTS_Contacted_Date":null,"mx_Former_Sub_Source_Category":null,"mx_Last_Activity_Comment":null,"mx_Remarketing_Stage":null,"mx_Remarketing_Team":null,"mx_RStage1_Contacted_By":null,"mx_RStage2_Contacted_By":null,"mx_RStage1_Contacted_Date":null,"mx_RStage2_Contacted_Date":null,"mx_Sales_Tour_Qualification":null,"mx_Show_Status":null,"mx_Sub_Source_Category":null,"mx_Voucher_Qualification":null,"mx_Empty":null,"mx_Latest_LSD":null,"mx_Wait_Flag":null,"mx_Allocated_Date_Stage2":null,"mx_Allocated_Date_Rstage2":null,"mx_Wait_Counter":null,"mx_Former_Lead_Stage":null,"mx_What_is_your_preferred_checkin_day":null,"mx_Preferred_check_in_day":null,"mx_Telesales_Lead_Allocation_Type":null,"mx_Stage_2_Allocated_Owner":null,"mx_Please_Choose_Your_Dining_Preference":null,"mx_KCETerm1_One_Year_Membership":null,"mx_KCETerm2_Contact_TRAI_reg":null,"mx_Follow_Up":null,"mx_Sales_Group":null,"mx_Voucher_Incoming":null,"mx_Not_Pitched_Busy":null,"mx_Do_all_traveling_members_have_Passport":null,"mx_KCE_Self_Signup":null,"mx_Which_foreign_destination_is_in_your_bucket_list":null,"mx_Choose_your_package":null,"mx_Member_ID":null,"mx_Preferred_Travel_Month":null,"mx_Check_Out_Date":null,"mx_Preferred_Travel_Date":null,"mx_Coldline_Reception_Comment":null,"mx_Anniversary_Date":null,"mx_Where_did_you_go_on_your_last_2_overseas_vacation":null,"mx_Would_you_prefer_to_visit_Vietnam_Thailand_or_Bali":null,"mx_Would_you_prefer_to_visit_Goa_Bali_or_France":null,"mx_Post_Code":null,"mx_Travel_Destination_2":null,"mx_Tentative_Date_4":null,"mx_How_frequently_are_you_travelling":null,"mx_Tentative_Date_5":null,"mx_Tentative_Date_6":null,"mx_When_are_you_planning_to_travel_to_India":null,"mx_TransferToDiffTeam":null,"mx_How_did_you_hear_about_us":null,"mx_Return_Home_Date":null,"mx_DND_Contact_Opt_In":null,"mx_Leads_generated_by":null,"mx_Mode_of_Contact":null,"mx_Do_You_Prefer_Domestic_or_International_Holidays":null,"mx_Schedule_your_call_to_learn_more_about_Karma_Club":null,"mx_Salesapp_ID":null,"mx_Stage_3_Allocated_Owner":null,"mx_Stage_3_Allocated_Date":null,"mx_Client_Message":null,"mx_Primary_Lead_Source":null,"mx_Former_Source_Campign":null,"mx_Counter":null,"mx_Preferred_Destination":null,"mx_Check_In_and_Check_Out":null,"mx_Which_period_would_you_prefer_to_travel":null,"mx_Preferred_Check_in_1":null,"mx_Preferred_Check_in_2":null,"mx_Preferred_Check_in_3":null,"mx_Toured_Resort_Name":null,"mx_this_offer_doesnt_include_Flight_tickets":null,"mx_your_savings_can_be_used_to_book_Air_tickets":null,"mx_Venue_Visited":null,"mx_Former_Sales_Group":null,"mx_Voucher_Valid_Till":null,"mx_I_Prefer_to_Stay_at":null,"mx_Unit_Type":null,"mx_OPC_Code":null,"mx_Account_Type":null,"mx_Account_Status":null,"mx_Account_ID":null,"mx_When_are_you_planning_your_Trip":null,"mx_Are_You_Planning_To_Travel_in":null,"mx_Are_You_Travelling_as_a_Married_Couple":null,"mx_Do_You_Fall_Btw_The_Age_Group_of_30_to_60_Years":null,"mx_Would_You_Be_Interested_In_One_Of_Our_Gifts":null,"mx_When_Are_You_Planning_To_Book_Your_Flight_Tickets":null,"mx_Account_ID_2":null,"mx_Account_ID_3":null,"mx_Account_ID_4":null,"mx_Account_ID_5":null,"mx_Account_Type_2":null,"mx_Account_Type_3":null,"mx_Account_Type_4":null,"mx_Account_Type_5":null,"mx_Account_Status_2":null,"mx_Account_Status_3":null,"mx_Account_Status_4":null,"mx_Account_Status_5":null,"mx_Resort_1":null,"mx_Resort_2":null,"mx_Resort_3":null,"mx_Country1":null,"mx_Country2":null,"mx_Country3":null,"mx_Country4":null,"mx_Country5":null,"mx_which_is_your_preferred_holiday_spot":null,"mx_Where_u_like_to_travel_using_FREE_HOLIDAY_VOUCHER":null,"mx_By_attending_event_u_will_get_FREE_HOLIDAY_VOUCHER":null,"mx_Account_ID_5_Information":"{}","mx_Account_ID_4_Information":"{}","mx_Account_ID_3_Information":"{}","mx_Account_ID_2_Information":"{}","mx_Account_ID_Information":"{}","mx_You_Get_Nusa_Penida_Island_Free_bkg_this_offer":null,"mx_Instagarm":null,"mx_Tiktok":null,"mx_U_will_get_PHI_PHI_Island_Free_by_bkg_this_Package":null,"mx_WhatsApp_Number":null,"mx_Wedding_Type":null,"mx_Raise_a_Query":null,"mx_Join_Waitlist":null,"mx_Curated_Expreince_Name":null,"mx_adult":null,"mx_childrens":null,"mx_Choose_Our_4_Star_Hotel_in_Phuket_for_a_4N_5D":null,"mx_Can_you_confirm_if_your_birthday_month_is_April":null,"mx_This_Offer_is_for_a_3_Nights_Free_Couple_Stay":null,"mx_Which_city_in_Aus_is_famous_for_its_Opera_House":null,"IsStarredLead":"false","CanUpdate":"true"}]
+Duplicate found by email: Lead ID 8405dc72-5598-42d6-8d7d-4ffba0ab688b
+Updating existing lead ID: 8405dc72-5598-42d6-8d7d-4ffba0ab688b
+Update Lead Response (HTTP 200): {"Status":"Success","Message":{"Id":"24e1f3e4-7444-4c9a-bdee-34931a84123a","RelatedId":"8405dc72-5598-42d6-8d7d-4ffba0ab688b","IsCreated":false}}
+Result: {
+    "status": "success",
+    "message": "Lead updated successfully",
+    "data": {
+        "Message": {
+            "Id": "8405dc72-5598-42d6-8d7d-4ffba0ab688b",
+            "Status": "Updated"
+        }
+    }
+}
+
+=== 2025-04-08 08:04:53 ===
+Lead data for LeadSquared: {
+    "FirstName": "srini",
+    "LastName": "test",
+    "EmailAddress": "sritest3@gmail.com",
+    "Phone": "0231231231",
+    "mx_Date_of_Birth": "1997-12-11",
+    "mx_Has_Passport": "yes",
+    "mx_Resort_Name": "Karma Karnak",
+    "mx_Destination_Name": "Egypt",
+    "mx_Resort_Code": "Karnak",
+    "mx_Country_Code": "UNKNOWN",
+    "mx_Lead_Source": "Web Enquiry",
+    "mx_Lead_Brand": "Timeshare Marketing",
+    "mx_Lead_Sub_Brand": "Karma Experience INT",
+    "mx_Lead_Source_Description": "ROW | Web Enquiry | Karnak",
+    "mx_Lead_Location": "Karma Karnak",
+    "Source": "Web Enquiry",
+    "ProspectStage": "New"
+}
+Checking for duplicates with Phone: 0231231231, Email: sritest3@gmail.com
+QuickSearch Response (HTTP 200): []
+QuickSearch Response (HTTP 200): []
+Creating new lead
+Create Lead Response (HTTP 200): {"Status":"Success","Message":{"Id":"02def72b-fce4-4ec9-8465-f7ca82ed0c28","RelatedId":"91e93b1b-57c2-4fdb-9cc2-39d68a55a907","IsCreated":true}}
+Result: {
+    "status": "success",
+    "message": "Lead created successfully",
+    "data": {
+        "Message": {
+            "Id": null,
+            "Status": "Created"
+        }
+    }
+}
+
+=== 2025-04-08 08:05:22 ===
+Lead data for LeadSquared: {
+    "FirstName": "srini",
+    "LastName": "test",
+    "EmailAddress": "sritest4@gmail.com",
+    "Phone": "+911231231231",
+    "mx_Date_of_Birth": "1997-12-30",
+    "mx_Has_Passport": "yes",
+    "mx_Resort_Name": "Karma Karnak",
+    "mx_Destination_Name": "Egypt",
+    "mx_Resort_Code": "Karnak",
+    "mx_Country_Code": "IN",
+    "mx_Lead_Source": "Web Enquiry",
+    "mx_Lead_Brand": "Timeshare Marketing",
+    "mx_Lead_Sub_Brand": "Karma Experience INT",
+    "mx_Lead_Source_Description": "IND | Web Enquiry | Karnak",
+    "mx_Lead_Location": "Karma Karnak",
+    "Source": "Web Enquiry",
+    "ProspectStage": "New"
+}
+Checking for duplicates with Phone: +911231231231, Email: sritest4@gmail.com
+QuickSearch Response (HTTP 200): []
+QuickSearch Response (HTTP 200): []
+Creating new lead
+Create Lead Response (HTTP 500): {"Status":"Error","ExceptionType":"MXDuplicateEntryException","ExceptionMessage":"A Lead with same Phone Number already exists."}
+Result: {
+    "status": "error",
+    "message": "Failed to create lead: {\"Status\":\"Error\",\"ExceptionType\":\"MXDuplicateEntryException\",\"ExceptionMessage\":\"A Lead with same Phone Number already exists.\"}",
+    "data": {
+        "Status": "Error",
+        "ExceptionType": "MXDuplicateEntryException",
+        "ExceptionMessage": "A Lead with same Phone Number already exists."
+    }
+}
+
+=== 2025-04-08 08:18:43 ===
+Lead data for LeadSquared: {
+    "FirstName": "srini",
+    "LastName": "test",
+    "EmailAddress": "sritest@gmail.com",
+    "Phone": "+911231231231",
+    "mx_Date_of_Birth": "1997-12-25",
+    "mx_Has_Passport": "yes",
+    "mx_Resort_Name": "Copper Castle",
+    "mx_Destination_Name": "India",
+    "mx_Resort_Code": "CC",
+    "mx_Country_Code": "IN",
+    "mx_Lead_Source": "Web Enquiry",
+    "mx_Lead_Brand": "Timeshare Marketing",
+    "mx_Lead_Sub_Brand": "Karma Experience IN",
+    "mx_Lead_Source_Description": "IND | Web Enquiry | KEPH CC",
+    "mx_Lead_Location": "Copper Castle",
+    "Source": "Web Enquiry",
+    "ProspectStage": "New"
+}
+Checking for duplicates with Phone: +911231231231, Email: sritest@gmail.com
+QuickSearch Response (HTTP 200): []
+QuickSearch Response (HTTP 200): [{"ServiceOwner":null,"ProspectID":"8405dc72-5598-42d6-8d7d-4ffba0ab688b","ProspectAutoId":"1733063","ProspectActivityId_Max":"11cef05d-e92f-4de0-b627-c598efa37c6b","ProspectActivityId_Min":"8655d0ae-15fb-41fe-9682-b578a59e66a6","StatusCode":"0","StatusReason":"0","DeletionStatusCode":"0","IsLead":"1","RelatedProspectId":null,"SourceReferrer":null,"NotableEvent":"Modified","NotableEventdate":"2025-04-08 06:06:05.000","LastVisitDate":"2025-04-08 06:01:19.000","RelatedLandingPageId":null,"FirstLandingPageSubmissionId":null,"FirstLandingPageSubmissionDate":null,"ProspectActivityName_Max":"Email Sent","ProspectActivityDate_Max":"2025-04-08 06:01:19.000","ProspectActivityDate_Min":"2025-04-08 05:58:41.000","Web_Referrer":null,"Web_RefKeyword":null,"LeadLastModifiedOn":"2025-04-08 06:06:05.000","ConversionReferrerURL":null,"SourceReferrerURL":null,"SourceIPAddress":null,"Latitude":null,"Longitude":null,"FirstName":"srini","LastName":"test","EmailAddress":"sritest@gmail.com","Phone":"+91-911231231231","Website":null,"DoNotEmail":"0","DoNotTrack":null,"DoNotCall":"0","Source":"Web Enquiry","Mobile":null,"SourceCampaign":null,"SourceMedium":null,"SourceContent":null,"Notes":null,"Score":"0","EngagementScore":"0","Revenue":null,"ProspectStage":"New","QualityScore01":"5.5","OwnerId":"e22d27dc-925e-11e9-b788-0ac1020b43f8","CreatedBy":"92d182ad-613c-11e9-8ffe-02ceb8e07d66","CreatedByName":"System","CreatedOn":"2025-04-08 05:58:41.000","LeadConversionDate":"2025-04-08 05:58:41.000","ModifiedBy":"92d182ad-613c-11e9-8ffe-02ceb8e07d66","ModifiedByName":"System","ModifiedOn":"2025-04-08 06:06:05.000","TimeZone":null,"TotalVisits":"0","PageViewsPerVisit":"0","AvgTimePerVisit":"0","mx_Street1":null,"mx_City":null,"mx_State":null,"mx_Country":null,"mx_Zip":null,"OwnerIdName":"Chowda Reddy","OwnerIdEmailAddress":"chowda.reddy@karmaexperience.in","Origin":"API","MailingPreferences":null,"Groups":null,"TwitterId":null,"PhotoUrl":null,"FacebookId":null,"LinkedInId":null,"SkypeId":null,"GTalkId":null,"GooglePlusId":null,"CurrentOptInStatus":null,"OptInDate":null,"OptInDetails":null,"LastOptInEmailSentDate":null,"LeadAge":"0","mx_Marital_status":null,"mx_Lead_Brand":"Timeshare Marketing","mx_Lead_location":"Karma Karnak","mx_Lead_region":"India","mx_Lead_source_description":"IND | Web Enquiry | Karnak","mx_Lead_Sub_Brand":"Karma Experience INT","mx_date_of_birth":"1997-12-10 00:00:00.000","mx_Gender":null,"mx_Year_of_Birth":null,"mx_Age":null,"mx_Lead_History":null,"mx_Voucher_date":null,"mx_Voucher_number":null,"mx_Is_Gexit":null,"mx_Is_Ambassador":null,"mx_Destination_phone_number":null,"mx_Nationality":null,"mx_Facebook_DOB":null,"mx_Occupation":null,"mx_Qualification":null,"mx_Spouse_Name":null,"mx_Spouse_Age":null,"mx_Last_Booking_Date":null,"mx_Secondary_account_lead_stage":null,"mx_tdate1":null,"mx_tdate2":null,"mx_Call_back_Date_and_Time":null,"mx_Followup_Date_and_Time":null,"mx_For_testing":null,"mx_Week_Number":null,"mx_Passport":null,"mx_Staff_Name":null,"mx_Lead_submission_counter":"2","mx_Latest_Lead_Source":"Web Enquiry","mx_Resort_Code":"Karnak","mx_Gexit_Venue":null,"mx_Voucher_Age":null,"mx_IP_Address":null,"mx_Freeze_Branding":null,"mx_Spouse_Last_Name":null,"mx_Contacted_Date":null,"mx_Mode_of_Transport":"Fresh","mx_Tentative_Date_of_Arrival":null,"mx_Occupation1":null,"mx_is_KE2":null,"mx_is_AMB":null,"mx_Travel_Destination":null,"mx_KEP_voucher_destination":null,"mx_Ambassador_Relationship":null,"mx_DTS":null,"mx_For_Remarketing_New":null,"mx_Is_DND_New":null,"mx_OTP_verified_New":"Deliverable","mx_Special_Campaign_New":null,"mx_Ambassador_Referrer":null,"mx_Ambassador_Membership_ID":null,"mx_Phone_call_status":null,"mx_Latest_Capture_Date":"2025-04-08 05:58:41.000","mx_Term_And_Condition_Date":null,"mx_Temp_phone_number":null,"mx_Remarketing_Date":null,"mx_Contacted_By":null,"mx_Rermarketing_Contacted_Date":null,"mx_Remarketing_Contacted_By":null,"mx_Allocated_Date":"2025-04-08 11:35:31.000","mx_Valid_Voucher":null,"mx_KE2_Sales_App":null,"mx_Allocated_Owner":"Chowda Reddy","mx_Manual_Allocation":null,"mx_IPC_Agent":null,"mx_IPC_Collected_Date":null,"mx_Tentative_Date_3":null,"mx_Spouse_DOB":null,"mx_Contact_me_Opt_in":null,"mx_Who_would_you_be_travelling_with":null,"mx_Transfer_Leads_Comment":null,"mx_Spouse_phone":null,"mx_Preferred_Language":null,"mx_Spouse_Email":null,"mx_Are_you_a_Member_of_any_Holiday_Club":null,"mx_Please_choose_your_preferenece":null,"mx_Stage":"Stage 1","mx_Stage_1_Contacted_Owner":null,"mx_Stage_2_Contacted_Owner":null,"mx_Stage_3_Contacted_Owner":null,"mx_Stage_1_Contacted_Date":null,"mx_Stage_2_Contacted_Date":null,"mx_Stage_3_Contacted_Date":null,"mx_Last_Disposition_Added":null,"mx_Departure_Date":null,"mx_Tour_Date":null,"mx_Marketing_Rep_Owner":null,"mx_Number_of_Allocations":null,"mx_Allocation_Type":null,"mx_Referrals_Verifier":null,"mx_Verification_Call":null,"mx_Team":null,"mx_Number_of_Attempts":null,"mx_Viewpoint_ID":null,"mx_Former_Lead_Source":"Web Enquiry","mx_Former_LSD":"IND | Web Enquiry | Karnak","mx_Former_Resort_Code":"Karnak","mx_Verification_Call_Status":null,"mx_Former_Lead_Location":"Karma Karnak","mx_Former_Owner":null,"mx_Former_Lead_Disposition":null,"mx_Former_Call_Status":null,"mx_Last_Call_Activity_Date":null,"mx_Former_Lead_Brand":"Timeshare Marketing","mx_Former_Lead_Sub_Brand":"Karma Experience INT","mx_Lead_Voucher_Qual":null,"mx_Voucher_Status":null,"mx_Voucher_Allocation":null,"mx_Booking_Date":null,"mx_Contract_Status":null,"mx_DTS_Contacted_Date":null,"mx_Former_Sub_Source_Category":null,"mx_Last_Activity_Comment":null,"mx_Remarketing_Stage":null,"mx_Remarketing_Team":null,"mx_RStage1_Contacted_By":null,"mx_RStage2_Contacted_By":null,"mx_RStage1_Contacted_Date":null,"mx_RStage2_Contacted_Date":null,"mx_Sales_Tour_Qualification":null,"mx_Show_Status":null,"mx_Sub_Source_Category":null,"mx_Voucher_Qualification":null,"mx_Empty":null,"mx_Latest_LSD":"IND | Web Enquiry | Karnak","mx_Wait_Flag":null,"mx_Allocated_Date_Stage2":null,"mx_Allocated_Date_Rstage2":null,"mx_Wait_Counter":null,"mx_Former_Lead_Stage":null,"mx_What_is_your_preferred_checkin_day":null,"mx_Preferred_check_in_day":null,"mx_Telesales_Lead_Allocation_Type":null,"mx_Stage_2_Allocated_Owner":null,"mx_Please_Choose_Your_Dining_Preference":null,"mx_KCETerm1_One_Year_Membership":null,"mx_KCETerm2_Contact_TRAI_reg":null,"mx_Follow_Up":null,"mx_Sales_Group":null,"mx_Voucher_Incoming":null,"mx_Not_Pitched_Busy":null,"mx_Do_all_traveling_members_have_Passport":null,"mx_KCE_Self_Signup":null,"mx_Which_foreign_destination_is_in_your_bucket_list":null,"mx_Choose_your_package":null,"mx_Member_ID":null,"mx_Preferred_Travel_Month":null,"mx_Check_Out_Date":null,"mx_Preferred_Travel_Date":null,"mx_Coldline_Reception_Comment":null,"mx_Anniversary_Date":null,"mx_Where_did_you_go_on_your_last_2_overseas_vacation":null,"mx_Would_you_prefer_to_visit_Vietnam_Thailand_or_Bali":null,"mx_Would_you_prefer_to_visit_Goa_Bali_or_France":null,"mx_Post_Code":null,"mx_Travel_Destination_2":null,"mx_Tentative_Date_4":null,"mx_How_frequently_are_you_travelling":null,"mx_Tentative_Date_5":null,"mx_Tentative_Date_6":null,"mx_When_are_you_planning_to_travel_to_India":null,"mx_TransferToDiffTeam":null,"mx_How_did_you_hear_about_us":null,"mx_Return_Home_Date":null,"mx_DND_Contact_Opt_In":null,"mx_Leads_generated_by":null,"mx_Mode_of_Contact":null,"mx_Do_You_Prefer_Domestic_or_International_Holidays":null,"mx_Schedule_your_call_to_learn_more_about_Karma_Club":null,"mx_Salesapp_ID":null,"mx_Stage_3_Allocated_Owner":null,"mx_Stage_3_Allocated_Date":null,"mx_Client_Message":null,"mx_Primary_Lead_Source":"Web Enquiry","mx_Former_Source_Campign":null,"mx_Counter":"1","mx_Preferred_Destination":null,"mx_Check_In_and_Check_Out":null,"mx_Which_period_would_you_prefer_to_travel":null,"mx_Preferred_Check_in_1":null,"mx_Preferred_Check_in_2":null,"mx_Preferred_Check_in_3":null,"mx_Toured_Resort_Name":null,"mx_this_offer_doesnt_include_Flight_tickets":null,"mx_your_savings_can_be_used_to_book_Air_tickets":null,"mx_Venue_Visited":null,"mx_Former_Sales_Group":null,"mx_Voucher_Valid_Till":null,"mx_I_Prefer_to_Stay_at":null,"mx_Unit_Type":null,"mx_OPC_Code":null,"mx_Account_Type":null,"mx_Account_Status":null,"mx_Account_ID":null,"mx_When_are_you_planning_your_Trip":null,"mx_Are_You_Planning_To_Travel_in":null,"mx_Are_You_Travelling_as_a_Married_Couple":null,"mx_Do_You_Fall_Btw_The_Age_Group_of_30_to_60_Years":null,"mx_Would_You_Be_Interested_In_One_Of_Our_Gifts":null,"mx_When_Are_You_Planning_To_Book_Your_Flight_Tickets":null,"mx_Account_ID_2":null,"mx_Account_ID_3":null,"mx_Account_ID_4":null,"mx_Account_ID_5":null,"mx_Account_Type_2":null,"mx_Account_Type_3":null,"mx_Account_Type_4":null,"mx_Account_Type_5":null,"mx_Account_Status_2":null,"mx_Account_Status_3":null,"mx_Account_Status_4":null,"mx_Account_Status_5":null,"mx_Resort_1":null,"mx_Resort_2":null,"mx_Resort_3":null,"mx_Country1":null,"mx_Country2":null,"mx_Country3":null,"mx_Country4":null,"mx_Country5":null,"mx_which_is_your_preferred_holiday_spot":null,"mx_Where_u_like_to_travel_using_FREE_HOLIDAY_VOUCHER":null,"mx_By_attending_event_u_will_get_FREE_HOLIDAY_VOUCHER":null,"mx_Account_ID_5_Information":"{}","mx_Account_ID_4_Information":"{}","mx_Account_ID_3_Information":"{}","mx_Account_ID_2_Information":"{}","mx_Account_ID_Information":"{}","mx_You_Get_Nusa_Penida_Island_Free_bkg_this_offer":null,"mx_Instagarm":null,"mx_Tiktok":null,"mx_U_will_get_PHI_PHI_Island_Free_by_bkg_this_Package":null,"mx_WhatsApp_Number":null,"mx_Wedding_Type":null,"mx_Raise_a_Query":null,"mx_Join_Waitlist":null,"mx_Curated_Expreince_Name":null,"mx_adult":null,"mx_childrens":null,"mx_Choose_Our_4_Star_Hotel_in_Phuket_for_a_4N_5D":null,"mx_Can_you_confirm_if_your_birthday_month_is_April":null,"mx_This_Offer_is_for_a_3_Nights_Free_Couple_Stay":null,"mx_Which_city_in_Aus_is_famous_for_its_Opera_House":null,"IsStarredLead":"false","CanUpdate":"true"}]
+Duplicate found by email: Lead ID 8405dc72-5598-42d6-8d7d-4ffba0ab688b
+Updating existing lead ID: 8405dc72-5598-42d6-8d7d-4ffba0ab688b
+Update Lead Response (HTTP 200): {"Status":"Success","Message":{"Id":"96d0b8d9-4297-4a76-bf60-f84db2588540","RelatedId":"8405dc72-5598-42d6-8d7d-4ffba0ab688b","IsCreated":false}}
+Result: {
+    "status": "success",
+    "message": "Lead updated successfully",
+    "data": {
+        "Message": {
+            "Id": "8405dc72-5598-42d6-8d7d-4ffba0ab688b",
+            "Status": "Updated"
+        }
+    }
+}
+
+=== 2025-04-08 08:29:04 ===
+Lead data for LeadSquared: {
+    "FirstName": "srini",
+    "LastName": "test2",
+    "EmailAddress": "sritest3@gmail.com",
+    "Phone": "+442071234567",
+    "mx_Date_of_Birth": "1997-12-17",
+    "mx_Has_Passport": "yes",
+    "mx_Resort_Name": "Copper Castle",
+    "mx_Destination_Name": "India",
+    "mx_Resort_Code": "CC",
+    "mx_Country_Code": "GB",
+    "mx_Lead_Source": "Web Enquiry",
+    "mx_Lead_Brand": "Timeshare Marketing",
+    "mx_Lead_Sub_Brand": "Karma Experience IN",
+    "mx_Lead_Source_Description": "UK | Web Enquiry | KEPH CC",
+    "mx_Lead_Location": "Copper Castle",
+    "Source": "Web Enquiry",
+    "ProspectStage": "New"
+}
+Checking for duplicates with Phone: +442071234567, Email: sritest3@gmail.com
+QuickSearch Response (HTTP 200): []
+QuickSearch Response (HTTP 200): [{"ServiceOwner":null,"ProspectID":"91e93b1b-57c2-4fdb-9cc2-39d68a55a907","ProspectAutoId":"1733072","ProspectActivityId_Max":"797a1b9f-b728-4475-8a93-c09dd7ae3c50","ProspectActivityId_Min":"02def72b-fce4-4ec9-8465-f7ca82ed0c28","StatusCode":"0","StatusReason":"0","DeletionStatusCode":"0","IsLead":"1","RelatedProspectId":null,"SourceReferrer":null,"NotableEvent":"Modified","NotableEventdate":"2025-04-08 06:12:34.000","LastVisitDate":"2025-04-08 06:07:57.000","RelatedLandingPageId":null,"FirstLandingPageSubmissionId":null,"FirstLandingPageSubmissionDate":null,"ProspectActivityName_Max":"Lead verification activity","ProspectActivityDate_Max":"2025-04-08 06:07:57.000","ProspectActivityDate_Min":"2025-04-08 06:04:53.000","Web_Referrer":null,"Web_RefKeyword":null,"LeadLastModifiedOn":"2025-04-08 06:12:34.000","ConversionReferrerURL":null,"SourceReferrerURL":null,"SourceIPAddress":null,"Latitude":null,"Longitude":null,"FirstName":"srini","LastName":"test","EmailAddress":"sritest3@gmail.com","Phone":"+91-231231231","Website":null,"DoNotEmail":"1","DoNotTrack":null,"DoNotCall":"0","Source":"Web Enquiry","Mobile":null,"SourceCampaign":null,"SourceMedium":null,"SourceContent":null,"Notes":null,"Score":"0","EngagementScore":"0","Revenue":null,"ProspectStage":"New","QualityScore01":"5","OwnerId":"e22d27dc-925e-11e9-b788-0ac1020b43f8","CreatedBy":"92d182ad-613c-11e9-8ffe-02ceb8e07d66","CreatedByName":"System","CreatedOn":"2025-04-08 06:04:53.000","LeadConversionDate":"2025-04-08 06:04:53.000","ModifiedBy":"92d182ad-613c-11e9-8ffe-02ceb8e07d66","ModifiedByName":"System","ModifiedOn":"2025-04-08 06:12:34.000","TimeZone":null,"TotalVisits":"0","PageViewsPerVisit":"0","AvgTimePerVisit":"0","mx_Street1":null,"mx_City":null,"mx_State":null,"mx_Country":null,"mx_Zip":null,"OwnerIdName":"Chowda Reddy","OwnerIdEmailAddress":"chowda.reddy@karmaexperience.in","Origin":"API","MailingPreferences":null,"Groups":null,"TwitterId":null,"PhotoUrl":null,"FacebookId":null,"LinkedInId":null,"SkypeId":null,"GTalkId":null,"GooglePlusId":null,"CurrentOptInStatus":null,"OptInDate":null,"OptInDetails":null,"LastOptInEmailSentDate":null,"LeadAge":"0","mx_Marital_status":null,"mx_Lead_Brand":"Timeshare Marketing","mx_Lead_location":"Karma Karnak","mx_Lead_region":"India","mx_Lead_source_description":"ROW | Web Enquiry | Karnak","mx_Lead_Sub_Brand":"Karma Experience INT","mx_date_of_birth":"1997-12-11 00:00:00.000","mx_Gender":null,"mx_Year_of_Birth":null,"mx_Age":null,"mx_Lead_History":null,"mx_Voucher_date":null,"mx_Voucher_number":null,"mx_Is_Gexit":null,"mx_Is_Ambassador":null,"mx_Destination_phone_number":null,"mx_Nationality":null,"mx_Facebook_DOB":null,"mx_Occupation":null,"mx_Qualification":null,"mx_Spouse_Name":null,"mx_Spouse_Age":null,"mx_Last_Booking_Date":null,"mx_Secondary_account_lead_stage":null,"mx_tdate1":null,"mx_tdate2":null,"mx_Call_back_Date_and_Time":null,"mx_Followup_Date_and_Time":null,"mx_For_testing":null,"mx_Week_Number":null,"mx_Passport":null,"mx_Staff_Name":null,"mx_Lead_submission_counter":"1","mx_Latest_Lead_Source":"Web Enquiry","mx_Resort_Code":"Karnak","mx_Gexit_Venue":null,"mx_Voucher_Age":null,"mx_IP_Address":null,"mx_Freeze_Branding":null,"mx_Spouse_Last_Name":null,"mx_Contacted_Date":null,"mx_Mode_of_Transport":"Fresh","mx_Tentative_Date_of_Arrival":null,"mx_Occupation1":null,"mx_is_KE2":null,"mx_is_AMB":null,"mx_Travel_Destination":null,"mx_KEP_voucher_destination":null,"mx_Ambassador_Relationship":null,"mx_DTS":null,"mx_For_Remarketing_New":null,"mx_Is_DND_New":null,"mx_OTP_verified_New":"Undeliverable","mx_Special_Campaign_New":null,"mx_Ambassador_Referrer":null,"mx_Ambassador_Membership_ID":null,"mx_Phone_call_status":null,"mx_Latest_Capture_Date":"2025-04-08 06:04:53.000","mx_Term_And_Condition_Date":null,"mx_Temp_phone_number":null,"mx_Remarketing_Date":null,"mx_Contacted_By":null,"mx_Rermarketing_Contacted_Date":null,"mx_Remarketing_Contacted_By":null,"mx_Allocated_Date":"2025-04-08 11:42:34.000","mx_Valid_Voucher":null,"mx_KE2_Sales_App":null,"mx_Allocated_Owner":"Chowda Reddy","mx_Manual_Allocation":null,"mx_IPC_Agent":null,"mx_IPC_Collected_Date":null,"mx_Tentative_Date_3":null,"mx_Spouse_DOB":null,"mx_Contact_me_Opt_in":null,"mx_Who_would_you_be_travelling_with":null,"mx_Transfer_Leads_Comment":null,"mx_Spouse_phone":null,"mx_Preferred_Language":null,"mx_Spouse_Email":null,"mx_Are_you_a_Member_of_any_Holiday_Club":null,"mx_Please_choose_your_preferenece":null,"mx_Stage":"Stage 1","mx_Stage_1_Contacted_Owner":null,"mx_Stage_2_Contacted_Owner":null,"mx_Stage_3_Contacted_Owner":null,"mx_Stage_1_Contacted_Date":null,"mx_Stage_2_Contacted_Date":null,"mx_Stage_3_Contacted_Date":null,"mx_Last_Disposition_Added":null,"mx_Departure_Date":null,"mx_Tour_Date":null,"mx_Marketing_Rep_Owner":null,"mx_Number_of_Allocations":null,"mx_Allocation_Type":null,"mx_Referrals_Verifier":null,"mx_Verification_Call":null,"mx_Team":null,"mx_Number_of_Attempts":null,"mx_Viewpoint_ID":null,"mx_Former_Lead_Source":"Web Enquiry","mx_Former_LSD":"ROW | Web Enquiry | Karnak","mx_Former_Resort_Code":"Karnak","mx_Verification_Call_Status":null,"mx_Former_Lead_Location":"Karma Karnak","mx_Former_Owner":null,"mx_Former_Lead_Disposition":null,"mx_Former_Call_Status":null,"mx_Last_Call_Activity_Date":null,"mx_Former_Lead_Brand":"Timeshare Marketing","mx_Former_Lead_Sub_Brand":"Karma Experience INT","mx_Lead_Voucher_Qual":null,"mx_Voucher_Status":null,"mx_Voucher_Allocation":null,"mx_Booking_Date":null,"mx_Contract_Status":null,"mx_DTS_Contacted_Date":null,"mx_Former_Sub_Source_Category":null,"mx_Last_Activity_Comment":null,"mx_Remarketing_Stage":null,"mx_Remarketing_Team":null,"mx_RStage1_Contacted_By":null,"mx_RStage2_Contacted_By":null,"mx_RStage1_Contacted_Date":null,"mx_RStage2_Contacted_Date":null,"mx_Sales_Tour_Qualification":null,"mx_Show_Status":null,"mx_Sub_Source_Category":null,"mx_Voucher_Qualification":null,"mx_Empty":null,"mx_Latest_LSD":"ROW | Web Enquiry | Karnak","mx_Wait_Flag":null,"mx_Allocated_Date_Stage2":null,"mx_Allocated_Date_Rstage2":null,"mx_Wait_Counter":null,"mx_Former_Lead_Stage":null,"mx_What_is_your_preferred_checkin_day":null,"mx_Preferred_check_in_day":null,"mx_Telesales_Lead_Allocation_Type":null,"mx_Stage_2_Allocated_Owner":null,"mx_Please_Choose_Your_Dining_Preference":null,"mx_KCETerm1_One_Year_Membership":null,"mx_KCETerm2_Contact_TRAI_reg":null,"mx_Follow_Up":null,"mx_Sales_Group":null,"mx_Voucher_Incoming":null,"mx_Not_Pitched_Busy":null,"mx_Do_all_traveling_members_have_Passport":null,"mx_KCE_Self_Signup":null,"mx_Which_foreign_destination_is_in_your_bucket_list":null,"mx_Choose_your_package":null,"mx_Member_ID":null,"mx_Preferred_Travel_Month":null,"mx_Check_Out_Date":null,"mx_Preferred_Travel_Date":null,"mx_Coldline_Reception_Comment":null,"mx_Anniversary_Date":null,"mx_Where_did_you_go_on_your_last_2_overseas_vacation":null,"mx_Would_you_prefer_to_visit_Vietnam_Thailand_or_Bali":null,"mx_Would_you_prefer_to_visit_Goa_Bali_or_France":null,"mx_Post_Code":null,"mx_Travel_Destination_2":null,"mx_Tentative_Date_4":null,"mx_How_frequently_are_you_travelling":null,"mx_Tentative_Date_5":null,"mx_Tentative_Date_6":null,"mx_When_are_you_planning_to_travel_to_India":null,"mx_TransferToDiffTeam":null,"mx_How_did_you_hear_about_us":null,"mx_Return_Home_Date":null,"mx_DND_Contact_Opt_In":null,"mx_Leads_generated_by":null,"mx_Mode_of_Contact":null,"mx_Do_You_Prefer_Domestic_or_International_Holidays":null,"mx_Schedule_your_call_to_learn_more_about_Karma_Club":null,"mx_Salesapp_ID":null,"mx_Stage_3_Allocated_Owner":null,"mx_Stage_3_Allocated_Date":null,"mx_Client_Message":null,"mx_Primary_Lead_Source":"Web Enquiry","mx_Former_Source_Campign":null,"mx_Counter":"1","mx_Preferred_Destination":null,"mx_Check_In_and_Check_Out":null,"mx_Which_period_would_you_prefer_to_travel":null,"mx_Preferred_Check_in_1":null,"mx_Preferred_Check_in_2":null,"mx_Preferred_Check_in_3":null,"mx_Toured_Resort_Name":null,"mx_this_offer_doesnt_include_Flight_tickets":null,"mx_your_savings_can_be_used_to_book_Air_tickets":null,"mx_Venue_Visited":null,"mx_Former_Sales_Group":null,"mx_Voucher_Valid_Till":null,"mx_I_Prefer_to_Stay_at":null,"mx_Unit_Type":null,"mx_OPC_Code":null,"mx_Account_Type":null,"mx_Account_Status":null,"mx_Account_ID":null,"mx_When_are_you_planning_your_Trip":null,"mx_Are_You_Planning_To_Travel_in":null,"mx_Are_You_Travelling_as_a_Married_Couple":null,"mx_Do_You_Fall_Btw_The_Age_Group_of_30_to_60_Years":null,"mx_Would_You_Be_Interested_In_One_Of_Our_Gifts":null,"mx_When_Are_You_Planning_To_Book_Your_Flight_Tickets":null,"mx_Account_ID_2":null,"mx_Account_ID_3":null,"mx_Account_ID_4":null,"mx_Account_ID_5":null,"mx_Account_Type_2":null,"mx_Account_Type_3":null,"mx_Account_Type_4":null,"mx_Account_Type_5":null,"mx_Account_Status_2":null,"mx_Account_Status_3":null,"mx_Account_Status_4":null,"mx_Account_Status_5":null,"mx_Resort_1":null,"mx_Resort_2":null,"mx_Resort_3":null,"mx_Country1":null,"mx_Country2":null,"mx_Country3":null,"mx_Country4":null,"mx_Country5":null,"mx_which_is_your_preferred_holiday_spot":null,"mx_Where_u_like_to_travel_using_FREE_HOLIDAY_VOUCHER":null,"mx_By_attending_event_u_will_get_FREE_HOLIDAY_VOUCHER":null,"mx_Account_ID_5_Information":"{}","mx_Account_ID_4_Information":"{}","mx_Account_ID_3_Information":"{}","mx_Account_ID_2_Information":"{}","mx_Account_ID_Information":"{}","mx_You_Get_Nusa_Penida_Island_Free_bkg_this_offer":null,"mx_Instagarm":null,"mx_Tiktok":null,"mx_U_will_get_PHI_PHI_Island_Free_by_bkg_this_Package":null,"mx_WhatsApp_Number":null,"mx_Wedding_Type":null,"mx_Raise_a_Query":null,"mx_Join_Waitlist":null,"mx_Curated_Expreince_Name":null,"mx_adult":null,"mx_childrens":null,"mx_Choose_Our_4_Star_Hotel_in_Phuket_for_a_4N_5D":null,"mx_Can_you_confirm_if_your_birthday_month_is_April":null,"mx_This_Offer_is_for_a_3_Nights_Free_Couple_Stay":null,"mx_Which_city_in_Aus_is_famous_for_its_Opera_House":null,"IsStarredLead":"false","CanUpdate":"true"}]
+Duplicate found by email: Lead ID 91e93b1b-57c2-4fdb-9cc2-39d68a55a907
+Updating existing lead ID: 91e93b1b-57c2-4fdb-9cc2-39d68a55a907
+Update Lead Response (HTTP 200): {"Status":"Success","Message":{"Id":"9cfdc4d2-5c57-4439-8f84-18fa8aa4954b","RelatedId":"91e93b1b-57c2-4fdb-9cc2-39d68a55a907","IsCreated":false}}
+Result: {
+    "status": "success",
+    "message": "Lead updated successfully",
+    "data": {
+        "Message": {
+            "Id": "91e93b1b-57c2-4fdb-9cc2-39d68a55a907",
+            "Status": "Updated"
+        }
+    }
+}
+
+=== 2025-04-08 08:35:08 ===
+Lead data for LeadSquared: {
+    "FirstName": "srini",
+    "LastName": "test",
+    "EmailAddress": "sritest2@gmail.com",
+    "Phone": "+911231231231",
+    "mx_Date_of_Birth": "1997-12-09",
+    "mx_Has_Passport": "yes",
+    "mx_Resort_Name": "Copper Castle",
+    "mx_Destination_Name": "India",
+    "mx_Resort_Code": "CC",
+    "mx_Country_Code": "IN",
+    "mx_Lead_Source": "Web Enquiry",
+    "mx_Lead_Brand": "Timeshare Marketing",
+    "mx_Lead_Sub_Brand": "Karma Experience IN",
+    "mx_Lead_Source_Description": "IND | Web Enquiry | KEPH CC",
+    "mx_Lead_Location": "Copper Castle",
+    "Source": "Web Enquiry",
+    "ProspectStage": "New"
+}
+Checking for duplicates with Phone: +911231231231, Email: sritest2@gmail.com
+QuickSearch Response (HTTP 200): []
+QuickSearch Response (HTTP 200): []
+Creating new lead
+Create Lead Response (HTTP 500): {"Status":"Error","ExceptionType":"MXDuplicateEntryException","ExceptionMessage":"A Lead with same Phone Number already exists."}
+Result: {
+    "status": "error",
+    "message": "Failed to create lead: {\"Status\":\"Error\",\"ExceptionType\":\"MXDuplicateEntryException\",\"ExceptionMessage\":\"A Lead with same Phone Number already exists.\"}",
+    "data": {
+        "Status": "Error",
+        "ExceptionType": "MXDuplicateEntryException",
+        "ExceptionMessage": "A Lead with same Phone Number already exists."
+    }
+}
+
+=== 2025-04-08 08:39:51 ===
+Lead data for LeadSquared: {
+    "FirstName": "srini",
+    "LastName": "test",
+    "EmailAddress": "sritest2@gmail.com",
+    "Phone": "+911231231234",
+    "mx_Date_of_Birth": "1997-12-18",
+    "mx_Has_Passport": "yes",
+    "mx_Resort_Name": "Copper Castle",
+    "mx_Destination_Name": "India",
+    "mx_Resort_Code": "CC",
+    "mx_Country_Code": "IN",
+    "mx_Lead_Source": "Web Enquiry",
+    "mx_Lead_Brand": "Timeshare Marketing",
+    "mx_Lead_Sub_Brand": "Karma Experience IN",
+    "mx_Lead_Source_Description": "IND | Web Enquiry | KEPH CC",
+    "mx_Lead_Location": "Copper Castle",
+    "Source": "Web Enquiry",
+    "ProspectStage": "New"
+}
+Checking for duplicates with Phone: +911231231234, Email: sritest2@gmail.com
+QuickSearch Response (HTTP 200): []
+QuickSearch Response (HTTP 200): []
+Creating new lead
+Create Lead Response (HTTP 200): {"Status":"Success","Message":{"Id":"f1128151-7636-4338-a97a-b545d36692c0","RelatedId":"84d5e555-efc1-456d-8bcc-e5efff0d70ec","IsCreated":true}}
+Result: {
+    "status": "success",
+    "message": "Lead created successfully",
+    "data": {
+        "Message": {
+            "Id": null,
+            "Status": "Created"
+        }
+    }
+}
+
+=== 2025-04-08 08:41:41 ===
+Lead data for LeadSquared: {
+    "FirstName": "raffd",
+    "LastName": "test",
+    "EmailAddress": "sritest4@gmail.com",
+    "Phone": "+442071234567",
+    "mx_Date_of_Birth": "1997-12-18",
+    "mx_Has_Passport": "yes",
+    "mx_Resort_Name": "Copper Castle",
+    "mx_Destination_Name": "India",
+    "mx_Resort_Code": "CC",
+    "mx_Country_Code": "GB",
+    "mx_Lead_Source": "Web Enquiry",
+    "mx_Lead_Brand": "Timeshare Marketing",
+    "mx_Lead_Sub_Brand": "Karma Experience IN",
+    "mx_Lead_Source_Description": "UK | Web Enquiry | KEPH CC",
+    "mx_Lead_Location": "Copper Castle",
+    "Source": "Web Enquiry",
+    "ProspectStage": "New"
+}
+Checking for duplicates with Phone: +442071234567, Email: sritest4@gmail.com
+QuickSearch Response (HTTP 200): []
+QuickSearch Response (HTTP 200): []
+Creating new lead
+Create Lead Response (HTTP 500): {"Status":"Error","ExceptionType":"MXDuplicateEntryException","ExceptionMessage":"A Lead with same Phone Number already exists."}
+Result: {
+    "status": "error",
+    "message": "Failed to create lead: {\"Status\":\"Error\",\"ExceptionType\":\"MXDuplicateEntryException\",\"ExceptionMessage\":\"A Lead with same Phone Number already exists.\"}",
+    "data": {
+        "Status": "Error",
+        "ExceptionType": "MXDuplicateEntryException",
+        "ExceptionMessage": "A Lead with same Phone Number already exists."
+    }
+}
+

@@ -1,0 +1,700 @@
+<?php
+ob_start();
+session_start();
+// Check for user_id which is the correct session variable used throughout the system
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login.php");
+    exit();
+}
+
+// Include database connection and functions
+require_once 'db.php';
+require_once 'auth_helper.php';
+// Fix PHPMailer paths - use vendor path which has all the required files
+require_once 'vendor/phpmailer/phpmailer/src/Exception.php';
+require_once 'vendor/phpmailer/phpmailer/src/PHPMailer.php';
+require_once 'vendor/phpmailer/phpmailer/src/SMTP.php';
+
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
+// Set the page title
+$page_title = "System Settings";
+
+// Include header and sidebar first
+require_once 'bheader.php';
+require_once 'sidebar.php';
+
+// Get all settings
+function get_all_settings() {
+    global $pdo, $conn;
+    $settings = [];
+    
+    try {
+        // Try using PDO connection if available
+        if (isset($pdo) && $pdo) {
+            $stmt = $pdo->prepare("SELECT * FROM settings");
+            $stmt->execute();
+            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                $settings[$row['setting_key']] = $row['setting_value'];
+            }
+        } 
+        // Otherwise try using mysqli connection
+        elseif (isset($conn) && $conn) {
+            $result = $conn->query("SELECT * FROM settings");
+            if ($result) {
+                while ($row = $result->fetch_assoc()) {
+                    $settings[$row['setting_key']] = $row['setting_value'];
+                }
+            }
+        }
+    } catch (Exception $e) {
+        // Table probably doesn't exist yet
+        error_log('Settings table error: ' . $e->getMessage());
+        
+        // Return default settings
+        return [
+            'site_name' => 'Karma Experience',
+            'site_description' => 'Luxury Travel Experiences',
+            'admin_email' => 'admin@karmaexperience.in',
+            'items_per_page' => '10',
+            'maintenance_mode' => '0',
+            'smtp_host' => '',
+            'smtp_port' => '587',
+            'smtp_username' => '',
+            'smtp_password' => '',
+            'smtp_encryption' => 'tls',
+            'smtp_from_email' => '',
+            'smtp_from_name' => 'Karma Experience'
+        ];
+    }
+    
+    return $settings;
+}
+
+// Function to get a specific setting
+function get_setting($key, $default = '') {
+    static $settings = null;
+    
+    // Load settings if not already loaded
+    if ($settings === null) {
+        $settings = get_all_settings();
+    }
+    
+    // Return the setting value or default
+    return isset($settings[$key]) ? $settings[$key] : $default;
+}
+
+// Function to update a setting
+function update_setting($key, $value) {
+    global $pdo, $conn;
+    
+    try {
+        // Try to update using PDO
+        if (isset($pdo) && $pdo) {
+            // Check if setting exists
+            $stmt = $pdo->prepare("SELECT COUNT(*) FROM settings WHERE setting_key = ?");
+            $stmt->execute([$key]);
+            $exists = (int)$stmt->fetchColumn() > 0;
+            
+            if ($exists) {
+                $stmt = $pdo->prepare("UPDATE settings SET setting_value = ? WHERE setting_key = ?");
+                return $stmt->execute([$value, $key]);
+            } else {
+                $stmt = $pdo->prepare("INSERT INTO settings (setting_key, setting_value) VALUES (?, ?)");
+                return $stmt->execute([$key, $value]);
+            }
+        }
+        // Try to update using mysqli
+        elseif (isset($conn) && $conn) {
+            $key = $conn->real_escape_string($key);
+            $value = $conn->real_escape_string($value);
+            
+            // Check if setting exists
+            $result = $conn->query("SELECT COUNT(*) as count FROM settings WHERE setting_key = '$key'");
+            $exists = ($result && $result->fetch_assoc()['count'] > 0);
+            
+            if ($exists) {
+                return $conn->query("UPDATE settings SET setting_value = '$value' WHERE setting_key = '$key'");
+            } else {
+                return $conn->query("INSERT INTO settings (setting_key, setting_value) VALUES ('$key', '$value')");
+            }
+        }
+    } catch (Exception $e) {
+        // Table probably doesn't exist yet
+        error_log('Error updating setting: ' . $e->getMessage());
+        return false;
+    }
+    
+    return false;
+}
+
+// Create settings table if it doesn't exist
+function create_settings_table() {
+    global $pdo, $conn;
+    
+    try {
+        if (isset($pdo) && $pdo) {
+            $pdo->exec("
+                CREATE TABLE IF NOT EXISTS settings (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    setting_key VARCHAR(255) NOT NULL UNIQUE,
+                    setting_value TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+                )
+            ");
+            
+            // Insert default settings
+            $default_settings = [
+                'site_name' => 'Karma Experience',
+                'site_description' => 'Luxury Travel Experiences',
+                'admin_email' => 'admin@karmaexperience.in',
+                'items_per_page' => '10',
+                'maintenance_mode' => '0',
+                'smtp_host' => '',
+                'smtp_port' => '587',
+                'smtp_username' => '',
+                'smtp_password' => '',
+                'smtp_encryption' => 'tls',
+                'smtp_from_email' => '',
+                'smtp_from_name' => 'Karma Experience',
+                'leadsquared_access_key' => '',
+                'leadsquared_secret_key' => '',
+                'leadsquared_api_url' => 'https://api-in21.leadsquared.com/v2/LeadManagement.svc'
+            ];
+            
+            foreach ($default_settings as $key => $value) {
+                $stmt = $pdo->prepare("INSERT IGNORE INTO settings (setting_key, setting_value) VALUES (?, ?)");
+                $stmt->execute([$key, $value]);
+            }
+            
+            return true;
+        } elseif (isset($conn) && $conn) {
+            $conn->query("
+                CREATE TABLE IF NOT EXISTS settings (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    setting_key VARCHAR(255) NOT NULL UNIQUE,
+                    setting_value TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+                )
+            ");
+            
+            // Insert default settings
+            $default_settings = [
+                'site_name' => 'Karma Experience',
+                'site_description' => 'Luxury Travel Experiences',
+                'admin_email' => 'admin@karmaexperience.in',
+                'items_per_page' => '10',
+                'maintenance_mode' => '0',
+                'smtp_host' => '',
+                'smtp_port' => '587',
+                'smtp_username' => '',
+                'smtp_password' => '',
+                'smtp_encryption' => 'tls',
+                'smtp_from_email' => '',
+                'smtp_from_name' => 'Karma Experience',
+                'leadsquared_access_key' => '',
+                'leadsquared_secret_key' => '',
+                'leadsquared_api_url' => 'https://api-in21.leadsquared.com/v2/LeadManagement.svc'
+            ];
+            
+            foreach ($default_settings as $key => $value) {
+                $key = $conn->real_escape_string($key);
+                $value = $conn->real_escape_string($value);
+                $conn->query("INSERT IGNORE INTO settings (setting_key, setting_value) VALUES ('$key', '$value')");
+            }
+            
+            return true;
+        }
+    } catch (Exception $e) {
+        error_log('Error creating settings table: ' . $e->getMessage());
+        return false;
+    }
+    
+    return false;
+}
+
+// Try to create the settings table, but don't worry if it fails
+try {
+    create_settings_table();
+} catch (Exception $e) {
+    error_log('Could not create settings table: ' . $e->getMessage());
+}
+
+// Function to save SMTP settings to .env file
+function save_smtp_to_env($smtp_settings) {
+    // Create or update .env file with SMTP settings
+    $envFile = file_exists('.env') ? file_get_contents('.env') : '';
+    $envLines = explode("\n", $envFile);
+    $newEnvLines = [];
+    $smtpKeys = [
+        'SMTP_HOST', 
+        'SMTP_PORT', 
+        'SMTP_USERNAME', 
+        'SMTP_PASSWORD', 
+        'SMTP_ENCRYPTION', 
+        'SMTP_FROM_EMAIL', 
+        'SMTP_FROM_NAME'
+    ];
+    
+    // Remove existing SMTP settings
+    foreach ($envLines as $line) {
+        $skip = false;
+        foreach ($smtpKeys as $key) {
+            if (strpos($line, $key . '=') === 0) {
+                $skip = true;
+                break;
+            }
+        }
+        if (!$skip) {
+            $newEnvLines[] = $line;
+        }
+    }
+    
+    // Add new SMTP settings
+    $newEnvLines[] = '';
+    $newEnvLines[] = '# SMTP Configuration';
+    $newEnvLines[] = 'SMTP_HOST=' . $smtp_settings['smtp_host'];
+    $newEnvLines[] = 'SMTP_PORT=' . $smtp_settings['smtp_port'];
+    $newEnvLines[] = 'SMTP_USERNAME=' . $smtp_settings['smtp_username'];
+    $newEnvLines[] = 'SMTP_PASSWORD=' . $smtp_settings['smtp_password'];
+    $newEnvLines[] = 'SMTP_ENCRYPTION=' . $smtp_settings['smtp_encryption'];
+    $newEnvLines[] = 'SMTP_FROM_EMAIL=' . $smtp_settings['smtp_from_email'];
+    $newEnvLines[] = 'SMTP_FROM_NAME="' . $smtp_settings['smtp_from_name'] . '"';
+    $newEnvLines[] = '';
+    
+    // Legacy entries for backwards compatibility
+    $newEnvLines[] = '# Legacy SMTP entries for backward compatibility';
+    $newEnvLines[] = 'EMAIL_HOST=' . $smtp_settings['smtp_host'];
+    $newEnvLines[] = 'EMAIL_PORT=' . $smtp_settings['smtp_port'];
+    $newEnvLines[] = 'EMAIL_USERNAME=' . $smtp_settings['smtp_username'];
+    $newEnvLines[] = 'EMAIL_PASSWORD=' . $smtp_settings['smtp_password'];
+    $newEnvLines[] = 'EMAIL_ENCRYPTION=' . $smtp_settings['smtp_encryption'];
+    $newEnvLines[] = 'FROM_EMAIL=' . $smtp_settings['smtp_from_email'];
+    $newEnvLines[] = 'FROM_NAME="' . $smtp_settings['smtp_from_name'] . '"';
+    
+    // Save to .env file
+    return file_put_contents('.env', implode("\n", $newEnvLines));
+}
+
+// Function to test email settings
+function test_email_settings($smtp_settings, $to_email) {
+    $mail = new PHPMailer(true);
+    
+    try {
+        // Server settings
+        $mail->SMTPDebug = 2; // Output debug info
+        $mail->isSMTP();
+        $mail->Host = $smtp_settings['smtp_host'];
+        $mail->SMTPAuth = true;
+        $mail->Username = $smtp_settings['smtp_username'];
+        $mail->Password = $smtp_settings['smtp_password'];
+        $mail->SMTPSecure = $smtp_settings['smtp_encryption'];
+        $mail->Port = $smtp_settings['smtp_port'];
+        
+        // Sender & Recipients
+        $mail->setFrom($smtp_settings['smtp_from_email'], $smtp_settings['smtp_from_name']);
+        $mail->addAddress($to_email);
+        
+        // Content
+        $mail->isHTML(true);
+        $mail->Subject = 'Email Test from Karma Experience';
+        $mail->Body = '<h1>Email Configuration Test</h1>
+                       <p>This is a test email to confirm that your SMTP settings are working correctly.</p>
+                       <p>If you received this email, it means your email configuration is correct.</p>
+                       <p><strong>Time:</strong> ' . date('Y-m-d H:i:s') . '</p>';
+        
+        // Send email
+        ob_start(); // Capture the debug output
+        $mail->send();
+        $debug = ob_get_clean();
+        
+        // Return success message
+        return [
+            'success' => true,
+            'message' => 'Email test sent successfully!',
+            'debug' => $debug
+        ];
+    } catch (Exception $e) {
+        // Return error message
+        return [
+            'success' => false,
+            'message' => 'Email test failed: ' . $mail->ErrorInfo,
+            'debug' => $e->getMessage()
+        ];
+    }
+}
+
+// Handle form submissions
+$message = '';
+$messageType = '';
+
+// General Settings Form
+if (isset($_POST['save_general_settings'])) {
+    $updateFailed = false;
+    
+    // Update site settings
+    $settings_to_update = [
+        'site_name' => $_POST['site_name'],
+        'site_description' => $_POST['site_description'],
+        'admin_email' => $_POST['admin_email'],
+        'items_per_page' => $_POST['items_per_page'],
+        'maintenance_mode' => isset($_POST['maintenance_mode']) ? '1' : '0'
+    ];
+    
+    foreach ($settings_to_update as $key => $value) {
+        if (!update_setting($key, $value)) {
+            $updateFailed = true;
+        }
+    }
+    
+    if (!$updateFailed) {
+        $message = 'General settings saved successfully!';
+        $messageType = 'success';
+    } else {
+        $message = 'Failed to save general settings.';
+        $messageType = 'danger';
+    }
+}
+
+// SMTP Settings Form
+if (isset($_POST['save_smtp_settings'])) {
+    $smtp_settings = [
+        'smtp_host' => $_POST['smtp_host'],
+        'smtp_port' => $_POST['smtp_port'],
+        'smtp_username' => $_POST['smtp_username'],
+        'smtp_password' => $_POST['smtp_password'],
+        'smtp_encryption' => $_POST['smtp_encryption'],
+        'smtp_from_email' => $_POST['smtp_from_email'],
+        'smtp_from_name' => $_POST['smtp_from_name']
+    ];
+    
+    $updateFailed = false;
+    
+    // Update SMTP settings in database
+    foreach ($smtp_settings as $key => $value) {
+        if (!update_setting($key, $value)) {
+            $updateFailed = true;
+        }
+    }
+    
+    // Save to .env file
+    if (save_smtp_to_env($smtp_settings)) {
+        if (!$updateFailed) {
+            $message = 'SMTP settings saved successfully!';
+            $messageType = 'success';
+        } else {
+            $message = 'Failed to save SMTP settings to database, but .env file was updated.';
+            $messageType = 'warning';
+        }
+    } else {
+        $message = 'Failed to save SMTP settings to .env file.';
+        $messageType = 'danger';
+    }
+}
+
+// LeadSquared Settings Form
+if (isset($_POST['save_leadsquared_settings'])) {
+    $ls_settings = [
+        'leadsquared_access_key' => $_POST['leadsquared_access_key'],
+        'leadsquared_secret_key' => $_POST['leadsquared_secret_key'],
+        'leadsquared_api_url' => $_POST['leadsquared_api_url']
+    ];
+    
+    $updateFailed = false;
+    
+    // Update LeadSquared settings in database
+    foreach ($ls_settings as $key => $value) {
+        if (!update_setting($key, $value)) {
+            $updateFailed = true;
+        }
+    }
+    
+    if (!$updateFailed) {
+        $message = 'LeadSquared settings saved successfully!';
+        $messageType = 'success';
+    } else {
+        $message = 'Failed to save LeadSquared settings.';
+        $messageType = 'danger';
+    }
+}
+
+// Test Email Form
+if (isset($_POST['test_email'])) {
+    $test_email = $_POST['test_email_address'];
+    
+    // Get current SMTP settings
+    $smtp_settings = [
+        'smtp_host' => get_setting('smtp_host'),
+        'smtp_port' => get_setting('smtp_port'),
+        'smtp_username' => get_setting('smtp_username'),
+        'smtp_password' => get_setting('smtp_password'),
+        'smtp_encryption' => get_setting('smtp_encryption'),
+        'smtp_from_email' => get_setting('smtp_from_email'),
+        'smtp_from_name' => get_setting('smtp_from_name')
+    ];
+    
+    // Test email settings
+    $result = test_email_settings($smtp_settings, $test_email);
+    
+    if ($result['success']) {
+        $message = $result['message'];
+        $messageType = 'success';
+    } else {
+        $message = $result['message'];
+        $messageType = 'danger';
+        
+        // Log detailed error for debugging
+        error_log('Email test failed: ' . $result['debug']);
+    }
+}
+
+// Get updated settings
+$updated_settings = get_all_settings();
+
+// Messages
+if (isset($message) && !empty($message)): 
+?>
+<div class="alert alert-<?php echo $messageType; ?> alert-dismissible fade show" role="alert">
+    <?php echo htmlspecialchars($message); ?>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+<?php endif; ?>
+
+<!-- Settings Tabs -->
+<ul class="nav nav-tabs mb-4">
+    <li class="nav-item">
+        <a class="nav-link active" id="general-tab" data-bs-toggle="tab" href="#general" role="tab">
+            <i class="fas fa-cog me-2"></i> General
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" id="email-tab" data-bs-toggle="tab" href="#email" role="tab">
+            <i class="fas fa-envelope me-2"></i> Email Settings
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" id="leadsquared-tab" data-bs-toggle="tab" href="#leadsquared" role="tab">
+            <i class="fas fa-chart-line me-2"></i> LeadSquared
+        </a>
+    </li>
+</ul>
+
+<!-- Tab Content -->
+<div class="tab-content">
+    <!-- General Settings Tab -->
+    <div class="tab-pane fade show active" id="general" role="tabpanel">
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0">General Settings</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" action="">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="site_name" class="form-label">Site Name</label>
+                                <input type="text" class="form-control" id="site_name" name="site_name" 
+                                       value="<?php echo htmlspecialchars(get_setting('site_name')); ?>" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="admin_email" class="form-label">Admin Email</label>
+                                <input type="email" class="form-control" id="admin_email" name="admin_email" 
+                                       value="<?php echo htmlspecialchars(get_setting('admin_email')); ?>" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="site_description" class="form-label">Site Description</label>
+                        <textarea class="form-control" id="site_description" name="site_description" rows="2"><?php echo htmlspecialchars(get_setting('site_description')); ?></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="items_per_page" class="form-label">Items Per Page</label>
+                                <input type="number" class="form-control" id="items_per_page" name="items_per_page" 
+                                       value="<?php echo htmlspecialchars(get_setting('items_per_page', 10)); ?>" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3 mt-4">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="maintenance_mode" name="maintenance_mode" 
+                                           <?php echo get_setting('maintenance_mode') == '1' ? 'checked' : ''; ?>>
+                                    <label class="form-check-label" for="maintenance_mode">Maintenance Mode</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-end">
+                        <button type="submit" name="save_general_settings" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i> Save General Settings
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Email Settings Tab -->
+    <div class="tab-pane fade" id="email" role="tabpanel">
+        <div class="card mb-4">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0">SMTP Configuration</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" action="">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="smtp_host" class="form-label">SMTP Host</label>
+                                <input type="text" class="form-control" id="smtp_host" name="smtp_host" 
+                                       value="<?php echo htmlspecialchars(get_setting('smtp_host')); ?>" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="smtp_port" class="form-label">SMTP Port</label>
+                                <input type="number" class="form-control" id="smtp_port" name="smtp_port" 
+                                       value="<?php echo htmlspecialchars(get_setting('smtp_port', 587)); ?>" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="smtp_username" class="form-label">SMTP Username</label>
+                                <input type="text" class="form-control" id="smtp_username" name="smtp_username" 
+                                       value="<?php echo htmlspecialchars(get_setting('smtp_username')); ?>" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="smtp_password" class="form-label">SMTP Password</label>
+                                <input type="password" class="form-control" id="smtp_password" name="smtp_password" 
+                                       value="<?php echo htmlspecialchars(get_setting('smtp_password')); ?>" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="smtp_encryption" class="form-label">Encryption</label>
+                                <select class="form-select" id="smtp_encryption" name="smtp_encryption" required>
+                                    <option value="tls" <?php echo get_setting('smtp_encryption') == 'tls' ? 'selected' : ''; ?>>TLS</option>
+                                    <option value="ssl" <?php echo get_setting('smtp_encryption') == 'ssl' ? 'selected' : ''; ?>>SSL</option>
+                                    <option value="" <?php echo get_setting('smtp_encryption') == '' ? 'selected' : ''; ?>>None</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="smtp_from_email" class="form-label">From Email</label>
+                                <input type="email" class="form-control" id="smtp_from_email" name="smtp_from_email" 
+                                       value="<?php echo htmlspecialchars(get_setting('smtp_from_email')); ?>" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="smtp_from_name" class="form-label">From Name</label>
+                                <input type="text" class="form-control" id="smtp_from_name" name="smtp_from_name" 
+                                       value="<?php echo htmlspecialchars(get_setting('smtp_from_name', 'Karma Experience')); ?>" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-end">
+                        <button type="submit" name="save_smtp_settings" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i> Save SMTP Settings
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0">Test Email Configuration</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" action="">
+                    <div class="row align-items-end">
+                        <div class="col-md-8">
+                            <div class="mb-0">
+                                <label for="test_email_address" class="form-label">Send Test Email To</label>
+                                <input type="email" class="form-control" id="test_email_address" name="test_email_address" 
+                                       placeholder="Enter email address" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <button type="submit" name="test_email" class="btn btn-success w-100">
+                                <i class="fas fa-paper-plane me-1"></i> Send Test Email
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- LeadSquared Settings Tab -->
+    <div class="tab-pane fade" id="leadsquared" role="tabpanel">
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0">LeadSquared API Settings</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" action="">
+                    <div class="mb-3">
+                        <label for="leadsquared_access_key" class="form-label">Access Key</label>
+                        <input type="text" class="form-control" id="leadsquared_access_key" name="leadsquared_access_key" 
+                               value="<?php echo htmlspecialchars(get_setting('leadsquared_access_key')); ?>" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="leadsquared_secret_key" class="form-label">Secret Key</label>
+                        <input type="text" class="form-control" id="leadsquared_secret_key" name="leadsquared_secret_key" 
+                               value="<?php echo htmlspecialchars(get_setting('leadsquared_secret_key')); ?>" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="leadsquared_api_url" class="form-label">API URL</label>
+                        <input type="text" class="form-control" id="leadsquared_api_url" name="leadsquared_api_url" 
+                               value="<?php echo htmlspecialchars(get_setting('leadsquared_api_url', 'https://api-in21.leadsquared.com/v2/LeadManagement.svc')); ?>" 
+                               placeholder="https://api-in21.leadsquared.com/v2/LeadManagement.svc" required>
+                    </div>
+                    <div class="text-end">
+                        <button type="submit" name="save_leadsquared_settings" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i> Save LeadSquared Settings
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Include Bootstrap JS for tabs -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Check if URL has a hash and activate the corresponding tab
+    let hash = window.location.hash;
+    if (hash) {
+        document.querySelector('a[href="' + hash + '"]').click();
+    }
+    
+    // Add click event listeners to tabs to update URL hash
+    document.querySelectorAll('.nav-link').forEach(function(tab) {
+        tab.addEventListener('click', function(e) {
+            window.location.hash = this.getAttribute('href');
+        });
+    });
+});
+</script>
+
+<?php
+// Include footer
+require_once 'bfooter.php';
+ob_end_flush();
+?>

@@ -2,135 +2,142 @@
 // Footer file for admin pages
 ?>
 
-<!-- Admin Footer -->
+<!-- Modern Compact Footer -->
 <footer class="admin-footer">
-    <div class="footer-content">
-        <div class="footer-brand">
-            <img src="assets/images/logo/KE-Gold.png" alt="Karma Experience" class="footer-logo">
-            <div class="footer-tagline">
-                <p>Delivering unmatched holiday experiences at unbeatable prices</p>
-            </div>
+    <div class="footer-container">
+        <div class="footer-logo">
+            <img src="assets/images/logo/KE-Gold.png" alt="Karma Experience" height="28">
         </div>
-        <div class="footer-info">
-            <div class="footer-links">
-                <a href="dashboard.php">Dashboard</a>
-                <span class="footer-divider">|</span>
-                <a href="destination_list.php">Destinations</a>
-                <span class="footer-divider">|</span>
-                <a href="view_enquiries.php">Enquiries</a>
-                <span class="footer-divider">|</span>
-                <a href="profile.php">My Profile</a>
-            </div>
-            <div class="copyright">
-                &copy; <?php echo date("Y"); ?> Karma Experience. All Rights Reserved.
-            </div>
+        <div class="footer-links">
+            <a href="dashboard.php">Dashboard</a>
+            <a href="destination_list.php">Destinations</a>
+            <a href="resort_list.php">Resorts</a>
+            <a href="view_enquiries.php">Enquiries</a>
+        </div>
+        <div class="footer-copyright">
+            &copy; <?php echo date("Y"); ?> Karma Experience
         </div>
     </div>
 </footer>
 
-<!-- Footer Styles -->
+<!-- Compact Footer Styles -->
 <style>
     .admin-footer {
-        background: var(--secondary);
-        color: rgba(255, 255, 255, 0.8);
-        padding: 20px 0;
-        margin-top: 40px;
+        background: #2a3950;
+        padding: 15px 0;
         position: relative;
+        z-index: 50;
+        margin-top: 30px;
     }
     
-    .footer-content {
+    .footer-container {
         max-width: 1200px;
         margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
         padding: 0 20px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 20px;
-    }
-    
-    .footer-brand {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
+        flex-wrap: wrap;
+        gap: 15px;
     }
     
     .footer-logo {
-        height: 40px;
-        margin-bottom: 10px;
-    }
-    
-    .footer-tagline {
-        font-size: 0.85rem;
-        opacity: 0.7;
-        font-style: italic;
-    }
-    
-    .footer-info {
-        text-align: center;
         display: flex;
-        flex-direction: column;
-        gap: 10px;
+        align-items: center;
+    }
+    
+    .footer-logo img {
+        height: 28px;
+        opacity: 0.9;
+        transition: opacity 0.2s;
+    }
+    
+    .footer-logo img:hover {
+        opacity: 1;
     }
     
     .footer-links {
         display: flex;
-        justify-content: center;
+        gap: 20px;
         flex-wrap: wrap;
-        gap: 5px;
     }
     
     .footer-links a {
-        color: rgba(255, 255, 255, 0.8);
+        color: rgba(255, 255, 255, 0.7);
         text-decoration: none;
-        font-size: 0.85rem;
-        transition: all 0.3s ease;
+        font-size: 0.875rem;
+        transition: all 0.2s;
+        position: relative;
+    }
+    
+    .footer-links a:after {
+        content: '';
+        position: absolute;
+        width: 0;
+        height: 1px;
+        bottom: -3px;
+        left: 0;
+        background: #b4975a;
+        transition: width 0.3s;
     }
     
     .footer-links a:hover {
-        color: var(--primary);
+        color: #fff;
     }
     
-    .footer-divider {
-        color: rgba(255, 255, 255, 0.3);
+    .footer-links a:hover:after {
+        width: 100%;
     }
     
-    .copyright {
-        font-size: 0.8rem;
-        opacity: 0.6;
+    .footer-copyright {
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 0.75rem;
     }
     
-    @media (min-width: 768px) {
-        .footer-content {
-            flex-direction: row;
-            justify-content: space-between;
-            align-items: center;
+    @media (max-width: 768px) {
+        .footer-container {
+            flex-direction: column;
+            text-align: center;
+            gap: 12px;
         }
         
-        .footer-brand {
-            align-items: flex-start;
-            text-align: left;
-        }
-        
-        .footer-info {
-            text-align: right;
-            align-items: flex-end;
-        }
-    }
-    
-    /* For fixed footer on short pages */
-    @media (min-height: 920px) {
-        body {
-            position: relative;
-            min-height: 100vh;
-            padding-bottom: 100px; /* Footer height + padding */
-        }
-        
-        .admin-footer {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
+        .footer-links {
+            justify-content: center;
+            gap: 15px;
         }
     }
 </style>
+
+<!-- Script to prevent continuous loading -->
+<script>
+// Check if page has been loading too long and fix it
+(function() {
+    // Check if we've been on this page for more than 5 seconds
+    var pageLoadStart = window.performance && window.performance.timing ? 
+        window.performance.timing.navigationStart : new Date().getTime();
+    
+    var loadTime = new Date().getTime() - pageLoadStart;
+    
+    if (loadTime > 5000 && !window.loadingStopped) {
+        console.log('Page loading too long, stopping any pending requests');
+        window.loadingStopped = true;
+        
+        // Stop loading
+        if (window.stop) {
+            window.stop();
+        }
+        
+        // Stop any network requests
+        if (window.jQuery && jQuery.ajax) {
+            jQuery.ajax({
+                global: false
+            });
+        }
+        
+        // Remove any loading indicators
+        document.querySelectorAll('.loading, .spinner, .loader').forEach(function(el) {
+            el.style.display = 'none';
+        });
+    }
+})();
+</script>

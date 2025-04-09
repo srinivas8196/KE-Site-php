@@ -70,12 +70,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // For editing, set based on the checkbox.
     if (isset($_POST['resort_id'])) {
         $is_active = isset($_POST['is_active']) ? 1 : 0;
+        
+        // Check if status has changed to log it specifically
+        if ($resort && isset($resort['is_active']) && $resort['is_active'] != $is_active) {
+            $statusChange = $is_active ? 'activated' : 'deactivated';
+            $statusDetails = "Resort status changed: " . $resort_name . " was " . $statusChange;
+            log_resort_activity($pdo, 'resort_status_change', $statusDetails, $_SESSION['user_id']);
+        }
     } else {
         $is_active = 1;
     }
     
     // Process is_partner checkbox
     $is_partner = isset($_POST['is_partner']) ? 1 : 0;
+
+    // Check if partner status has changed
+    if ($resort && isset($resort['is_partner']) && $resort['is_partner'] != $is_partner) {
+        $partnerChange = $is_partner ? 'added as partner' : 'removed as partner';
+        $partnerDetails = "Resort partner status changed: " . $resort_name . " was " . $partnerChange;
+        log_resort_activity($pdo, 'resort_partner_change', $partnerDetails, $_SESSION['user_id']);
+    }
 
     // Use existing slug if editing; otherwise, generate a new one from the resort name.
     if (isset($_POST['resort_id']) && !empty($_POST['resort_id']) && !empty($resort['resort_slug'])) {
@@ -235,31 +249,54 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $rooms_json        = json_encode($rooms);
     $gallery_json      = json_encode($galleryImages);
 
-    if (isset($_POST['resort_id']) && !empty($_POST['resort_id'])) {
-        // Update existing resort record
-        $stmt = $pdo->prepare("UPDATE resorts SET destination_id = ?, resort_name = ?, resort_code = ?, resort_description = ?, banner_title = ?, is_active = ?, amenities = ?, room_details = ?, gallery = ?, testimonials = ?, resort_slug = ?, banner_image = ?, file_path = ?, is_partner = ? WHERE id = ?");
+    // Check if we're updating or creating
+    $isUpdate = isset($_POST['resort_id']) && !empty($_POST['resort_id']);
+    $resortId = $isUpdate ? $_POST['resort_id'] : null;
+
+    // Log the activity type
+    $activityType = $isUpdate ? 'update_resort' : 'create_resort';
+    $activityDetails = $isUpdate ? "Updated resort: $resort_name (ID: $resortId)" : "Created new resort: $resort_name";
+
+    if ($isUpdate) {
+        // Update existing resort
+        $stmt = $pdo->prepare("UPDATE resorts SET 
+            resort_name = ?,
+            resort_code = ?,
+            resort_description = ?, 
+            banner_title = ?, 
+            is_active = ?, 
+            is_partner = ?,
+            amenities = ?, 
+            room_details = ?, 
+            gallery = ?, 
+            testimonials = ?, 
+            banner_image = ?,
+            destination_id = ?,
+            resort_slug = ?,
+            file_path = ?
+            WHERE id = ?");
         $success = $stmt->execute([
-            $destination_id,
             $resort_name,
             $resort_code,
             $resort_description,
             $banner_title,
             $is_active,
+            $is_partner,
             $amenities_json,
             $rooms_json,
             $gallery_json,
             $testimonials_json,
-            $resort_slug,
             $banner_image,
+            $destination_id,
+            $resort_slug,
             $resortPage,
-            $is_partner,
-            $_POST['resort_id']
+            $resortId
         ]);
         
         if ($success) {
             $_SESSION['success_message'] = "Resort updated successfully!";
         } else {
-            $_SESSION['error_message'] = "Failed to update resort. Please try again.";
+            $_SESSION['error_message'] = "Failed to update resort. Please try again. Error: " . implode(", ", $stmt->errorInfo());
         }
     } else {
         // Insert new resort record
@@ -282,11 +319,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         ]);
         
         if ($success) {
+            // Get the newly created resort ID
+            $resortId = $pdo->lastInsertId();
             $_SESSION['success_message'] = "Resort created successfully!";
             $_SESSION['new_resort_url'] = $resortPage; // Store the new resort URL in session
         } else {
             $_SESSION['error_message'] = "Failed to create resort. Please try again.";
         }
+    }
+    
+    // Log the activity to activity_log table if successful
+    if ($success) {
+        log_resort_activity($pdo, $activityType, $activityDetails, $_SESSION['user_id']);
     }
 
     // Generate resort landing page file (e.g., abc.php)
@@ -616,6 +660,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $pageContent .= "<option value=\"no\">No</option>\n";
     $pageContent .= "</select>\n";
     $pageContent .= "</div>\n";
+
+    // Add consent checkboxes
+    $pageContent .= "<div class=\"form-group consent-field\">\n";
+    $pageContent .= "<div class=\"checkbox-container\">\n";
+    $pageContent .= "<input type=\"checkbox\" id=\"communication_consent\" name=\"communication_consent\" required>\n";
+    $pageContent .= "<label for=\"communication_consent\" class=\"checkbox-label\">Allow Karma Experience/Karma Group related brands to communicate with me via SMS/Email/Call during and after my submission on this promotional offer. *</label>\n";
+    $pageContent .= "</div>\n";
+    $pageContent .= "</div>\n";
+
+    $pageContent .= "<div class=\"form-group consent-field\">\n";
+    $pageContent .= "<div class=\"checkbox-container\">\n";
+    $pageContent .= "<input type=\"checkbox\" id=\"dnd_consent\" name=\"dnd_consent\" required>\n";
+    $pageContent .= "<label for=\"dnd_consent\" class=\"checkbox-label\">Should I be a registered DND subscriber, I agree that I have requested to be contacted about this contest/promotional offer. *</label>\n";
+    $pageContent .= "</div>\n";
     $pageContent .= "</div>\n";
 
     $pageContent .= "<button type=\"submit\" class=\"btn-submit\">Submit Enquiry</button>\n";
@@ -673,6 +731,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $pageContent .= ".form-group label { display: block; margin-bottom: 5px; font-weight: 600; color: #333; font-size: 13px; }\n";
     $pageContent .= ".form-control { width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; transition: border-color 0.2s; }\n";
     $pageContent .= ".form-control:focus { border-color: #007bff; outline: none; box-shadow: 0 0 0 2px rgba(0,123,255,0.15); }\n";
+    
+    // Add styles for checkboxes
+    $pageContent .= ".checkbox-container { display: flex; align-items: flex-start; margin-bottom: 5px; }\n";
+    $pageContent .= ".checkbox-container input[type='checkbox'] { flex-shrink: 0; margin-top: 3px; margin-right: 8px; }\n";
+    $pageContent .= ".checkbox-label { font-size: 12px; font-weight: normal; line-height: 1.3; color: #555; margin: 0; display: inline-block; }\n";
+    $pageContent .= ".consent-field { margin-bottom: 10px; width: 100%; display: block; }\n";
+    
     $pageContent .= ".btn-submit { background: #007bff; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; font-weight: 500; width: 100%; margin-top: 8px; transition: background-color 0.2s; }\n";
     $pageContent .= ".btn-submit:hover { background: #0056b3; }\n";
     $pageContent .= ".error-message { color: #dc3545; font-size: 11px; margin-top: 2px; display: none; }\n";
@@ -714,7 +779,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $pageContent .= "    .form-group.email-field,\n";
     $pageContent .= "    .form-group.phone-field,\n";
     $pageContent .= "    .form-group.dob-field,\n";
-    $pageContent .= "    .form-group.passport-field {\n";
+    $pageContent .= "    .form-group.passport-field,\n";
+    $pageContent .= "    .form-group.consent-field {\n";
     $pageContent .= "        grid-column: 1 / -1; /* Make these fields full width */\n";
     $pageContent .= "    }\n";
     $pageContent .= "}\n";
@@ -748,7 +814,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $pageContent .= "            separateDialCode: true,\n";
     $pageContent .= "            dropdownContainer: document.body,\n";
     $pageContent .= "            formatOnDisplay: true,\n";
-    $pageContent .= "            autoPlaceholder: 'aggressive'\n";
+    $pageContent .= "            autoPlaceholder: 'aggressive',\n";
+    $pageContent .= "            allowDropdown: true,\n";
+    $pageContent .= "            nationalMode: true\n";
     $pageContent .= "        });\n";
     $pageContent .= "        \n";
     $pageContent .= "        // Update hidden full_phone field with international format before submit\n";
@@ -773,10 +841,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $pageContent .= "                    }\n";
     $pageContent .= "                    document.getElementById('phone-error').textContent = errorMsg;\n";
     $pageContent .= "                    document.getElementById('phone-error').classList.add('show');\n";
-    $pageContent .= "                    \n";
-    $pageContent .= "                    // Allow form to proceed anyway - India has many valid number formats\n";
-    $pageContent .= "                    fullPhoneInput.value = phoneInput.value;\n";
-    $pageContent .= "                    return true;\n";
+    $pageContent .= "                    e.preventDefault();\n";
+    $pageContent .= "                    return false;\n";
     $pageContent .= "                } else {\n";
     $pageContent .= "                    document.getElementById('phone-error').classList.remove('show');\n";
     $pageContent .= "                }\n";
@@ -799,6 +865,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $pageContent .= "                        return false;\n";
     $pageContent .= "                    }\n";
     $pageContent .= "                }\n";
+    $pageContent .= "                \n";
+    $pageContent .= "                // Validate consent checkboxes\n";
+    $pageContent .= "                var communicationConsent = document.getElementById('communication_consent');\n";
+    $pageContent .= "                var dndConsent = document.getElementById('dnd_consent');\n";
+    $pageContent .= "                if (!communicationConsent.checked || !dndConsent.checked) {\n";
+    $pageContent .= "                    e.preventDefault();\n";
+    $pageContent .= "                    alert('Please agree to the consent terms to proceed.');\n";
+    $pageContent .= "                    return false;\n";
+    $pageContent .= "                }\n";
     $pageContent .= "            });\n";
     $pageContent .= "        }\n";
     $pageContent .= "    }\n";
@@ -814,5 +889,38 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Always redirect to resort list
     header('Location: resort_list.php');
     exit();
+}
+
+// Function to ensure logging happens
+function log_resort_activity($pdo, $action, $details, $user_id = 1) {
+    try {
+        // First make sure the table exists
+        $pdo->exec('CREATE TABLE IF NOT EXISTS activity_log (
+            id INT AUTO_INCREMENT PRIMARY KEY, 
+            user_id INT NOT NULL, 
+            action VARCHAR(100) NOT NULL, 
+            details TEXT, 
+            ip_address VARCHAR(45), 
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )');
+        
+        // Then add the entry
+        $log_stmt = $pdo->prepare("INSERT INTO activity_log (user_id, action, details, ip_address) VALUES (?, ?, ?, ?)");
+        $log_result = $log_stmt->execute([
+            $user_id,
+            $action,
+            $details,
+            $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0'
+        ]);
+        
+        if ($log_result) {
+            error_log("Successfully logged activity: $action - $details");
+        } else {
+            error_log("Failed to log activity: " . implode(", ", $log_stmt->errorInfo()));
+        }
+    } catch (Exception $log_error) {
+        // Just log the error but don't fail the main operation
+        error_log("Error logging activity: " . $log_error->getMessage());
+    }
 }
 ?>

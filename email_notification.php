@@ -374,62 +374,61 @@ function sendEmailViaSmtp($recipients, $subject, $body, $fromName = '') {
     $sentCount = 0;
     
     // If PHPMailer is installed, use it
-    if (file_exists(__DIR__ . '/vendor/autoload.php')) {
+    if (file_exists(__DIR__ . '/vendor/phpmailer/phpmailer/src/PHPMailer.php')) {
         try {
-            require_once __DIR__ . '/vendor/autoload.php';
+            // Load PHPMailer directly
+            require_once __DIR__ . '/vendor/phpmailer/phpmailer/src/Exception.php';
+            require_once __DIR__ . '/vendor/phpmailer/phpmailer/src/PHPMailer.php';
+            require_once __DIR__ . '/vendor/phpmailer/phpmailer/src/SMTP.php';
             
-            // Initialize PHPMailer if available
-            if (class_exists('PHPMailer\PHPMailer\PHPMailer')) {
-                error_log("Using PHPMailer for sending emails");
-                $mail = new PHPMailer\PHPMailer\PHPMailer(true);
+            // Initialize PHPMailer
+            error_log("Using PHPMailer for sending emails");
+            $mail = new PHPMailer\PHPMailer\PHPMailer(true);
+            
+            // Server settings
+            $mail->SMTPDebug = 2; // Enable verbose debug output (log only)
+            $mail->Debugoutput = function($str, $level) {
+                error_log("PHPMailer [$level]: $str");
+            };
+            
+            $mail->isSMTP();
+            $mail->Host = $smtpSettings['host'];
+            $mail->SMTPAuth = true;
+            $mail->Username = $smtpSettings['username'];
+            $mail->Password = $smtpSettings['password'];
+            $mail->SMTPSecure = $smtpSettings['encryption']; // tls or ssl
+            $mail->Port = $smtpSettings['port'];
+            
+            // Sender
+            $mail->setFrom($smtpSettings['from_email'], $smtpSettings['from_name']);
+            
+            // Content
+            $mail->isHTML(true);
+            $mail->Subject = $subject;
+            $mail->Body = $body;
+            
+            // Add recipients
+            foreach ($recipients as $email) {
+                $mail->addAddress($email);
                 
-                // Server settings
-                $mail->SMTPDebug = 2; // Enable verbose debug output (log only)
-                $mail->Debugoutput = function($str, $level) {
-                    error_log("PHPMailer [$level]: $str");
-                };
-                
-                $mail->isSMTP();
-                $mail->Host = $smtpSettings['host'];
-                $mail->SMTPAuth = true;
-                $mail->Username = $smtpSettings['username'];
-                $mail->Password = $smtpSettings['password'];
-                $mail->SMTPSecure = $smtpSettings['encryption']; // tls or ssl
-                $mail->Port = $smtpSettings['port'];
-                
-                // Sender
-                $mail->setFrom($smtpSettings['from_email'], $smtpSettings['from_name']);
-                
-                // Content
-                $mail->isHTML(true);
-                $mail->Subject = $subject;
-                $mail->Body = $body;
-                
-                // Add recipients
-                foreach ($recipients as $email) {
-                    $mail->addAddress($email);
-                    
-                    try {
-                        $mail->send();
-                        $sentCount++;
-                        error_log("Successfully sent email to: $email");
-                    } catch (Exception $e) {
-                        error_log("Failed to send email to $email: " . $e->getMessage());
-                    }
-                    
-                    // Clear recipient for next email
-                    $mail->clearAddresses();
+                try {
+                    $mail->send();
+                    $sentCount++;
+                    error_log("Successfully sent email to: $email");
+                } catch (Exception $e) {
+                    error_log("Failed to send email to $email: " . $e->getMessage());
                 }
                 
-                return $sentCount;
-            } else {
-                error_log("PHPMailer class not found, falling back to mail()");
+                // Clear recipient for next email
+                $mail->clearAddresses();
             }
+            
+            return $sentCount;
         } catch (Exception $e) {
             error_log("PHPMailer error: " . $e->getMessage());
         }
     } else {
-        error_log("vendor/autoload.php not found, falling back to mail()");
+        error_log("vendor/phpmailer/phpmailer/src/PHPMailer.php not found, falling back to mail()");
     }
     
     // Fall back to using mail() function

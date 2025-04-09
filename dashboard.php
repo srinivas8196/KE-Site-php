@@ -80,6 +80,23 @@ $recentEnquiries = array();
 $recentResorts = array();
 $recentDestinations = array();
 $recentUsers = array();
+$recentActivities = array(); // For activities from activity_log
+$combinedActivities = array(); // For sorting all activities together
+
+// Create activity_log table if it doesn't exist
+try {
+    $pdo->exec('CREATE TABLE IF NOT EXISTS activity_log (
+        id INT AUTO_INCREMENT PRIMARY KEY, 
+        user_id INT NOT NULL, 
+        action VARCHAR(100) NOT NULL, 
+        details TEXT, 
+        ip_address VARCHAR(45), 
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )');
+    error_log("Checked/created activity_log table in dashboard");
+} catch (Exception $e) {
+    error_log("Error checking/creating activity_log table: " . $e->getMessage());
+}
 
 if (hasPermission('campaign_manager')) {
     // Enquiries
@@ -90,17 +107,134 @@ if (hasPermission('campaign_manager')) {
         LEFT JOIN destinations d ON e.destination_id = d.id 
         ORDER BY e.created_at DESC LIMIT 5");
     $stmt->execute();
-    $recentEnquiries = $stmt->fetchAll();
+    $recentEnquiries = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
-    // Resorts
-    $stmt = $pdo->prepare("SELECT * FROM resorts ORDER BY created_at DESC LIMIT 5");
+    // Add enquiries to combined activities
+    foreach ($recentEnquiries as $enquiry) {
+        $combinedActivities[] = [
+            'type' => 'enquiry',
+            'title' => 'New Enquiry',
+            'name' => $enquiry['first_name'] . ' ' . $enquiry['last_name'],
+            'details' => 'For ' . $enquiry['resort_name'],
+            'icon' => 'envelope',
+            'icon_bg' => 'blue',
+            'username' => '',
+            'timestamp' => $enquiry['created_at']
+        ];
+    }
+    
+    // Recent resorts with created_at in the last 30 days
+    $stmt = $pdo->prepare("SELECT * FROM resorts 
+                          WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) 
+                          ORDER BY created_at DESC LIMIT 10");
     $stmt->execute();
-    $recentResorts = $stmt->fetchAll();
+    $recentResorts = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    // Add resorts to combined activities
+    foreach ($recentResorts as $resort) {
+        $combinedActivities[] = [
+            'type' => 'resort_added',
+            'title' => 'New Resort Added',
+            'name' => $resort['resort_name'],
+            'details' => '',
+            'icon' => 'hotel',
+            'icon_bg' => 'purple',
+            'username' => '',
+            'timestamp' => $resort['created_at']
+        ];
+    }
     
     // Destinations
     $stmt = $pdo->prepare("SELECT * FROM destinations ORDER BY created_at DESC LIMIT 5");
     $stmt->execute();
-    $recentDestinations = $stmt->fetchAll();
+    $recentDestinations = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    // Add destinations to combined activities
+    foreach ($recentDestinations as $destination) {
+        $combinedActivities[] = [
+            'type' => 'destination_added',
+            'title' => 'New Destination Added',
+            'name' => $destination['destination_name'],
+            'details' => '',
+            'icon' => 'map-marker-alt',
+            'icon_bg' => 'green',
+            'username' => '',
+            'timestamp' => $destination['created_at']
+        ];
+    }
+    
+    // Get activities from activity_log 
+    try {
+        // Fetch recent activities
+        error_log("Fetching activity log entries...");
+        $stmt = $pdo->query("SELECT a.*, u.username 
+                          FROM activity_log a 
+                          LEFT JOIN users u ON a.user_id = u.id 
+                          ORDER BY a.created_at DESC LIMIT 20");
+        $recentActivities = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        error_log("Fetched " . count($recentActivities) . " activity log entries");
+        
+        // Add to combined activities
+        foreach ($recentActivities as $activity) {
+            $icon = 'clipboard-list';
+            $bg = 'gray';
+            
+            if ($activity['action'] == 'delete_resort') {
+                $icon = 'trash';
+                $bg = 'red';
+                $title = 'Resort Deleted';
+            } elseif ($activity['action'] == 'update_resort') {
+                $icon = 'edit';
+                $bg = 'blue';
+                $title = 'Resort Updated';
+            } elseif ($activity['action'] == 'create_resort') {
+                $icon = 'plus-circle';
+                $bg = 'green';
+                $title = 'Resort Created';
+            } elseif ($activity['action'] == 'test_activity') {
+                $icon = 'bell';
+                $bg = 'purple';
+                $title = 'Test Activity';
+            } elseif ($activity['action'] == 'resort_status_change') {
+                $icon = 'toggle-on';
+                $bg = 'yellow';
+                $title = 'Resort Status Changed';
+            } elseif ($activity['action'] == 'resort_partner_change') {
+                $icon = 'handshake';
+                $bg = 'purple';
+                $title = 'Resort Partner Status Changed';
+            } elseif ($activity['action'] == 'create_destination') {
+                $icon = 'map-marker';
+                $bg = 'green';
+                $title = 'Destination Created';
+            } elseif ($activity['action'] == 'update_destination') {
+                $icon = 'edit';
+                $bg = 'blue';
+                $title = 'Destination Updated';
+            } elseif ($activity['action'] == 'delete_destination') {
+                $icon = 'trash';
+                $bg = 'red';
+                $title = 'Destination Deleted';
+            } else {
+                $title = ucwords(str_replace('_', ' ', $activity['action']));
+            }
+            
+            $combinedActivities[] = [
+                'type' => $activity['action'],
+                'title' => $title,
+                'name' => '',
+                'details' => $activity['details'] ?? '',
+                'icon' => $icon,
+                'icon_bg' => $bg,
+                'username' => $activity['username'] ?? 'Unknown User',
+                'timestamp' => $activity['created_at']
+            ];
+            error_log("Added activity to combinedActivities: " . $activity['action'] . " - " . ($activity['details'] ?? 'No details'));
+        }
+    } catch (Exception $e) {
+        // Just log the error but don't affect page rendering
+        error_log("Error handling activity log: " . $e->getMessage());
+    }
 }
 
 if (hasPermission('super_admin')) {
@@ -108,7 +242,29 @@ if (hasPermission('super_admin')) {
     $stmt = $pdo->prepare("SELECT * FROM users ORDER BY created_at DESC LIMIT 5");
     $stmt->execute();
     $recentUsers = $stmt->fetchAll();
+    
+    // Add to combined activities
+    foreach ($recentUsers as $user) {
+        $combinedActivities[] = [
+            'type' => 'user_added',
+            'title' => 'New User Registered',
+            'name' => $user['username'],
+            'details' => formatRoleName($user['user_type']),
+            'icon' => 'user',
+            'icon_bg' => 'green',
+            'username' => '',
+            'timestamp' => $user['created_at']
+        ];
+    }
 }
+
+// Sort all activities by timestamp, newest first
+usort($combinedActivities, function($a, $b) {
+    return strtotime($b['timestamp']) - strtotime($a['timestamp']);
+});
+
+// Limit to the 15 most recent activities
+$combinedActivities = array_slice($combinedActivities, 0, 15);
 
 ?>
 <!DOCTYPE html>
@@ -117,21 +273,103 @@ if (hasPermission('super_admin')) {
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Dashboard - Admin Panel</title>
+  <!-- Direct sidebar toggle script -->
+  <script>
+    function toggleSidebar() {
+      const adminSidebar = document.querySelector('.admin-sidebar');
+      const adminContent = document.querySelector('.admin-content');
+      if (adminSidebar) {
+        adminSidebar.classList.toggle('collapsed');
+        if (adminContent) {
+          adminContent.classList.toggle('expanded');
+        }
+        localStorage.setItem('sidebarCollapsed', adminSidebar.classList.contains('collapsed'));
+      }
+    }
+    
+    // Apply immediately when DOM loads
+    document.addEventListener('DOMContentLoaded', function() {
+      // Set up toggle button
+      const toggleBtn = document.getElementById('sidebarToggle');
+      if (toggleBtn) {
+        toggleBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          toggleSidebar();
+          return false;
+        });
+        
+        // Also assign direct onclick to ensure it works
+        toggleBtn.onclick = function(e) {
+          if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+          }
+          toggleSidebar();
+          return false;
+        };
+      }
+      
+      // Apply saved state
+      if (localStorage.getItem('sidebarCollapsed') === 'true') {
+        const sidebar = document.querySelector('.admin-sidebar');
+        const content = document.querySelector('.admin-content');
+        if (sidebar) {
+          sidebar.classList.add('collapsed');
+          if (content) content.classList.add('expanded');
+        }
+      }
+    });
+  </script>
+  
   <!-- Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Font Awesome for Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Additional styles for collapsed sidebar -->
   <style>
-    .sidebar-collapsed {
-      width: 64px;
+    /* Dashboard-specific sidebar styles */
+    .admin-sidebar.collapsed {
+      width: 70px !important;
     }
-    .sidebar-collapsed .sidebar-item-text {
-      display: none;
+    
+    .admin-sidebar.collapsed .sidebar-header h3,
+    .admin-sidebar.collapsed .nav-text,
+    .admin-sidebar.collapsed .sidebar-brand span,
+    .admin-sidebar.collapsed .user-details,
+    .admin-sidebar.collapsed .sidebar-menu a span,
+    .admin-sidebar.collapsed .sidebar-menu-item span {
+      display: none !important;
     }
-    .sidebar-collapsed .sidebar-icon {
+    
+    .admin-sidebar.collapsed .sidebar-menu a {
+      justify-content: center;
+      padding: 0.875rem 0;
+    }
+    
+    .admin-sidebar.collapsed .sidebar-menu a i {
+      margin-right: 0;
+      font-size: 1.25rem;
+    }
+    
+    .admin-sidebar.collapsed .sidebar-footer a {
+      justify-content: center;
       text-align: center;
     }
+    
+    .admin-sidebar.collapsed .sidebar-footer a i {
+      margin-right: 0;
+    }
+    
+    .sidebar-item-text {
+      transition: opacity 0.3s ease;
+    }
+    
+    .admin-sidebar.collapsed .sidebar-item-text {
+      display: none;
+    }
+    
     .stat-card {
       transition: all 0.3s ease;
       position: relative;
@@ -168,19 +406,20 @@ if (hasPermission('super_admin')) {
 </head>
 <body class="bg-gray-50">
   <div class="flex min-h-screen">
-    <!-- Sidebar -->
+    <!-- Include sidebar.php which properly uses admin-sidebar class -->
     <?php include 'sidebar.php'; ?>
-    <!-- Main Content -->
-    <main class="flex-1 p-8">
-      <div class="container mx-auto">
-        <!-- Welcome Section -->
-        <div class="mb-8">
+    
+    <!-- Main Content with adjusted padding -->
+    <div class="admin-content">
+      <div class="content-container">
+        <!-- Welcome Section with reduced margins -->
+        <div class="mb-4">
           <h1 class="text-3xl font-bold text-gray-800">Welcome back, <?php echo htmlspecialchars($user['username']); ?>!</h1>
           <p class="text-gray-600 mt-2">Here's what's happening with your resorts today.</p>
         </div>
 
         <!-- Statistics Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <?php if (hasPermission('campaign_manager')): ?>
           <!-- Destinations Card -->
           <a href="destination_list.php" class="stat-card bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg shadow-lg p-6 text-white no-underline block">
@@ -279,7 +518,7 @@ if (hasPermission('super_admin')) {
                 </div>
                 <div class="flex-1">
                   <h4 class="font-medium text-gray-800"><?php echo htmlspecialchars($enquiry['first_name'] . ' ' . $enquiry['last_name']); ?></h4>
-                  <p class="text-sm text-gray-600">Enquired about <?php echo htmlspecialchars($enquiry['resort_name']); ?></p>
+                  <p class="text-sm text-gray-600">Enquired about <?php echo htmlspecialchars($enquiry['resort_name'] ?? 'a resort'); ?></p>
                   <p class="text-xs text-gray-500 mt-1"><?php echo date('M j, Y H:i', strtotime($enquiry['created_at'])); ?></p>
                 </div>
                 <span class="px-2 py-1 text-xs rounded-full <?php echo getStatusClass($enquiry['status']); ?>">
@@ -295,51 +534,72 @@ if (hasPermission('super_admin')) {
           <div class="bg-white rounded-lg shadow-lg p-6">
             <div class="flex justify-between items-center mb-4">
               <h2 class="text-xl font-semibold text-gray-800">Recent Activities</h2>
+              <a href="check_activity_log.php" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm">View all</a>
             </div>
             <div class="space-y-4">
               <?php if (hasPermission('campaign_manager')): ?>
-              <!-- Recent Resorts -->
-              <?php foreach ($recentResorts as $resort): ?>
-              <div class="activity-item flex items-center p-3 rounded-lg border border-gray-100">
-                <div class="bg-purple-100 rounded-full p-2 mr-4">
-                  <i class="fas fa-hotel text-purple-500"></i>
+              
+              <!-- Combined Activities -->
+              <?php if (!empty($combinedActivities)): ?>
+                <?php foreach ($combinedActivities as $activity): ?>
+                <div class="activity-item flex items-center p-3 rounded-lg border border-gray-100">
+                  <div class="bg-<?php echo $activity['icon_bg']; ?>-100 rounded-full p-2 mr-4">
+                    <i class="fas fa-<?php echo $activity['icon']; ?> text-<?php echo $activity['icon_bg']; ?>-500"></i>
+                  </div>
+                  <div class="flex-1">
+                    <h4 class="font-medium text-gray-800"><?php echo htmlspecialchars($activity['title']); ?></h4>
+                    
+                    <p class="text-sm text-gray-600">
+                      <?php if (!empty($activity['name'])): ?>
+                        <?php echo htmlspecialchars($activity['name']); ?>
+                        <?php if (!empty($activity['details'])): ?>
+                          <span class="text-gray-500">(<?php echo htmlspecialchars($activity['details']); ?>)</span>
+                        <?php endif; ?>
+                      <?php else: ?>
+                        <?php echo htmlspecialchars($activity['details'] ?? 'No details available'); ?>
+                      <?php endif; ?>
+                    </p>
+                    
+                    <p class="text-xs text-gray-500 mt-1">
+                      <?php echo date('M j, Y g:i A', strtotime($activity['timestamp'])); ?>
+                      <?php if (!empty($activity['username'])): ?>
+                        by <?php echo htmlspecialchars($activity['username']); ?>
+                      <?php endif; ?>
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h4 class="font-medium text-gray-800">New Resort Added</h4>
-                  <p class="text-sm text-gray-600"><?php echo htmlspecialchars($resort['resort_name']); ?></p>
-                  <p class="text-xs text-gray-500 mt-1"><?php echo date('M j, Y', strtotime($resort['created_at'])); ?></p>
-                </div>
-              </div>
-              <?php endforeach; ?>
+                <?php endforeach; ?>
+              <?php else: ?>
+                <p class="text-gray-500 text-center py-4">No recent activities to display</p>
               <?php endif; ?>
-
-              <?php if (hasPermission('super_admin')): ?>
-              <!-- Recent Users -->
-              <?php foreach ($recentUsers as $recentUser): ?>
-              <div class="activity-item flex items-center p-3 rounded-lg border border-gray-100">
-                <div class="bg-green-100 rounded-full p-2 mr-4">
-                  <i class="fas fa-user text-green-500"></i>
-                </div>
-                <div>
-                  <h4 class="font-medium text-gray-800">New User Registered</h4>
-                  <p class="text-sm text-gray-600"><?php echo htmlspecialchars($recentUser['username']); ?> (<?php echo formatRoleName($recentUser['user_type']); ?>)</p>
-                  <p class="text-xs text-gray-500 mt-1"><?php echo date('M j, Y', strtotime($recentUser['created_at'])); ?></p>
-                </div>
-              </div>
-              <?php endforeach; ?>
               <?php endif; ?>
             </div>
           </div>
         </div>
       </div>
-    </main>
+    </div>
   </div>
+
+  <!-- Stop any continuous loading -->
   <script>
-    document.getElementById('toggleSidebar').addEventListener('click', function() {
-      var sidebar = document.getElementById('sidebar');
-      sidebar.classList.toggle('sidebar-collapsed');
+  // Check for any redirects or continuous loading
+  if (window.stop) {
+    window.stop();
+  }
+  // Reset any refresh meta tags
+  document.querySelectorAll('meta[http-equiv="refresh"]').forEach(function(meta) {
+    meta.remove();
+  });
+  // Cancel any pending Ajax requests
+  if (window.jQuery) {
+    jQuery.ajax({
+      global: false
     });
+  }
+  // Set a flag to prevent multiple initializations
+  window.dashboardLoaded = true;
   </script>
+  
   <?php
   function formatRoleName($role) {
     switch ($role) {

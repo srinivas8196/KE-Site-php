@@ -104,7 +104,7 @@ class Validate_Finance_CreditCard
         $len_number = strlen($number);
         $sum        = 0;
         for ($k = $len_number % 2; $k < $len_number; $k += 2) {
-            if ((intval($number{$k}) * 2) > 9) {
+            if ((intval($number[$k]) * 2) > 9) {
                 $sum += (intval($number{$k}) * 2) - 9;
             } else {
                 $sum += intval($number{$k}) * 2;
