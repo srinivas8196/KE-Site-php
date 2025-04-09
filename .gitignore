@@ -55,6 +55,7 @@ Thumbs.db
 # Upload directories
 /uploads/
 /assets/uploads/
+/pay-now
 # /assets/resorts/*/gallery/
 # /assets/resorts/*/rooms/
 # /assets/resorts/*/amenities/
