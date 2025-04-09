@@ -369,6 +369,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Build the assets folder path for images using the stored slug in the new structure
     $pageContent .= "\$resortFolder = 'assets/resorts/' . (\$resort['resort_slug'] ?? '');\n";
     $pageContent .= "?>\n";
+    
     $pageContent .= "<?php include 'kresort_header.php'; ?>\n";
     // Link CSS files
     $pageContent .= "<link rel=\"stylesheet\" href=\"css/resort-details.css\" />\n";
@@ -786,13 +787,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $pageContent .= "}\n";
     $pageContent .= "</style>\n";
 
-   
     // Include JS Libraries
     $pageContent .= "<script src=\"https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.js\"></script>\n";
     $pageContent .= "<script src=\"https://unpkg.com/swiper/swiper-bundle.min.js\"></script>\n";
     $pageContent .= "<script src=\"https://kit.fontawesome.com/your-font-awesome-kit.js\"></script>\n";
 
-    // Include Footer
+    // Close all containers to ensure footer is outside
+    $pageContent .= "</div>\n"; // Close the row
+    $pageContent .= "</div>\n"; // Close the container
+
+    // Include Footer - OUTSIDE all containers
     $pageContent .= "<?php include 'kfooter.php'; ?>\n";
 
     // Add phone input initialization AFTER the footer

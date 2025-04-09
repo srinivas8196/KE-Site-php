@@ -503,116 +503,211 @@ try {
                     error_log("Database updated with LeadSquared ID for enquiry ID: $enquiryId");
                     fwrite($logFile, "Database updated with LeadSquared ID: $leadId for enquiry: $enquiryId\n");
                     
-                    // Create an activity for this lead in LeadSquared
-                    $isNewLead = $response['data']['IsNew'] ?? false;
-                    $activityType = 'WebsiteForm';
-                    $activityNote = "Resort Enquiry for $resortName ($resortCode). ";
-                    
-                    if ($isNewLead) {
-                        $activityNote .= "New lead created from website form submission.";
-                    } else {
-                        $activityNote .= "Existing lead updated from website form submission.";
-                    }
-                    
-                    $activityNote .= "\n\nDetails:\n";
-                    $activityNote .= "- Name: $firstName $lastName\n";
-                    $activityNote .= "- Email: $email\n";
-                    $activityNote .= "- Phone: $formattedPhone\n";
-                    $activityNote .= "- Country: " . getCountryName($countryCode) . "\n";
-                    $activityNote .= "- Resort: $resortName\n";
-                    $activityNote .= "- Destination: $destinationName\n";
-                    $activityNote .= "- Lead Source: $leadSource\n";
-                    $activityNote .= "- Lead Source Description: $leadSourceDescription\n";
-                    
-                    fwrite($logFile, "Creating activity for lead ID: $leadId\n");
-                    fwrite($logFile, "Activity note: $activityNote\n");
-                    
-                    // Call the create_lead_activity function
-                    $activityResponse = create_lead_activity(
-                        $leadId,
-                        $activityType,
-                        $activityNote,
-                        $leadSquaredAccessKey,
-                        $leadSquaredSecretKey,
-                        $leadSquaredApiUrl
-                    );
-                    
-                    fwrite($logFile, "LeadSquared activity creation response: " . json_encode($activityResponse) . "\n");
-                    
-                    if ($activityResponse['status'] === 'success') {
-                        fwrite($logFile, "Successfully created activity in LeadSquared\n");
-                    } else {
-                        fwrite($logFile, "Failed to create activity in LeadSquared: " . $activityResponse['message'] . "\n");
-                    }
-                    
-                    // Create a second activity for the task/note
-                    $taskActivityType = 'Note';
-                    $taskActivityNote = "Follow-up required for $resortName enquiry from $firstName $lastName. Customer has expressed interest in $resortName at $destinationName. Please contact via phone ($formattedPhone) or email ($email).";
-                    
-                    if (!empty($additionalRequirements)) {
-                        $taskActivityNote .= "\n\nAdditional requirements specified by the customer: $additionalRequirements";
-                    }
-                    
-                    fwrite($logFile, "Creating task activity for lead ID: $leadId\n");
-                    
-                    $taskActivityResponse = create_lead_activity(
-                        $leadId,
-                        $taskActivityType,
-                        $taskActivityNote,
-                        $leadSquaredAccessKey,
-                        $leadSquaredSecretKey,
-                        $leadSquaredApiUrl
-                    );
-                    
-                    fwrite($logFile, "LeadSquared task creation response: " . json_encode($taskActivityResponse) . "\n");
-                    
-                    // Create a third activity as a Task with due date
-                    $followupActivityType = 'Task';
-                    $followupActivityNote = "Follow up with $firstName $lastName regarding $resortName enquiry.";
-                    
-                    // Prepare activity data for task with due date (tomorrow)
-                    $tomorrow = date('c', strtotime('+1 day'));
-                    $taskData = [
+                    // Create a dedicated Activity History record that will show up in the tab
+                    $activityHistoryData = [
                         'RelatedProspectId' => $leadId,
-                        'ActivityType' => $followupActivityType,
-                        'ActivityNote' => $followupActivityNote,
+                        'ActivityType' => 'PhoneCall', // This activity type definitely shows in Activity History
+                        'ActivityNote' => "Incoming enquiry for $resortName. Customer is interested in booking at $destinationName.",
                         'ActivityDateTime' => date('c'),
-                        'DueDate' => $tomorrow,
-                        'Status' => 'Open',
-                        'Priority' => 'High',
-                        'Owner' => 'Chowda Reddy', // Use the appropriate owner name from your LeadSquared account
-                        'Subject' => "New enquiry for $resortName from $firstName $lastName"
+                        'Subject' => "Website Enquiry - $resortName",
+                        'Status' => 'Completed',
+                        'Direction' => 'Incoming',
+                        'Priority' => 'Medium',
+                        'Owner' => 'Chowda Reddy'
                     ];
                     
-                    $taskUrl = $leadSquaredApiUrl . '/ProspectActivity.Create?accessKey=' . urlencode($leadSquaredAccessKey) . '&secretKey=' . urlencode($leadSquaredSecretKey);
+                    $activityHistoryUrl = $leadSquaredApiUrl . '/ProspectActivity.Create?accessKey=' . urlencode($leadSquaredAccessKey) . '&secretKey=' . urlencode($leadSquaredSecretKey);
                     
-                    $taskJsonData = json_encode($taskData);
+                    $activityHistoryJsonData = json_encode($activityHistoryData);
                     
-                    fwrite($logFile, "Creating follow-up task for lead ID: $leadId\n");
-                    fwrite($logFile, "Task data: " . $taskJsonData . "\n");
+                    fwrite($logFile, "Creating activity history record for lead ID: $leadId\n");
+                    fwrite($logFile, "Activity history data: " . $activityHistoryJsonData . "\n");
                     
-                    $taskCurl = curl_init($taskUrl);
-                    curl_setopt($taskCurl, CURLOPT_CUSTOMREQUEST, "POST");
-                    curl_setopt($taskCurl, CURLOPT_RETURNTRANSFER, 1);
-                    curl_setopt($taskCurl, CURLOPT_POSTFIELDS, $taskJsonData);
-                    curl_setopt($taskCurl, CURLOPT_SSL_VERIFYPEER, false);
-                    curl_setopt($taskCurl, CURLOPT_TIMEOUT, 30);
-                    curl_setopt($taskCurl, CURLOPT_HTTPHEADER, [
+                    $activityHistoryCurl = curl_init($activityHistoryUrl);
+                    curl_setopt($activityHistoryCurl, CURLOPT_CUSTOMREQUEST, "POST");
+                    curl_setopt($activityHistoryCurl, CURLOPT_RETURNTRANSFER, 1);
+                    curl_setopt($activityHistoryCurl, CURLOPT_POSTFIELDS, $activityHistoryJsonData);
+                    curl_setopt($activityHistoryCurl, CURLOPT_SSL_VERIFYPEER, false);
+                    curl_setopt($activityHistoryCurl, CURLOPT_TIMEOUT, 30);
+                    curl_setopt($activityHistoryCurl, CURLOPT_HTTPHEADER, [
                         'Content-Type: application/json',
-                        'Content-Length: ' . strlen($taskJsonData)
+                        'Content-Length: ' . strlen($activityHistoryJsonData)
                     ]);
                     
-                    $taskResponse = curl_exec($taskCurl);
-                    $taskHttpCode = curl_getinfo($taskCurl, CURLINFO_HTTP_CODE);
-                    curl_close($taskCurl);
+                    $activityHistoryResponse = curl_exec($activityHistoryCurl);
+                    $activityHistoryHttpCode = curl_getinfo($activityHistoryCurl, CURLINFO_HTTP_CODE);
+                    curl_close($activityHistoryCurl);
                     
-                    fwrite($logFile, "LeadSquared follow-up task creation HTTP code: " . $taskHttpCode . "\n");
-                    fwrite($logFile, "LeadSquared follow-up task creation response: " . $taskResponse . "\n");
+                    fwrite($logFile, "LeadSquared activity history creation HTTP code: " . $activityHistoryHttpCode . "\n");
+                    fwrite($logFile, "LeadSquared activity history creation response: " . $activityHistoryResponse . "\n");
                     
-                    if ($taskHttpCode >= 200 && $taskHttpCode < 300) {
-                        fwrite($logFile, "Successfully created follow-up task in LeadSquared\n");
-                    } else {
-                        fwrite($logFile, "Failed to create follow-up task in LeadSquared\n");
+                    // Create another activity as a Meeting
+                    $meetingData = [
+                        'RelatedProspectId' => $leadId,
+                        'ActivityType' => 'Meeting',
+                        'ActivityNote' => "Discussion about $resortName enquiry. Customer $firstName $lastName is interested in booking. Follow up required.",
+                        'ActivityDateTime' => date('c'),
+                        'Subject' => "Meeting about $resortName enquiry",
+                        'Status' => 'Completed',
+                        'Priority' => 'High',
+                        'Owner' => 'Chowda Reddy',
+                        'MeetingLocation' => 'Phone/Email',
+                        'MeetingCompanyName' => 'Karma Experience',
+                        'MeetingOutcome' => 'Positive - Follow up Required'
+                    ];
+                    
+                    $meetingJsonData = json_encode($meetingData);
+                    
+                    fwrite($logFile, "Creating meeting activity for lead ID: $leadId\n");
+                    fwrite($logFile, "Meeting data: " . $meetingJsonData . "\n");
+                    
+                    $meetingCurl = curl_init($activityHistoryUrl);
+                    curl_setopt($meetingCurl, CURLOPT_CUSTOMREQUEST, "POST");
+                    curl_setopt($meetingCurl, CURLOPT_RETURNTRANSFER, 1);
+                    curl_setopt($meetingCurl, CURLOPT_POSTFIELDS, $meetingJsonData);
+                    curl_setopt($meetingCurl, CURLOPT_SSL_VERIFYPEER, false);
+                    curl_setopt($meetingCurl, CURLOPT_TIMEOUT, 30);
+                    curl_setopt($meetingCurl, CURLOPT_HTTPHEADER, [
+                        'Content-Type: application/json',
+                        'Content-Length: ' . strlen($meetingJsonData)
+                    ]);
+                    
+                    $meetingResponse = curl_exec($meetingCurl);
+                    $meetingHttpCode = curl_getinfo($meetingCurl, CURLINFO_HTTP_CODE);
+                    curl_close($meetingCurl);
+                    
+                    fwrite($logFile, "LeadSquared meeting activity creation HTTP code: " . $meetingHttpCode . "\n");
+                    fwrite($logFile, "LeadSquared meeting activity creation response: " . $meetingResponse . "\n");
+                    
+                    // Create a third activity as an Email
+                    $emailData = [
+                        'RelatedProspectId' => $leadId,
+                        'ActivityType' => 'Email',
+                        'ActivityNote' => "Automatic email sent to $firstName $lastName regarding $resortName enquiry.",
+                        'ActivityDateTime' => date('c'),
+                        'Subject' => "Thank you for your enquiry - $resortName",
+                        'Status' => 'Completed',
+                        'Priority' => 'Medium',
+                        'Owner' => 'Chowda Reddy',
+                        'Direction' => 'Outgoing',
+                        'EmailSender' => $fromEmail,
+                        'EmailRecipient' => $email
+                    ];
+                    
+                    $emailJsonData = json_encode($emailData);
+                    
+                    fwrite($logFile, "Creating email activity for lead ID: $leadId\n");
+                    fwrite($logFile, "Email activity data: " . $emailJsonData . "\n");
+                    
+                    $emailCurl = curl_init($activityHistoryUrl);
+                    curl_setopt($emailCurl, CURLOPT_CUSTOMREQUEST, "POST");
+                    curl_setopt($emailCurl, CURLOPT_RETURNTRANSFER, 1);
+                    curl_setopt($emailCurl, CURLOPT_POSTFIELDS, $emailJsonData);
+                    curl_setopt($emailCurl, CURLOPT_SSL_VERIFYPEER, false);
+                    curl_setopt($emailCurl, CURLOPT_TIMEOUT, 30);
+                    curl_setopt($emailCurl, CURLOPT_HTTPHEADER, [
+                        'Content-Type: application/json',
+                        'Content-Length: ' . strlen($emailJsonData)
+                    ]);
+                    
+                    $emailResponse = curl_exec($emailCurl);
+                    $emailHttpCode = curl_getinfo($emailCurl, CURLINFO_HTTP_CODE);
+                    curl_close($emailCurl);
+                    
+                    fwrite($logFile, "LeadSquared email activity creation HTTP code: " . $emailHttpCode . "\n");
+                    fwrite($logFile, "LeadSquared email activity creation response: " . $emailResponse . "\n");
+                    
+                    // Create a pending task with future due date - this should definitely show up
+                    $tomorrow = date('c', strtotime('+1 day'));
+                    $pendingTaskData = [
+                        'RelatedProspectId' => $leadId,
+                        'ActivityType' => 'Task',
+                        'ActivityNote' => "Follow up with $firstName $lastName about their interest in $resortName at $destinationName.\n\nPhone: $formattedPhone\nEmail: $email",
+                        'ActivityDateTime' => date('c'),
+                        'Subject' => "Follow-up for $resortName enquiry - $firstName $lastName",
+                        'Status' => 'Open',
+                        'Priority' => 'High',
+                        'Owner' => 'Chowda Reddy',
+                        'DueDate' => $tomorrow
+                    ];
+                    
+                    $pendingTaskJsonData = json_encode($pendingTaskData);
+                    
+                    fwrite($logFile, "Creating pending task for lead ID: $leadId\n");
+                    fwrite($logFile, "Pending task data: " . $pendingTaskJsonData . "\n");
+                    
+                    $pendingTaskCurl = curl_init($activityHistoryUrl);
+                    curl_setopt($pendingTaskCurl, CURLOPT_CUSTOMREQUEST, "POST");
+                    curl_setopt($pendingTaskCurl, CURLOPT_RETURNTRANSFER, 1);
+                    curl_setopt($pendingTaskCurl, CURLOPT_POSTFIELDS, $pendingTaskJsonData);
+                    curl_setopt($pendingTaskCurl, CURLOPT_SSL_VERIFYPEER, false);
+                    curl_setopt($pendingTaskCurl, CURLOPT_TIMEOUT, 30);
+                    curl_setopt($pendingTaskCurl, CURLOPT_HTTPHEADER, [
+                        'Content-Type: application/json',
+                        'Content-Length: ' . strlen($pendingTaskJsonData)
+                    ]);
+                    
+                    $pendingTaskResponse = curl_exec($pendingTaskCurl);
+                    $pendingTaskHttpCode = curl_getinfo($pendingTaskCurl, CURLINFO_HTTP_CODE);
+                    curl_close($pendingTaskCurl);
+                    
+                    fwrite($logFile, "LeadSquared pending task creation HTTP code: " . $pendingTaskHttpCode . "\n");
+                    fwrite($logFile, "LeadSquared pending task creation response: " . $pendingTaskResponse . "\n");
+                    
+                    // Add a "Viewed" activity which should definitely show up in the Activity History tab
+                    try {
+                        $sourcePage = "Resort Enquiry Form - $resortName";
+                        $viewedResponse = create_viewed_activity(
+                            $leadId, 
+                            $sourcePage,
+                            $leadSquaredAccessKey,
+                            $leadSquaredSecretKey,
+                            $leadSquaredApiUrl
+                        );
+                        
+                        fwrite($logFile, "Added 'Viewed' activity for lead. Response: " . json_encode($viewedResponse) . "\n");
+                    } catch (Exception $e) {
+                        fwrite($logFile, "Error creating 'Viewed' activity: " . $e->getMessage() . "\n");
+                    }
+                    
+                    // Try one more activity using the Activity.Create endpoint
+                    try {
+                        // This endpoint is specifically for activities that appear in the Activity History tab
+                        $activityCreateUrl = $leadSquaredApiUrl . '/Activity.Create?accessKey=' . urlencode($leadSquaredAccessKey) . '&secretKey=' . urlencode($leadSquaredSecretKey);
+                        
+                        $activityCreateData = [
+                            'LeadId' => $leadId,
+                            'Event' => "Custom", // Custom event
+                            'Description' => "Resort enquiry from website for $resortName at $destinationName",
+                            'Notes' => "Customer $firstName $lastName submitted resort enquiry via website form. Phone: $formattedPhone, Email: $email",
+                            'EventId' => 1000, // Custom event ID
+                            'CreatedOn' => date('c')
+                        ];
+                        
+                        $activityCreateJsonData = json_encode($activityCreateData);
+                        
+                        fwrite($logFile, "Trying Activity.Create endpoint for lead ID: $leadId\n");
+                        fwrite($logFile, "Activity create data: " . $activityCreateJsonData . "\n");
+                        
+                        $activityCreateCurl = curl_init($activityCreateUrl);
+                        curl_setopt($activityCreateCurl, CURLOPT_CUSTOMREQUEST, "POST");
+                        curl_setopt($activityCreateCurl, CURLOPT_RETURNTRANSFER, 1);
+                        curl_setopt($activityCreateCurl, CURLOPT_POSTFIELDS, $activityCreateJsonData);
+                        curl_setopt($activityCreateCurl, CURLOPT_SSL_VERIFYPEER, false);
+                        curl_setopt($activityCreateCurl, CURLOPT_TIMEOUT, 30);
+                        curl_setopt($activityCreateCurl, CURLOPT_HTTPHEADER, [
+                            'Content-Type: application/json',
+                            'Content-Length: ' . strlen($activityCreateJsonData)
+                        ]);
+                        
+                        $activityCreateResponse = curl_exec($activityCreateCurl);
+                        $activityCreateHttpCode = curl_getinfo($activityCreateCurl, CURLINFO_HTTP_CODE);
+                        curl_close($activityCreateCurl);
+                        
+                        fwrite($logFile, "LeadSquared Activity.Create HTTP code: " . $activityCreateHttpCode . "\n");
+                        fwrite($logFile, "LeadSquared Activity.Create response: " . $activityCreateResponse . "\n");
+                    } catch (Exception $e) {
+                        fwrite($logFile, "Error using Activity.Create endpoint: " . $e->getMessage() . "\n");
                     }
                 } else {
                     error_log("LeadSquared lead created/updated successfully, but lead ID is not available in the response.");

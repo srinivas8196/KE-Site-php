@@ -1119,4 +1119,57 @@ function create_lead_activity($leadId, $activityType, $activityNote, $accessKey,
         ];
     }
 }
+
+/**
+ * Create a "Viewed" activity for a Lead in LeadSquared
+ * This activity type specifically shows in the Activity History tab
+ * 
+ * @param string $leadId LeadSquared lead ID
+ * @param string $sourcePage Source page where lead was viewed
+ * @param string $accessKey LeadSquared access key
+ * @param string $secretKey LeadSquared secret key
+ * @param string $apiUrl LeadSquared API URL base
+ * @return array API response
+ */
+function create_viewed_activity($leadId, $sourcePage, $accessKey, $secretKey, $apiUrl) {
+    $url = $apiUrl . '/ProspectActivity.Add?accessKey=' . urlencode($accessKey) . '&secretKey=' . urlencode($secretKey);
+    
+    // Use the specific endpoint and format for Viewed activities
+    $activityData = [
+        'LeadId' => $leadId,
+        'ActivityEvent' => 65, // Activity Event ID for "Viewed"
+        'ActivityEventName' => 'Viewed',
+        'ActivityData' => [
+            'SourcePage' => $sourcePage
+        ]
+    ];
+    
+    $jsonData = json_encode($activityData);
+    
+    error_log("Creating 'Viewed' activity for lead ID: $leadId");
+    error_log("Activity data: " . $jsonData);
+    
+    $curl = curl_init($url);
+    curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "POST");
+    curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($curl, CURLOPT_POSTFIELDS, $jsonData);
+    curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($curl, CURLOPT_TIMEOUT, 30);
+    curl_setopt($curl, CURLOPT_HTTPHEADER, [
+        'Content-Type: application/json',
+        'Content-Length: ' . strlen($jsonData)
+    ]);
+    
+    $response = curl_exec($curl);
+    $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+    $curlError = curl_error($curl);
+    curl_close($curl);
+    
+    error_log("LeadSquared 'Viewed' activity creation HTTP code: " . $httpCode);
+    if (!empty($curlError)) {
+        error_log("LeadSquared 'Viewed' activity creation cURL error: " . $curlError);
+    }
+    
+    return json_decode($response, true);
+}
 ?> 
