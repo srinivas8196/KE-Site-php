@@ -1051,4 +1051,72 @@ function formatLeadSquaredData($enquiryData) {
         'ProspectStage' => 'New'
     ];
 }
+
+/**
+ * Create an activity for a Lead in LeadSquared
+ * 
+ * @param string $leadId LeadSquared lead ID
+ * @param string $activityType Activity type (e.g., 'WebsiteForm', 'Email', 'Call', etc.)
+ * @param string $activityNote Note to include with the activity
+ * @param string $accessKey LeadSquared access key
+ * @param string $secretKey LeadSquared secret key
+ * @param string $apiUrl LeadSquared API URL base
+ * @return array API response
+ */
+function create_lead_activity($leadId, $activityType, $activityNote, $accessKey, $secretKey, $apiUrl) {
+    $url = $apiUrl . '/ProspectActivity.Create?accessKey=' . urlencode($accessKey) . '&secretKey=' . urlencode($secretKey);
+    
+    // Prepare activity data
+    $activityData = [
+        'RelatedProspectId' => $leadId,
+        'ActivityType' => $activityType,
+        'ActivityNote' => $activityNote,
+        'ActivityDateTime' => date('c') // Current time in ISO 8601 format
+    ];
+    
+    $jsonData = json_encode($activityData);
+    
+    error_log("Creating activity for lead ID: $leadId, type: $activityType");
+    error_log("Activity data: " . $jsonData);
+    
+    $curl = curl_init($url);
+    curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "POST");
+    curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($curl, CURLOPT_POSTFIELDS, $jsonData);
+    curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($curl, CURLOPT_TIMEOUT, 30);
+    curl_setopt($curl, CURLOPT_HTTPHEADER, [
+        'Content-Type: application/json',
+        'Content-Length: ' . strlen($jsonData)
+    ]);
+    
+    $response = curl_exec($curl);
+    $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+    $curlError = curl_error($curl);
+    curl_close($curl);
+    
+    error_log("LeadSquared create activity HTTP code: " . $httpCode);
+    if (!empty($curlError)) {
+        error_log("LeadSquared create activity cURL error: " . $curlError);
+    }
+    
+    $result = json_decode($response, true);
+    
+    if ($httpCode >= 200 && $httpCode < 300) {
+        error_log("Successfully created activity for lead ID: $leadId");
+        return [
+            'status' => 'success',
+            'message' => 'Activity created successfully',
+            'data' => $result
+        ];
+    } else {
+        error_log("Failed to create activity for lead ID: $leadId. Response: " . $response);
+        return [
+            'status' => 'error',
+            'message' => 'Failed to create activity: ' . ($result['Message'] ?? 'Unknown error'),
+            'data' => $result,
+            'http_code' => $httpCode
+        ];
+    }
+}
 ?> 

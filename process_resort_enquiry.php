@@ -502,6 +502,118 @@ try {
                     
                     error_log("Database updated with LeadSquared ID for enquiry ID: $enquiryId");
                     fwrite($logFile, "Database updated with LeadSquared ID: $leadId for enquiry: $enquiryId\n");
+                    
+                    // Create an activity for this lead in LeadSquared
+                    $isNewLead = $response['data']['IsNew'] ?? false;
+                    $activityType = 'WebsiteForm';
+                    $activityNote = "Resort Enquiry for $resortName ($resortCode). ";
+                    
+                    if ($isNewLead) {
+                        $activityNote .= "New lead created from website form submission.";
+                    } else {
+                        $activityNote .= "Existing lead updated from website form submission.";
+                    }
+                    
+                    $activityNote .= "\n\nDetails:\n";
+                    $activityNote .= "- Name: $firstName $lastName\n";
+                    $activityNote .= "- Email: $email\n";
+                    $activityNote .= "- Phone: $formattedPhone\n";
+                    $activityNote .= "- Country: " . getCountryName($countryCode) . "\n";
+                    $activityNote .= "- Resort: $resortName\n";
+                    $activityNote .= "- Destination: $destinationName\n";
+                    $activityNote .= "- Lead Source: $leadSource\n";
+                    $activityNote .= "- Lead Source Description: $leadSourceDescription\n";
+                    
+                    fwrite($logFile, "Creating activity for lead ID: $leadId\n");
+                    fwrite($logFile, "Activity note: $activityNote\n");
+                    
+                    // Call the create_lead_activity function
+                    $activityResponse = create_lead_activity(
+                        $leadId,
+                        $activityType,
+                        $activityNote,
+                        $leadSquaredAccessKey,
+                        $leadSquaredSecretKey,
+                        $leadSquaredApiUrl
+                    );
+                    
+                    fwrite($logFile, "LeadSquared activity creation response: " . json_encode($activityResponse) . "\n");
+                    
+                    if ($activityResponse['status'] === 'success') {
+                        fwrite($logFile, "Successfully created activity in LeadSquared\n");
+                    } else {
+                        fwrite($logFile, "Failed to create activity in LeadSquared: " . $activityResponse['message'] . "\n");
+                    }
+                    
+                    // Create a second activity for the task/note
+                    $taskActivityType = 'Note';
+                    $taskActivityNote = "Follow-up required for $resortName enquiry from $firstName $lastName. Customer has expressed interest in $resortName at $destinationName. Please contact via phone ($formattedPhone) or email ($email).";
+                    
+                    if (!empty($additionalRequirements)) {
+                        $taskActivityNote .= "\n\nAdditional requirements specified by the customer: $additionalRequirements";
+                    }
+                    
+                    fwrite($logFile, "Creating task activity for lead ID: $leadId\n");
+                    
+                    $taskActivityResponse = create_lead_activity(
+                        $leadId,
+                        $taskActivityType,
+                        $taskActivityNote,
+                        $leadSquaredAccessKey,
+                        $leadSquaredSecretKey,
+                        $leadSquaredApiUrl
+                    );
+                    
+                    fwrite($logFile, "LeadSquared task creation response: " . json_encode($taskActivityResponse) . "\n");
+                    
+                    // Create a third activity as a Task with due date
+                    $followupActivityType = 'Task';
+                    $followupActivityNote = "Follow up with $firstName $lastName regarding $resortName enquiry.";
+                    
+                    // Prepare activity data for task with due date (tomorrow)
+                    $tomorrow = date('c', strtotime('+1 day'));
+                    $taskData = [
+                        'RelatedProspectId' => $leadId,
+                        'ActivityType' => $followupActivityType,
+                        'ActivityNote' => $followupActivityNote,
+                        'ActivityDateTime' => date('c'),
+                        'DueDate' => $tomorrow,
+                        'Status' => 'Open',
+                        'Priority' => 'High',
+                        'Owner' => 'Chowda Reddy', // Use the appropriate owner name from your LeadSquared account
+                        'Subject' => "New enquiry for $resortName from $firstName $lastName"
+                    ];
+                    
+                    $taskUrl = $leadSquaredApiUrl . '/ProspectActivity.Create?accessKey=' . urlencode($leadSquaredAccessKey) . '&secretKey=' . urlencode($leadSquaredSecretKey);
+                    
+                    $taskJsonData = json_encode($taskData);
+                    
+                    fwrite($logFile, "Creating follow-up task for lead ID: $leadId\n");
+                    fwrite($logFile, "Task data: " . $taskJsonData . "\n");
+                    
+                    $taskCurl = curl_init($taskUrl);
+                    curl_setopt($taskCurl, CURLOPT_CUSTOMREQUEST, "POST");
+                    curl_setopt($taskCurl, CURLOPT_RETURNTRANSFER, 1);
+                    curl_setopt($taskCurl, CURLOPT_POSTFIELDS, $taskJsonData);
+                    curl_setopt($taskCurl, CURLOPT_SSL_VERIFYPEER, false);
+                    curl_setopt($taskCurl, CURLOPT_TIMEOUT, 30);
+                    curl_setopt($taskCurl, CURLOPT_HTTPHEADER, [
+                        'Content-Type: application/json',
+                        'Content-Length: ' . strlen($taskJsonData)
+                    ]);
+                    
+                    $taskResponse = curl_exec($taskCurl);
+                    $taskHttpCode = curl_getinfo($taskCurl, CURLINFO_HTTP_CODE);
+                    curl_close($taskCurl);
+                    
+                    fwrite($logFile, "LeadSquared follow-up task creation HTTP code: " . $taskHttpCode . "\n");
+                    fwrite($logFile, "LeadSquared follow-up task creation response: " . $taskResponse . "\n");
+                    
+                    if ($taskHttpCode >= 200 && $taskHttpCode < 300) {
+                        fwrite($logFile, "Successfully created follow-up task in LeadSquared\n");
+                    } else {
+                        fwrite($logFile, "Failed to create follow-up task in LeadSquared\n");
+                    }
                 } else {
                     error_log("LeadSquared lead created/updated successfully, but lead ID is not available in the response.");
                     fwrite($logFile, "Warning: LeadSquared lead created but no ID found. Full response: " . print_r($response, true) . "\n");
