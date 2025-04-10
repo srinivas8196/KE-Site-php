@@ -1,1 +1,1 @@
-csrf_token|s:64:"23ee4d055f26f983c371d03e2c2564af26b7080c43659afb6b673e2f50a99603";
+csrf_token|s:64:"23ee4d055f26f983c371d03e2c2564af26b7080c43659afb6b673e2f50a99603";enquiry_details|a:6:{s:4:"name";s:9:"adwd test";s:6:"resort";s:12:"Karma Karnak";s:11:"destination";s:5:"Egypt";s:5:"email";s:21:"sritest3212@gmail.com";s:9:"timestamp";s:19:"2025-04-10 07:09:31";s:11:"form_source";s:7:"unknown";}success_message|s:59:"Thank you for your enquiry! Our team will contact you soon.";

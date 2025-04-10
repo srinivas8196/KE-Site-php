@@ -164,8 +164,10 @@ if (file_exists('bheader.php')) {
   <title><?php echo $resort ? "Edit Resort" : "Create New Resort"; ?></title>
   <!-- Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Font Awesome for Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <!-- Font Awesome for Icons - Updated with integrity attribute -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <!-- jQuery for easier DOM manipulation - Added before other scripts -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <style>
     .sidebar-collapsed { width: 64px; }
     .sidebar-collapsed .sidebar-item-text { display: none; }
@@ -310,6 +312,16 @@ if (file_exists('bheader.php')) {
         color: #721c24;
         background-color: #f8d7da;
         border-color: #f5c6cb;
+    }
+    .alert-info {
+        color: #0c5460;
+        background-color: #d1ecf1;
+        border-color: #bee5eb;
+    }
+    .alert-warning {
+        color: #856404;
+        background-color: #fff3cd;
+        border-color: #ffeeba;
     }
     .form-section {
         background: white;
@@ -468,9 +480,347 @@ if (file_exists('bheader.php')) {
             padding-right: 15px;
         }
     }
+    
+    /* Added styles for deleted image markers */
+    .deleted-image-marker {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(220, 53, 69, 0.7);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        z-index: 5;
+    }
+
+    /* Enhanced gallery card style */
+    .gallery-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+
+    .gallery-card {
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        overflow: hidden;
+        position: relative;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        transition: transform 0.2s, box-shadow 0.2s;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    .gallery-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+    }
+
+    .gallery-image-container {
+        flex: 1;
+        overflow: hidden;
+        position: relative;
+        padding-top: 100%; /* 1:1 Aspect Ratio */
+    }
+
+    .gallery-card img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        transition: transform 0.3s;
+    }
+
+    .gallery-card:hover img {
+        transform: scale(1.05);
+    }
+
+    .gallery-card-actions {
+        padding: 10px 15px;
+        background: #f8f9fa;
+        border-top: 1px solid #e2e8f0;
+        text-align: center;
+    }
+
+    .gallery-delete-link {
+        color: #e53e3e;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 500;
+        display: block;
+        transition: color 0.2s;
+    }
+
+    .gallery-delete-link:hover {
+        color: #c53030;
+    }
+
+    /* Preview styles for newly added images */
+    #new-gallery-previews {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 20px;
+    }
+
+    .preview-item {
+        position: relative;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        padding-top: 100%; /* 1:1 Aspect Ratio */
+    }
+
+    .preview-item img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .preview-remove {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: rgba(220, 53, 69, 0.9);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 20;
+        transition: background-color 0.2s;
+    }
+
+    .preview-remove:hover {
+        background: rgba(220, 53, 69, 1);
+    }
+
+    /* Room image action styles to match gallery */
+    .room-details-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 25px;
+        margin-bottom: 20px;
+    }
+
+    .room-detail-item {
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        overflow: hidden;
+        background: white;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .room-detail-item:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+    }
+
+    .room-image-wrapper {
+        position: relative;
+        width: 100%;
+        padding-top: 60%; /* 16:9 Aspect Ratio */
+        overflow: hidden;
+        border-radius: 8px 8px 0 0;
+    }
+
+    .room-image {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s;
+    }
+
+    .room-detail-item:hover .room-image {
+        transform: scale(1.05);
+    }
+
+    .room-image-placeholder {
+        width: 100%;
+        padding-top: 60%; /* 16:9 Aspect Ratio */
+        background-color: #f7fafc;
+        border-radius: 8px 8px 0 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+    }
+
+    .room-image-placeholder span {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: #a0aec0;
+        font-size: 14px;
+    }
+
+    .room-image-actions {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: rgba(0,0,0,0.7);
+        padding: 10px;
+        text-align: center;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+
+    .room-image-wrapper:hover .room-image-actions {
+        opacity: 1;
+    }
+
+    .room-delete-link {
+        color: white;
+        text-decoration: none;
+        font-size: 14px;
+        display: inline-block;
+        background: #e53e3e;
+        padding: 5px 10px;
+        border-radius: 4px;
+        transition: background-color 0.2s;
+    }
+
+    .room-delete-link:hover {
+        background: #c53030;
+    }
+
+    .room-inputs {
+        padding: 15px;
+    }
+
+    .room-name-field, .room-image-field {
+        margin-bottom: 15px;
+    }
+
+    .room-name-field label, .room-image-field label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 500;
+        color: #4a5568;
+        font-size: 14px;
+    }
+
+    .room-actions {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 15px;
+    }
+
+    .btn-remove-room {
+        background: #e53e3e;
+        color: white;
+        border: none;
+        padding: 8px 12px;
+        border-radius: 4px;
+        font-size: 14px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    .btn-remove-room:hover {
+        background: #c53030;
+    }
+
+    .btn-add-room {
+        background: #38a169;
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 4px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        margin-top: 15px;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .btn-add-room:hover {
+        background: #2f855a;
+    }
+
+    .preview-room-remove {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: rgba(220, 53, 69, 0.9);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 10;
+        transition: background-color 0.2s;
+    }
+
+    .preview-room-remove:hover {
+        background: rgba(220, 53, 69, 1);
+    }
   </style>
 </head>
 <body class="bg-gray-100">
+  <!-- Check if Font Awesome is loaded correctly -->
+  <script>
+    // Check if Font Awesome is loaded correctly
+    document.addEventListener('DOMContentLoaded', function() {
+      setTimeout(function() {
+        // Check if any Font Awesome icon is rendered correctly by measuring its width
+        const testIcon = document.createElement('i');
+        testIcon.className = 'fas fa-trash';
+        testIcon.style.visibility = 'hidden';
+        document.body.appendChild(testIcon);
+        
+        const isIconLoaded = testIcon.clientWidth > 0;
+        document.body.removeChild(testIcon);
+        
+        if (!isIconLoaded) {
+          console.warn('Font Awesome not loaded correctly, adding fallback');
+          // Add a fallback for icon display
+          const styleSheet = document.createElement('style');
+          styleSheet.innerHTML = `
+            /* Fallback for Font Awesome icons */
+            .fas.fa-trash:before { content: "🗑️"; }
+            .fas.fa-plus:before { content: "➕"; }
+            .fas.fa-save:before { content: "💾"; }
+            .fa-trash:before { content: "🗑️"; }
+          `;
+          document.head.appendChild(styleSheet);
+        }
+      }, 500); // Give some time for Font Awesome to load
+    });
+  </script>
   <div class="flex min-h-screen">
     <!-- Sidebar -->
     <?php include 'sidebar.php'; ?>
@@ -498,7 +848,29 @@ if (file_exists('bheader.php')) {
         <div class="row">
           <!-- Resort Details -->
           <div class="col-12">
-            <form action="/KE-Site-php/save_resort.php" method="post" enctype="multipart/form-data" onsubmit="return validateForm()">
+            <!-- Display messages -->
+            <?php if(isset($_SESSION['success_message'])): ?>
+              <div class="alert alert-success mb-4">
+                <i class="fas fa-check-circle mr-2"></i> <?php echo htmlspecialchars($_SESSION['success_message']); ?>
+                <?php unset($_SESSION['success_message']); ?>
+              </div>
+            <?php endif; ?>
+            
+            <?php if(isset($_SESSION['warning_message'])): ?>
+              <div class="alert alert-warning mb-4">
+                <i class="fas fa-exclamation-triangle mr-2"></i> <?php echo htmlspecialchars($_SESSION['warning_message']); ?>
+                <?php unset($_SESSION['warning_message']); ?>
+              </div>
+            <?php endif; ?>
+            
+            <?php if(isset($_SESSION['error_message'])): ?>
+              <div class="alert alert-danger mb-4">
+                <i class="fas fa-times-circle mr-2"></i> <?php echo htmlspecialchars($_SESSION['error_message']); ?>
+                <?php unset($_SESSION['error_message']); ?>
+              </div>
+            <?php endif; ?>
+            
+            <form action="/KE-Site-php/save_resort.php" method="post" enctype="multipart/form-data" id="resortForm" onsubmit="return validateForm()">
               <?php if ($resort): ?>
                 <input type="hidden" name="resort_id" value="<?php echo $resort['id']; ?>">
               <?php endif; ?>
@@ -622,45 +994,51 @@ if (file_exists('bheader.php')) {
               <!-- Rooms Section -->
               <div class="form-section">
                   <h3 class="form-section-title">Room Details</h3>
-                  <div id="roomDetailsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div id="roomDetailsContainer" class="room-details-container">
                       <?php if (!empty($resort['room_details'])): 
                           $rooms = json_decode($resort['room_details'], true);
                           if (is_array($rooms)):
                               foreach ($rooms as $index => $room): ?>
-                                  <div class="room-detail-item bg-white rounded-lg shadow-md p-6">
+                                  <div class="room-detail-item">
                                       <div class="room-preview mb-4">
                                           <?php if (!empty($room['image'])): ?>
-                                              <div class="relative aspect-video rounded-lg overflow-hidden">
+                                              <div class="room-image-wrapper">
                                                   <img src="assets/resorts/<?php echo $resort['resort_slug']; ?>/<?php echo htmlspecialchars($room['image']); ?>" 
                                                        alt="Room Image" 
-                                                       class="w-full h-full object-cover">
-                                                  <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                                                      <button type="button" class="delete-room-image bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors" data-index="<?php echo $index; ?>">
-                                                          <i class="fas fa-trash mr-2"></i> Delete Image
-                                                      </button>
+                                                       class="room-image">
+                                                  <div class="room-image-actions">
+                                                      <a href="delete_room_image.php?resort_id=<?php echo $resort['id']; ?>&room_index=<?php echo $index; ?>&image=<?php echo urlencode($room['image']); ?>" 
+                                                         class="room-delete-link" 
+                                                         onclick="return confirm('Are you sure you want to delete this room image?');">
+                                                          <i class="fas fa-trash"></i> Delete Image
+                                                      </a>
                                                   </div>
                                                   <input type="hidden" name="rooms[<?php echo $index; ?>][existing_image]" value="<?php echo htmlspecialchars($room['image']); ?>">
                                               </div>
+                                          <?php else: ?>
+                                              <div class="room-image-placeholder">
+                                                  <span>No image selected</span>
+                                              </div>
                                           <?php endif; ?>
                                       </div>
-                                      <div class="room-inputs space-y-4">
-                                          <div>
-                                              <label class="block text-sm font-medium text-gray-700 mb-1">Room Name</label>
-                                              <input type="text" name="rooms[<?php echo $index; ?>][name]" 
-                                                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                                      <div class="room-inputs">
+                                          <div class="room-name-field">
+                                              <label for="room-name-<?php echo $index; ?>">Room Name</label>
+                                              <input type="text" id="room-name-<?php echo $index; ?>" name="rooms[<?php echo $index; ?>][name]" 
+                                                     class="form-control"
                                                      value="<?php echo htmlspecialchars($room['name']); ?>" 
                                                      placeholder="Enter room name">
                                           </div>
-                                          <div>
-                                              <label class="block text-sm font-medium text-gray-700 mb-1">Room Image</label>
-                                              <input type="file" name="rooms[<?php echo $index; ?>][image]" 
-                                                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                                          <div class="room-image-field">
+                                              <label for="room-image-<?php echo $index; ?>">Room Image</label>
+                                              <input type="file" id="room-image-<?php echo $index; ?>" name="rooms[<?php echo $index; ?>][image]" 
+                                                     class="form-control"
                                                      accept="image/*" 
                                                      onchange="previewRoomImage(this, <?php echo $index; ?>)">
                                           </div>
-                                          <div class="flex justify-end">
-                                              <button type="button" class="remove-room bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors">
-                                                  <i class="fas fa-trash mr-2"></i> Remove Room
+                                          <div class="room-actions">
+                                              <button type="button" class="btn-remove-room">
+                                                  <i class="fas fa-trash"></i> Remove Room
                                               </button>
                                           </div>
                                       </div>
@@ -669,7 +1047,7 @@ if (file_exists('bheader.php')) {
                           endif;
                       endif; ?>
                   </div>
-                  <button type="button" class="btn btn-success mt-4" onclick="addRoomDetail()">
+                  <button type="button" class="btn-add-room" onclick="addRoomDetail()">
                       <i class="fas fa-plus"></i> Add Room
                   </button>
               </div>
@@ -677,17 +1055,23 @@ if (file_exists('bheader.php')) {
               <!-- Gallery Section -->
               <div class="form-section">
                   <h3 class="form-section-title">Gallery Images</h3>
-                  <div class="gallery-preview-container">
+                  
+                  <!-- Improved gallery with better styling -->
+                  <div class="gallery-cards">
                       <?php if (!empty($resort['gallery'])): 
                           $gallery = json_decode($resort['gallery'], true);
                           if (is_array($gallery)):
                               foreach ($gallery as $index => $image): ?>
-                                  <div class="gallery-preview-item">
-                                      <img src="assets/resorts/<?php echo $resort['resort_slug']; ?>/<?php echo htmlspecialchars($image); ?>" alt="Gallery Image">
-                                      <div class="gallery-preview-overlay">
-                                          <button type="button" class="btn btn-danger btn-sm delete-gallery-image" data-index="<?php echo $index; ?>">
-                                              <i class="fas fa-trash"></i>
-                                          </button>
+                                  <div class="gallery-card">
+                                      <div class="gallery-image-container">
+                                          <img src="assets/resorts/<?php echo $resort['resort_slug']; ?>/<?php echo htmlspecialchars($image); ?>" alt="Gallery Image">
+                                      </div>
+                                      <div class="gallery-card-actions">
+                                          <a href="delete_gallery_image.php?resort_id=<?php echo $resort['id']; ?>&image=<?php echo urlencode($image); ?>" 
+                                             class="gallery-delete-link" 
+                                             onclick="return confirm('Are you sure you want to delete this image?');">
+                                              <i class="fas fa-trash"></i> Delete
+                                          </a>
                                       </div>
                                       <input type="hidden" name="existing_gallery[]" value="<?php echo htmlspecialchars($image); ?>">
                                   </div>
@@ -695,7 +1079,13 @@ if (file_exists('bheader.php')) {
                           endif;
                       endif; ?>
                   </div>
+                  
                   <input type="file" name="gallery[]" class="form-control mt-4" multiple accept="image/*" onchange="previewGalleryImages(this)">
+                  <div id="new-gallery-previews" class="mt-3"></div>
+                  
+                  <div class="mt-2 text-gray-600 text-sm">
+                      <p>Note: Clicking delete will permanently remove the image immediately.</p>
+                  </div>
               </div>
 
               <!-- Testimonials Section -->
@@ -771,38 +1161,103 @@ if (file_exists('bheader.php')) {
         const container = document.getElementById('roomDetailsContainer');
         const index = container.querySelectorAll('.room-detail-item').length;
         const div = document.createElement('div');
-        div.className = 'room-detail-item bg-white rounded-lg shadow-md p-6';
+        div.className = 'room-detail-item';
         div.innerHTML = `
             <div class="room-preview mb-4">
-                <div class="relative aspect-video rounded-lg overflow-hidden">
-                    <div class="w-full h-full bg-gray-100 flex items-center justify-center">
-                        <span class="text-gray-400">No image selected</span>
-                    </div>
+                <div class="room-image-placeholder">
+                    <span>No image selected</span>
                 </div>
             </div>
-            <div class="room-inputs space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Room Name</label>
-                    <input type="text" name="rooms[${index}][name]" 
-                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+            <div class="room-inputs">
+                <div class="room-name-field">
+                    <label for="room-name-${index}">Room Name</label>
+                    <input type="text" id="room-name-${index}" name="rooms[${index}][name]" 
+                           class="form-control" 
                            placeholder="Enter room name">
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Room Image</label>
-                    <input type="file" name="rooms[${index}][image]" 
-                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                <div class="room-image-field">
+                    <label for="room-image-${index}">Room Image</label>
+                    <input type="file" id="room-image-${index}" name="rooms[${index}][image]" 
+                           class="form-control" 
                            accept="image/*" 
                            onchange="previewRoomImage(this, ${index})">
                 </div>
-                <div class="flex justify-end">
-                    <button type="button" class="remove-room bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors">
-                        <i class="fas fa-trash mr-2"></i> Remove Room
+                <div class="room-actions">
+                    <button type="button" class="btn-remove-room">
+                        <i class="fas fa-trash"></i> Remove Room
                     </button>
                 </div>
             </div>
         `;
         container.appendChild(div);
+        
+        // Add event handler for the room removal button
+        attachRoomRemovalHandlers();
     }
+    
+    // Updated previewRoomImage function to work with the new layout
+    function previewRoomImage(input, index) {
+        const container = input.closest('.room-detail-item').querySelector('.room-preview');
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                container.innerHTML = `
+                    <div class="room-image-wrapper">
+                        <img src="${e.target.result}" alt="Preview" class="room-image">
+                        <button type="button" class="preview-room-remove" onclick="clearRoomPreview(this)">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                `;
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+    
+    // Function to clear room preview
+    function clearRoomPreview(button) {
+        if (confirm('Remove this image preview?')) {
+            const previewContainer = button.closest('.room-preview');
+            previewContainer.innerHTML = `
+                <div class="room-image-placeholder">
+                    <span>No image selected</span>
+                </div>
+            `;
+            
+            // Clear the file input
+            const fileInput = button.closest('.room-detail-item').querySelector('input[type="file"]');
+            if (fileInput) {
+                fileInput.value = '';
+            }
+        }
+    }
+    
+    // Helper function to attach room removal handlers to all remove room buttons
+    function attachRoomRemovalHandlers() {
+        // Remove any existing event listeners
+        document.querySelectorAll('.btn-remove-room').forEach(btn => {
+            // Remove old event listeners by cloning and replacing the button
+            const newBtn = btn.cloneNode(true);
+            btn.parentNode.replaceChild(newBtn, btn);
+            
+            // Add new event listener
+            newBtn.addEventListener('click', function() {
+                if (confirm('Are you sure you want to remove this room?')) {
+                    const roomItem = this.closest('.room-detail-item');
+                    if (roomItem) {
+                        roomItem.remove();
+                        console.log('Room removed');
+                    }
+                }
+            });
+        });
+    }
+    
+    // Initialize event handlers when the page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        attachRoomRemovalHandlers();
+    });
+
     function addTestimonial() {
       const container = document.getElementById('testimonials');
       const index = container.querySelectorAll('.row').length;
@@ -823,7 +1278,7 @@ if (file_exists('bheader.php')) {
                               <i class="fas fa-trash"></i> Delete
                           </button>
                         </div>`;
-      container.insertBefore(div, container.querySelector('button.btn-secondary'));
+      container.appendChild(div);
     }
     function removeElement(button) {
       button.closest('.row').remove();
@@ -834,102 +1289,182 @@ if (file_exists('bheader.php')) {
     });
 
     function previewGalleryImages(input) {
-        const container = document.querySelector('.gallery-preview-container');
-        if (input.files) {
+        const container = document.getElementById('new-gallery-previews');
+        container.innerHTML = ''; // Clear previous previews
+        
+        if (input.files && input.files.length > 0) {
             for (let i = 0; i < input.files.length; i++) {
-          const reader = new FileReader();
-          reader.onload = function(e) {
-                    const div = document.createElement('div');
-                    div.className = 'gallery-preview-item';
-                    div.innerHTML = `
-                        <img src="${e.target.result}" alt="Preview">
-                        <div class="gallery-preview-overlay">
-                            <button type="button" class="btn btn-danger btn-sm delete-gallery-image">
-                                <i class="fas fa-trash"></i>
-              </button>
-                        </div>
+                const reader = new FileReader();
+                const fileIndex = i;
+                
+                reader.onload = function(e) {
+                    // Create preview element
+                    const previewDiv = document.createElement('div');
+                    previewDiv.className = 'preview-item';
+                    previewDiv.innerHTML = `
+                        <img src="${e.target.result}" alt="New image preview">
+                        <button type="button" class="preview-remove" onclick="removePreview(this, ${fileIndex})">
+                            <i class="fas fa-times"></i>
+                        </button>
                     `;
-                    container.appendChild(div);
-                    
-                    // Add delete functionality to new preview
-                    div.querySelector('.delete-gallery-image').addEventListener('click', function() {
-                        if (confirm('Are you sure you want to delete this image?')) {
-                            div.remove();
-                        }
-                    });
-                }
+                    container.appendChild(previewDiv);
+                };
                 reader.readAsDataURL(input.files[i]);
             }
         }
     }
-
-    function previewRoomImage(input, index) {
-        const container = input.closest('.room-detail-item').querySelector('.room-preview');
-        if (input.files && input.files[0]) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                container.innerHTML = `
-                    <div class="relative aspect-video rounded-lg overflow-hidden">
-                        <img src="${e.target.result}" alt="Preview" class="w-full h-full object-cover">
-                        <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                            <button type="button" class="delete-room-image bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors">
-                                <i class="fas fa-trash mr-2"></i> Delete Image
-                            </button>
-                        </div>
-                    </div>
-                `;
-                
-                // Add delete functionality to new preview
-                container.querySelector('.delete-room-image').addEventListener('click', function() {
-                    if (confirm('Are you sure you want to delete this image?')) {
-                        container.innerHTML = `
-                            <div class="relative aspect-video rounded-lg overflow-hidden">
-                                <div class="w-full h-full bg-gray-100 flex items-center justify-center">
-                                    <span class="text-gray-400">No image selected</span>
-                                </div>
-                            </div>
-                        `;
-                    }
-                });
-            }
-            reader.readAsDataURL(input.files[0]);
+    
+    // Function to remove preview and clear the corresponding file input
+    function removePreview(button, fileIndex) {
+        const previewItem = button.closest('.preview-item');
+        if (previewItem) {
+            previewItem.remove();
         }
+        
+        // Note: This won't actually remove the file from the FileList
+        // We need to handle this on the server-side by ignoring empty file inputs
+        console.log(`Preview removed for file at index ${fileIndex}`);
     }
-
-    // Add this at the beginning of your script section
-    document.addEventListener('DOMContentLoaded', function() {
-        // Handle room removal
-        document.querySelectorAll('.remove-room').forEach(button => {
-            button.addEventListener('click', function() {
-                if (confirm('Are you sure you want to remove this room?')) {
-                    this.closest('.room-detail-item').remove();
-                }
-            });
-        });
-
-        // Handle gallery image deletion
-        document.querySelectorAll('.delete-gallery-image').forEach(button => {
-            button.addEventListener('click', function() {
-                if (confirm('Are you sure you want to delete this image?')) {
-                    this.closest('.gallery-preview-item').remove();
-                }
-            });
-        });
-
-        // Handle room image deletion
-        document.querySelectorAll('.delete-room-image').forEach(button => {
-            button.addEventListener('click', function() {
-                if (confirm('Are you sure you want to delete this image?')) {
-                    this.closest('.room-preview-item').remove();
-                }
-            });
-        });
-    });
 
     function validateForm() {
-      console.log('Form submitted');
+      console.log('Form validation started');
+      
+      // Check if there are any deletion markers
+      const galleryDeletions = document.querySelectorAll('input[name="delete_gallery[]"]');
+      const roomDeletions = document.querySelectorAll('input[name="delete_room_image[]"]');
+      
+      console.log('Gallery images marked for deletion:', galleryDeletions.length);
+      galleryDeletions.forEach(input => console.log(' - ' + input.value));
+      
+      console.log('Room images marked for deletion:', roomDeletions.length);
+      roomDeletions.forEach(input => console.log(' - ' + input.value));
+      
       return true;
     }
+
+    // Add this to ensure jQuery and our JavaScript are working properly
+    $(document).ready(function() {
+      console.log('jQuery is working!');
+      
+      // Handle gallery image deletion
+      $(document).on('click', '.gallery-delete-btn', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const galleryItem = $(this).closest('.gallery-preview-item');
+        const imagePath = $(this).data('path');
+        
+        if (confirm('Are you sure you want to delete this image?')) {
+          // Create a hidden input to mark this image for deletion
+          $('#deletedImagesContainer').append(
+            `<input type="hidden" name="delete_gallery[]" value="${imagePath}">`
+          );
+          
+          // Visual feedback
+          galleryItem.css('opacity', '0.3');
+          galleryItem.append(
+            `<div class="deleted-image-marker">MARKED FOR DELETION</div>`
+          );
+          
+          // Remove the existing_gallery input to prevent it from being submitted
+          galleryItem.find('input[name^="existing_gallery"]').remove();
+          
+          console.log('Marked gallery image for deletion:', imagePath);
+        }
+      });
+      
+      // Handle room image deletion
+      $(document).on('click', '.room-delete-link', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const roomPreview = $(this).closest('.room-preview');
+        const roomItem = $(this).closest('.room-detail-item');
+        const imagePath = $(this).data('path');
+        
+        if (confirm('Are you sure you want to delete this image?')) {
+          // Create a hidden input to mark this image for deletion
+          $('#deletedImagesContainer').append(
+            `<input type="hidden" name="delete_room_image[]" value="${imagePath}">`
+          );
+          
+          // Visual feedback
+          roomPreview.find('img').css('opacity', '0.3');
+          roomPreview.find('.relative').append(
+            `<div class="deleted-image-marker">MARKED FOR DELETION</div>`
+          );
+          
+          // Remove the existing_image input to prevent it from being submitted
+          roomPreview.find('input[name$="[existing_image]"]').remove();
+          
+          console.log('Marked room image for deletion:', imagePath);
+        }
+      });
+      
+      // Handle room removal
+      $('.remove-room').on('click', function() {
+        if (confirm('Are you sure you want to remove this room?')) {
+          $(this).closest('.room-detail-item').remove();
+          console.log('Room removed');
+        }
+      });
+      
+      // For newly added gallery images
+      function previewGalleryImages(input) {
+        const container = document.querySelector('.gallery-preview-container');
+        if (input.files) {
+          for (let i = 0; i < input.files.length; i++) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+              const div = document.createElement('div');
+              div.className = 'gallery-preview-item';
+              div.innerHTML = `
+                <img src="${e.target.result}" alt="Preview">
+                <div class="gallery-preview-overlay">
+                  <button type="button" class="btn btn-danger btn-sm temp-delete-btn">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              `;
+              container.appendChild(div);
+              
+              // Add delete functionality for temp images
+              $(div).find('.temp-delete-btn').on('click', function() {
+                if (confirm('Remove this image?')) {
+                  $(div).remove();
+                }
+              });
+            }
+            reader.readAsDataURL(input.files[i]);
+          }
+        }
+      }
+      
+      // Expose the function globally
+      window.previewGalleryImages = previewGalleryImages;
+      
+      // For newly added room images (redefined to avoid issues)
+      function previewRoomImage(input, index) {
+        const container = input.closest('.room-detail-item').querySelector('.room-preview');
+        if (input.files && input.files[0]) {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            container.innerHTML = `
+              <div class="room-image-wrapper">
+                <img src="${e.target.result}" alt="Preview" class="room-image">
+                <button type="button" class="preview-room-remove" onclick="clearRoomPreview(this)">
+                    <i class="fas fa-times"></i>
+                </button>
+              </div>
+            `;
+          }
+          reader.readAsDataURL(input.files[0]);
+        }
+      }
+      
+      // Expose the function globally
+      window.previewRoomImage = previewRoomImage;
+    });
   </script>
 </body>
 </html>

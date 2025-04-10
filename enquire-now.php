@@ -1451,7 +1451,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
                                     <!-- Removed the Terms and Conditions checkbox -->
                                     
                                     <div class="form-check mt-3">
-                                        <input type="checkbox" class="form-check-input" id="communicationAgree" name="communication_agree" required style="width: 20px; height: 20px; margin-right: 10px; visibility: visible; opacity: 1;">
+                                        <input type="checkbox" class="form-check-input" id="communicationAgree" name="communication_consent" required style="width: 20px; height: 20px; margin-right: 10px; visibility: visible; opacity: 1;">
                                         <label class="form-check-label" for="communicationAgree">
                                             Allow Karma Experience/Karma Group related brands to communicate with me via SMS/Email/Call during and after my submission on this promotional offer.
                                         </label>
@@ -1459,7 +1459,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
                                     </div>
                                     
                                     <div class="form-check mt-3">
-                                        <input type="checkbox" class="form-check-input" id="dndAgree" name="dnd_agree" required style="width: 20px; height: 20px; margin-right: 10px; visibility: visible; opacity: 1;">
+                                        <input type="checkbox" class="form-check-input" id="dndAgree" name="dnd_consent" required style="width: 20px; height: 20px; margin-right: 10px; visibility: visible; opacity: 1;">
                                         <label class="form-check-label" for="dndAgree">
                                             Should I be a registered DND subscriber, I agree that I have requested to be contacted about this contest/promotional offer.
                                         </label>
@@ -2109,12 +2109,38 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else {
                     // If no redirect, parse the response to check for errors
                     return response.text().then(text => {
+                        try {
+                            // Try to parse as JSON first
+                            const data = JSON.parse(text);
+                            if (data.status === 'error') {
+                                // Display structured error message
+                                const errorDiv = document.createElement('div');
+                                errorDiv.className = 'alert alert-danger';
+                                errorDiv.textContent = data.message || 'An error occurred while processing your request.';
+                                document.querySelector('.enquiry-header').after(errorDiv);
+                                
+                                // Log details for debugging
+                                console.error('Form submission error:', data);
+                                return;
+                            } else if (data.status === 'success') {
+                                // Handle success response (non-redirect)
+                                window.location.href = data.redirect || 'thank-you.php';
+                                return;
+                            }
+                        } catch (e) {
+                            // Not JSON, continue with text processing
+                            console.log('Response is not JSON, processing as text');
+                        }
+                        
                         if (text.includes('error_message')) {
                             // Display error message on the page
                             const errorDiv = document.createElement('div');
                             errorDiv.className = 'alert alert-danger';
-                            errorDiv.innerHTML = text;
+                            errorDiv.textContent = text;
                             document.querySelector('.enquiry-header').after(errorDiv);
+                        } else if (text.includes('success_message')) {
+                            // If success message found but no redirect happened
+                            window.location.href = 'thank-you.php';
                         } else {
                             // Submit the form traditionally as fallback
                             this.submit();

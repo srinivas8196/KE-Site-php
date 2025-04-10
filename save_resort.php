@@ -26,13 +26,23 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 
 // Start debug logging
-$debug_log = fopen('resort_debug.log', 'a');
-fwrite($debug_log, "\n=== " . date('Y-m-d H:i:s') . " ===\n");
-fwrite($debug_log, "Script started\n");
-fwrite($debug_log, "REQUEST_METHOD: " . $_SERVER['REQUEST_METHOD'] . "\n");
-fwrite($debug_log, "REQUEST_URI: " . $_SERVER['REQUEST_URI'] . "\n");
-fwrite($debug_log, "POST data received: " . print_r($_POST, true) . "\n");
-fwrite($debug_log, "FILES data received: " . print_r($_FILES, true) . "\n");
+try {
+    $debug_log = fopen('resort_debug.log', 'a');
+    if (!$debug_log) {
+        error_log("ERROR: Could not open debug log file");
+        $debug_log = fopen('php://memory', 'a'); // Use memory as fallback
+    }
+    fwrite($debug_log, "\n=== " . date('Y-m-d H:i:s') . " ===\n");
+    fwrite($debug_log, "Script started\n");
+    fwrite($debug_log, "REQUEST_METHOD: " . $_SERVER['REQUEST_METHOD'] . "\n");
+    fwrite($debug_log, "REQUEST_URI: " . $_SERVER['REQUEST_URI'] . "\n");
+    fwrite($debug_log, "POST data received: " . print_r($_POST, true) . "\n");
+    fwrite($debug_log, "FILES data received: " . print_r($_FILES, true) . "\n");
+} catch (Exception $e) {
+    error_log("ERROR initializing debug log: " . $e->getMessage());
+    // Create a dummy log handler that won't fail on writes
+    $debug_log = fopen('php://memory', 'a');
+}
 
 // Check if the script is being accessed directly
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -115,22 +125,35 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Process gallery images (multiple files)
     $galleryImages = [];
     
-    // First, handle existing gallery images from POST data
+    // Now we just need to handle existing gallery images from POST data
     if (isset($_POST['existing_gallery']) && is_array($_POST['existing_gallery'])) {
+        fwrite($debug_log, "Processing existing gallery images: " . count($_POST['existing_gallery']) . " found\n");
+        
         foreach ($_POST['existing_gallery'] as $existingImage) {
             if (!empty($existingImage)) {
                 $galleryImages[] = $existingImage;
+                fwrite($debug_log, "Added existing gallery image: $existingImage\n");
             }
         }
+    } else {
+        fwrite($debug_log, "No existing gallery images found in POST data\n");
     }
 
-    // Then add new gallery images if any were uploaded
+    // Add new gallery images if any were uploaded
     if (isset($_FILES['gallery']) && is_array($_FILES['gallery']['name'])) {
+        fwrite($debug_log, "Processing " . count($_FILES['gallery']['name']) . " new gallery uploads\n");
+        
         foreach ($_FILES['gallery']['name'] as $index => $filename) {
             if (!empty($filename) && $_FILES['gallery']['error'][$index] == UPLOAD_ERR_OK) {
                 $newFileName = "gallery-" . time() . "-" . $filename;
-                if (move_uploaded_file($_FILES['gallery']['tmp_name'][$index], "$resortFolderPath/gallery/$newFileName")) {
+                $targetPath = "$resortFolderPath/gallery/$newFileName";
+                fwrite($debug_log, "Uploading new gallery image to: $targetPath\n");
+                
+                if (move_uploaded_file($_FILES['gallery']['tmp_name'][$index], $targetPath)) {
                     $galleryImages[] = "gallery/$newFileName";
+                    fwrite($debug_log, "Successfully uploaded gallery image: gallery/$newFileName\n");
+                } else {
+                    fwrite($debug_log, "Failed to upload gallery image: $filename\n");
                 }
             }
         }
@@ -141,6 +164,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $existingGallery = json_decode($resort['gallery'], true);
         if (is_array($existingGallery)) {
             $galleryImages = $existingGallery;
+            fwrite($debug_log, "Keeping existing gallery images from database\n");
         }
     }
 
@@ -160,12 +184,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 
     // Debug logging
+    fwrite($debug_log, "Banner image path: " . $banner_image . "\n");
+    fwrite($debug_log, "Final gallery images: " . print_r($galleryImages, true) . "\n");
     error_log("Banner image path: " . $banner_image);
     error_log("Gallery images: " . print_r($galleryImages, true));
 
     // Process dynamic file uploads for rooms
     $rooms = [];
+    
+    // Process room data
     if (isset($_POST['rooms']) && is_array($_POST['rooms'])) {
+        fwrite($debug_log, "\n=== PROCESSING ROOM DATA ===\n");
         foreach ($_POST['rooms'] as $index => $room) {
             if (!empty($room['name'])) {
                 $roomData = [
@@ -174,18 +203,31 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                 // Handle room image
                 if (isset($_FILES['rooms']['tmp_name'][$index]['image']) && $_FILES['rooms']['error'][$index]['image'] == UPLOAD_ERR_OK) {
-                $file = $_FILES['rooms']['name'][$index]['image'];
-                $newFileName = "rooms-" . $file;
-                move_uploaded_file($_FILES['rooms']['tmp_name'][$index]['image'], "$resortFolderPath/rooms/$newFileName");
-                    $roomData['image'] = "rooms/$newFileName";
-                } else if (isset($room['existing_image'])) {
+                    $file = $_FILES['rooms']['name'][$index]['image'];
+                    $newFileName = "rooms-" . time() . "-" . $file; // Add timestamp to prevent overwriting
+                    $targetPath = "$resortFolderPath/rooms/$newFileName";
+                    fwrite($debug_log, "Uploading new room image to: $targetPath\n");
+                    if (move_uploaded_file($_FILES['rooms']['tmp_name'][$index]['image'], $targetPath)) {
+                        $roomData['image'] = "rooms/$newFileName";
+                        fwrite($debug_log, "Successfully uploaded room image: rooms/$newFileName\n");
+                    } else {
+                        fwrite($debug_log, "Failed to upload room image: $file\n");
+                    }
+                } else if (isset($room['existing_image']) && !empty($room['existing_image'])) {
+                    // Keep existing image if provided
                     $roomData['image'] = $room['existing_image'];
+                    fwrite($debug_log, "Keeping existing room image: " . $room['existing_image'] . "\n");
+                } else {
+                    fwrite($debug_log, "No image for room: " . $room['name'] . "\n");
                 }
 
                 $rooms[] = $roomData;
+                fwrite($debug_log, "Added room: " . print_r($roomData, true) . "\n");
             }
         }
     }
+    
+    fwrite($debug_log, "Final room data: " . print_r($rooms, true) . "\n");
 
     // Process dynamic file uploads for amenities
     $amenities = [];
