@@ -1,3 +1,5 @@
+</div>
+</div>
 <footer class="footer-wrapper footer-layout1">
         <div class="widget-area">
             <div class="container">

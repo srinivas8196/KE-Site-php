@@ -295,6 +295,17 @@ if(is_array($gallery) && count($gallery) > 0): ?>
 <option value="no">No</option>
 </select>
 </div>
+<div class="form-group consent-field">
+<div class="checkbox-container">
+<input type="checkbox" id="communication_consent" name="communication_consent" required>
+<label for="communication_consent" class="checkbox-label">Allow Karma Experience/Karma Group related brands to communicate with me via SMS/Email/Call during and after my submission on this promotional offer. *</label>
+</div>
+</div>
+<div class="form-group consent-field">
+<div class="checkbox-container">
+<input type="checkbox" id="dnd_consent" name="dnd_consent" required>
+<label for="dnd_consent" class="checkbox-label">Should I be a registered DND subscriber, I agree that I have requested to be contacted about this contest/promotional offer. *</label>
+</div>
 </div>
 <button type="submit" class="btn-submit">Submit Enquiry</button>
 </form>
@@ -343,6 +354,10 @@ document.addEventListener('DOMContentLoaded', function() {
 .form-group label { display: block; margin-bottom: 5px; font-weight: 600; color: #333; font-size: 13px; }
 .form-control { width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; transition: border-color 0.2s; }
 .form-control:focus { border-color: #007bff; outline: none; box-shadow: 0 0 0 2px rgba(0,123,255,0.15); }
+.checkbox-container { display: flex; align-items: flex-start; margin-bottom: 5px; }
+.checkbox-container input[type='checkbox'] { flex-shrink: 0; margin-top: 3px; margin-right: 8px; }
+.checkbox-label { font-size: 12px; font-weight: normal; line-height: 1.3; color: #555; margin: 0; display: inline-block; }
+.consent-field { margin-bottom: 10px; width: 100%; display: block; }
 .btn-submit { background: #007bff; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; font-weight: 500; width: 100%; margin-top: 8px; transition: background-color 0.2s; }
 .btn-submit:hover { background: #0056b3; }
 .error-message { color: #dc3545; font-size: 11px; margin-top: 2px; display: none; }
@@ -376,7 +391,8 @@ document.addEventListener('DOMContentLoaded', function() {
     .form-group.email-field,
     .form-group.phone-field,
     .form-group.dob-field,
-    .form-group.passport-field {
+    .form-group.passport-field,
+    .form-group.consent-field {
         grid-column: 1 / -1; /* Make these fields full width */
     }
 }
@@ -384,6 +400,8 @@ document.addEventListener('DOMContentLoaded', function() {
 <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.js"></script>
 <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
 <script src="https://kit.fontawesome.com/your-font-awesome-kit.js"></script>
+</div>
+</div>
 <?php include 'kfooter.php'; ?>
 <!-- Phone Input Initialization -->
 <link rel="stylesheet" href="assets/int-tel-input/css/intlTelInput.css">
@@ -403,7 +421,9 @@ window.addEventListener('load', function() {
             separateDialCode: true,
             dropdownContainer: document.body,
             formatOnDisplay: true,
-            autoPlaceholder: 'aggressive'
+            autoPlaceholder: 'aggressive',
+            allowDropdown: true,
+            nationalMode: true
         });
         
         // Update hidden full_phone field with international format before submit
@@ -428,10 +448,8 @@ window.addEventListener('load', function() {
                     }
                     document.getElementById('phone-error').textContent = errorMsg;
                     document.getElementById('phone-error').classList.add('show');
-                    
-                    // Allow form to proceed anyway - India has many valid number formats
-                    fullPhoneInput.value = phoneInput.value;
-                    return true;
+                    e.preventDefault();
+                    return false;
                 } else {
                     document.getElementById('phone-error').classList.remove('show');
                 }
@@ -453,6 +471,15 @@ window.addEventListener('load', function() {
                         document.getElementById('dob-error').classList.add('show');
                         return false;
                     }
+                }
+                
+                // Validate consent checkboxes
+                var communicationConsent = document.getElementById('communication_consent');
+                var dndConsent = document.getElementById('dnd_consent');
+                if (!communicationConsent.checked || !dndConsent.checked) {
+                    e.preventDefault();
+                    alert('Please agree to the consent terms to proceed.');
+                    return false;
                 }
             });
         }

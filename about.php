@@ -23,8 +23,8 @@ include_once('kheader.php');
                 <div class="col-xl-7">
                     <div class="img-box3">
                         <div class="img1"><img src="assets/img/normal/image1.webp" alt="About"></div>
-                        <div class="img2"><img src="assets/img/normal/image2.webp" alt="About"></div>
-                        <div class="img3 movingX"><img src="assets/img/normal/image3.webp" alt="About"></div>
+                        <div class="img2"><img src="assets/img/normal/La Harriza-05.webp" alt="About"></div>
+                        <div class="img3 movingX"><img src="assets/img/normal/Jaisalmer-03.webp" alt="About"></div>
                     </div>
                 </div>
                 <div class="col-xl-5">
