@@ -241,8 +241,8 @@ include_once('kheader.php');
                 <div class="feature-item th-ani">
                     <div class="feature-item_icon"><img src="assets/images/icons/Icons-Value-03.webp" alt="icon"></div>
                     <div class="media-body">
-                        <h3 class="box-title">Value for money</h3>
-                        <p class="feature-item_text">Unbeatable Deals for Luxury Stays</p>
+                        <h3 class="box-title" style="color:rgb(15, 15, 15);">Smart Luxury Deals </h3>
+                        <p class="feature-item_text">Exclusive offers for premium stays at unbeatable prices.</p>
                     </div>
                 </div>
             </div>
@@ -250,8 +250,8 @@ include_once('kheader.php');
                 <div class="feature-item th-ani">
                     <div class="feature-item_icon"><img src="assets/images/icons/Icons-Resort-01.webp" alt="icon"></div>
                     <div class="media-body">
-                        <h3 class="box-title">Best resorts in exotic Destinations</h3>
-                        <p class="feature-item_text">Award winning resorts in Exotic Destinations</p>
+                        <h3 class="box-title" style="color:rgb(15, 15, 15);">Luxury Stays in Dream Destinations</h3>
+                        <p class="feature-item_text">Experience award-winning resorts in breathtaking locations worldwide.</p>
                     </div>
                 </div>
             </div>
@@ -259,8 +259,8 @@ include_once('kheader.php');
                 <div class="feature-item th-ani">
                     <div class="feature-item_icon"><img src="assets/images/icons/Icons-Assistance-02.webp" alt="icon"></div>
                     <div class="media-body">
-                        <h3 class="box-title">Booking Assistance</h3>
-                        <p class="feature-item_text">Ease of communication every step of the way</p>
+                        <h3 class="box-title" style="color:rgb(15, 15, 15);">Seamless Booking Support</h3>
+                        <p class="feature-item_text">Personalized assistance to ensure a hassle-free reservation process.</p>
                     </div>
                 </div>
             </div>
