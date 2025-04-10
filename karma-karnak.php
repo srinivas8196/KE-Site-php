@@ -400,6 +400,8 @@ document.addEventListener('DOMContentLoaded', function() {
 <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.js"></script>
 <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
 <script src="https://kit.fontawesome.com/your-font-awesome-kit.js"></script>
+</div>
+</div>
 <?php include 'kfooter.php'; ?>
 <!-- Phone Input Initialization -->
 <link rel="stylesheet" href="assets/int-tel-input/css/intlTelInput.css">
@@ -419,7 +421,9 @@ window.addEventListener('load', function() {
             separateDialCode: true,
             dropdownContainer: document.body,
             formatOnDisplay: true,
-            autoPlaceholder: 'aggressive'
+            autoPlaceholder: 'aggressive',
+            allowDropdown: true,
+            nationalMode: true
         });
         
         // Update hidden full_phone field with international format before submit
@@ -444,10 +448,8 @@ window.addEventListener('load', function() {
                     }
                     document.getElementById('phone-error').textContent = errorMsg;
                     document.getElementById('phone-error').classList.add('show');
-                    
-                    // Allow form to proceed anyway - India has many valid number formats
-                    fullPhoneInput.value = phoneInput.value;
-                    return true;
+                    e.preventDefault();
+                    return false;
                 } else {
                     document.getElementById('phone-error').classList.remove('show');
                 }

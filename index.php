@@ -24,7 +24,7 @@ include_once('kheader.php');
             </div>
             <div class="swiper-slide">
                 <div class="hero-inner">
-                    <div class="th-hero-bg" data-bg-src="assets/images/slider/Germany-Banner.webp"></div>
+                    <div class="th-hero-bg" data-bg-src="assets/images/slider/Bali-03.webp"></div>
                     <div class="container">
                         <div class="hero-style1"><span class="sub-title style1" data-ani="slideinup"
                                 data-ani-delay="0.2s">Delivering Unmatched Holiday Experiences At Ubeatable Prices</span><br>
@@ -40,7 +40,7 @@ include_once('kheader.php');
             </div>
             <div class="swiper-slide">
                 <div class="hero-inner">
-                    <div class="th-hero-bg" data-bg-src="assets/images/slider/Spain-Banner.webp"></div>
+                    <div class="th-hero-bg" data-bg-src="assets/images/slider/Italy-02.webp"></div>
                     <div class="container">
                         <div class="hero-style1"><span class="sub-title style1" data-ani="slideinup"
                                 data-ani-delay="0.2s">Delivering Unmatched Holiday Experiences At Ubeatable Prices</span> <br>
