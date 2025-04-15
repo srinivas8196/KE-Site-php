@@ -61,8 +61,11 @@ RewriteCond %{REQUEST_FILENAME} !-d
 # Redirect lowercase blogs.php to Blogs.php
 RewriteRule ^blogs\.php$ Blogs.php [L,R=301]
 
-# Handle blog URLs (both /blogs/ and /Blogs/)
-RewriteRule ^[Bb]logs/(.*)$ fix-blogs.php [L,QSA]
+# Handle all blog-related URLs
+RewriteRule ^blogs/(.*)$ fix-blogs.php [L,QSA]
+
+# Ensure consistent case for Blogs.php
+RewriteRule ^[Bb]logs\.php$ Blogs.php [L,R=301]
 
 # Add .php extension for clean URLs 
 RewriteCond %{REQUEST_FILENAME} !-d

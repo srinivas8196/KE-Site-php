@@ -4,6 +4,9 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
+// Start the session at the very beginning
+session_start();
+
 // Include database connection
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/includes/functions.php';
@@ -14,6 +17,21 @@ $base_url = '/KE-Site-php';
 
 // Check database connection
 checkDatabaseConnection();
+
+// Comment success/error messages
+$comment_error = '';
+$comment_success = '';
+
+// Check for session messages
+if (isset($_SESSION['comment_success'])) {
+    $comment_success = $_SESSION['comment_success'];
+    unset($_SESSION['comment_success']);
+}
+
+if (isset($_SESSION['comment_error'])) {
+    $comment_error = $_SESSION['comment_error'];
+    unset($_SESSION['comment_error']);
+}
 
 // Get the slug
 $slug = '';
@@ -63,12 +81,29 @@ $tags_result = $stmt->get_result();
 $stmt->close();
 
 // Fetch all comments for this post
-$comments_query = "SELECT * FROM blog_comments WHERE post_id = ? AND status = 'approved' ORDER BY created_at ASC";
+$comments_query = "SELECT * FROM blog_comments WHERE post_id = ? AND status = 'approved' AND parent_id IS NULL ORDER BY created_at ASC";
 $stmt = $conn->prepare($comments_query);
 $stmt->bind_param("i", $post['id']);
 $stmt->execute();
 $comments_result = $stmt->get_result();
 $stmt->close();
+
+// Fetch replies for this post
+$replies_query = "SELECT * FROM blog_comments WHERE post_id = ? AND status = 'approved' AND parent_id IS NOT NULL ORDER BY created_at ASC";
+$stmt = $conn->prepare($replies_query);
+$stmt->bind_param("i", $post['id']);
+$stmt->execute();
+$replies_result = $stmt->get_result();
+$stmt->close();
+
+// Organize replies by parent comment ID
+$replies_array = [];
+while ($reply = $replies_result->fetch_assoc()) {
+    if (!isset($replies_array[$reply['parent_id']])) {
+        $replies_array[$reply['parent_id']] = [];
+    }
+    $replies_array[$reply['parent_id']][] = $reply;
+}
 
 // Track view count
 $update_views = "UPDATE blog_posts SET views = views + 1 WHERE id = ?";
@@ -76,50 +111,6 @@ $stmt = $conn->prepare($update_views);
 $stmt->bind_param("i", $post['id']);
 $stmt->execute();
 $stmt->close();
-
-// Handle comment submission
-$comment_error = '';
-$comment_success = '';
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_comment'])) {
-    $name = trim($_POST['name'] ?? '');
-    $email = trim($_POST['email'] ?? '');
-    $content = trim($_POST['content'] ?? '');
-    $post_id = $post['id'];
-    $recaptcha_token = $_POST['recaptcha_token'] ?? '';
-    
-    // Simple validation
-    if (empty($name) || empty($email) || empty($content)) {
-        $comment_error = "All fields are required";
-    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $comment_error = "Please enter a valid email address";
-    } else {
-        // Verify reCAPTCHA first
-        $recaptcha_result = verifyRecaptchaV3($recaptcha_token, 'comment');
-        
-        if (!$recaptcha_result['success']) {
-            $comment_error = "Security verification failed. Please try again.";
-            error_log('reCAPTCHA verification failed for comment: ' . ($recaptcha_result['error'] ?? 'unknown error'));
-        } else {
-            // Set status based on auto-approval setting (for now, require approval)
-            $status = 'pending'; // Or 'approved' if you want auto-approval
-            
-            $insert_comment = "INSERT INTO blog_comments (post_id, name, email, content, status, created_at) 
-                               VALUES (?, ?, ?, ?, ?, NOW())";
-            $stmt = $conn->prepare($insert_comment);
-            $stmt->bind_param("issss", $post_id, $name, $email, $content, $status);
-            
-            if ($stmt->execute()) {
-                $comment_success = "Thank you for your comment! It will be visible after approval.";
-                // Clear form data after successful submission
-                unset($_POST['name'], $_POST['email'], $_POST['content']);
-            } else {
-                $comment_error = "Error: " . $stmt->error;
-            }
-            $stmt->close();
-        }
-    }
-}
 
 // Fetch related posts based on category
 $related_query = "SELECT p.id, p.title, p.slug, p.featured_image, p.published_at 
@@ -149,9 +140,9 @@ include 'kheader.php';
             <h1 class="breadcumb-title"><?php echo htmlspecialchars($post['title']); ?></h1>
             <ul class="breadcumb-menu">
                 <li><a href="<?php echo $base_url; ?>/index.php">Home</a></li>
-                <li><a href="<?php echo $base_url; ?>/blogs">Blog</a></li>
+                <li><a href="<?php echo $base_url; ?>/Blogs.php">Blog</a></li>
                 <?php if (!empty($post['category_name'])): ?>
-                    <li><a href="<?php echo $base_url; ?>/blogs/category/<?php echo htmlspecialchars($post['category_slug']); ?>"><?php echo htmlspecialchars($post['category_name']); ?></a></li>
+                    <li><a href="<?php echo $base_url; ?>/blog-category.php?category=<?php echo htmlspecialchars($post['category_slug']); ?>"><?php echo htmlspecialchars($post['category_name']); ?></a></li>
                 <?php endif; ?>
                 <li><?php echo htmlspecialchars($post['title']); ?></li>
             </ul>
@@ -179,16 +170,16 @@ include 'kheader.php';
                     <?php endif; ?>
                     <div class="blog-content">
                         <div class="blog-meta">
-                            <a class="author" href="<?php echo $base_url; ?>/blogs">
+                            <a class="author" href="<?php echo $base_url; ?>/Blogs.php">
                                 <i class="fa-light fa-user"></i>by Admin
                             </a>
-                            <a href="<?php echo $base_url; ?>/blogs">
+                            <a href="<?php echo $base_url; ?>/Blogs.php">
                                 <i class="fa-regular fa-calendar"></i>
                                 <?php echo date('d M, Y', strtotime($post['published_at'])); ?>
                             </a>
                             <?php if (!empty($post['category_name'])): ?>
-                                <a href="<?php echo $base_url; ?>/blogs/category/<?php echo htmlspecialchars($post['category_slug']); ?>">
-                                    <img src="<?php echo $base_url; ?>/assets/img/icon/map.svg" alt=""><?php echo htmlspecialchars($post['category_name']); ?>
+                                <a href="<?php echo $base_url; ?>/blog-category.php?category=<?php echo htmlspecialchars($post['category_slug']); ?>">
+                                    <i class="fa-regular fa-folder"></i><?php echo htmlspecialchars($post['category_name']); ?>
                                 </a>
                             <?php endif; ?>
                         </div>
@@ -204,7 +195,7 @@ include 'kheader.php';
                             <div class="blog-tags mb-5">
                                 <span class="tag-title"><i class="fas fa-tags"></i> Tags:</span>
                                 <?php while ($tag = $tags_result->fetch_assoc()): ?>
-                                    <a href="<?php echo $base_url; ?>/blogs/tag/<?php echo htmlspecialchars($tag['slug']); ?>" class="tag-link"><?php echo htmlspecialchars($tag['name']); ?></a>
+                                    <a href="<?php echo $base_url; ?>/blog-category.php?tag=<?php echo htmlspecialchars($tag['slug']); ?>" class="tag-link"><?php echo htmlspecialchars($tag['name']); ?></a>
                                 <?php endwhile; ?>
                             </div>
                         <?php endif; ?>
@@ -264,52 +255,79 @@ include 'kheader.php';
                         <div id="comment-form" class="comment-form-wrap mt-5 pt-4">
                             <h3 class="blog-inner-title mb-4">Leave a Comment</h3>
                             
-                            <?php if ($comment_success): ?>
-                                <div class="alert alert-success mb-4">
-                                    <?php echo htmlspecialchars($comment_success); ?>
-                                </div>
-                            <?php endif; ?>
+                            <?php 
+                            // DEBUG OUTPUT - REMOVE IN PRODUCTION
+                            $debug_output = "<div style='background:#f8f8f8; border:1px solid #ddd; padding:10px; margin:10px 0; font-family:monospace; font-size:12px;'>";
+                            $debug_output .= "REQUEST_METHOD: " . $_SERVER['REQUEST_METHOD'] . "<br>";
+                            $debug_output .= "POST data: " . htmlspecialchars(json_encode($_POST)) . "<br>";
+                            $debug_output .= "Current post ID: " . $post['id'] . "<br>";
+                            $debug_output .= "</div>";
+                            // Uncomment the next line to see debugging info
+                            // echo $debug_output;
                             
-                            <?php if (!empty($comment_error)): ?>
-                                <div class="alert alert-danger mb-4">
-                                    <?php echo htmlspecialchars($comment_error); ?>
-                                </div>
-                            <?php endif; ?>
+                            // Process comment submission
+                            $comment_message = '';
                             
-                            <form action="#comment-form" method="POST" class="comment-form" id="commentForm">
-                                <input type="hidden" name="parent_id" id="parent_id" value="">
+                            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+                                // Get form data
+                                $name = isset($_POST['name']) ? trim($_POST['name']) : '';
+                                $email = isset($_POST['email']) ? trim($_POST['email']) : '';
+                                $content = isset($_POST['content']) ? trim($_POST['content']) : '';
+                                $post_id = $post['id']; // This is the current post ID from the loaded blog post
+                                
+                                // Basic validation
+                                if (empty($name) || empty($email) || empty($content)) {
+                                    $comment_message = '<div class="alert alert-danger">Please fill in all required fields.</div>';
+                                } else {
+                                    // Safe data for db
+                                    $name = $conn->real_escape_string(htmlspecialchars($name));
+                                    $email = $conn->real_escape_string(htmlspecialchars($email));
+                                    $content = $conn->real_escape_string(htmlspecialchars($content));
+                                    
+                                    // Create SQL - simplified with no parent_id
+                                    $sql = "INSERT INTO blog_comments (post_id, name, email, content, status, created_at) 
+                                            VALUES ($post_id, '$name', '$email', '$content', 'pending', NOW())";
+                                    
+                                    // Execute query
+                                    try {
+                                        if ($conn->query($sql)) {
+                                            $comment_message = '<div class="alert alert-success">Thank you for your comment! It will be visible after approval.</div>';
+                                            // Clear the form fields
+                                            $_POST = array();
+                                        } else {
+                                            $comment_message = '<div class="alert alert-danger">Error: ' . $conn->error . '</div>';
+                                        }
+                                    } catch (Exception $e) {
+                                        $comment_message = '<div class="alert alert-danger">Error: ' . $e->getMessage() . '</div>';
+                                    }
+                                }
+                            }
+                            
+                            echo $comment_message;
+                            ?>
+                            
+                            <!-- SIMPLIFIED COMMENT FORM - NO JAVASCRIPT -->
+                            <form method="POST">
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="form-group mb-4">
-                                            <input type="text" class="form-control" name="name" id="name" placeholder="Your Name*" required>
+                                            <input type="text" class="form-control" name="name" placeholder="Your Name*" required>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-group mb-4">
-                                            <input type="email" class="form-control" name="email" id="email" placeholder="Your Email*" required>
+                                            <input type="email" class="form-control" name="email" placeholder="Your Email*" required>
                                         </div>
                                     </div>
                                     <div class="col-12">
                                         <div class="form-group mb-4">
-                                            <input type="url" class="form-control" name="website" id="website" placeholder="Website (optional)">
+                                            <textarea name="content" class="form-control" placeholder="Your Comment*" required rows="6"></textarea>
                                         </div>
                                     </div>
                                     <div class="col-12">
-                                        <div class="form-group mb-4">
-                                            <textarea name="comment" id="comment" class="form-control" placeholder="Your Comment*" required rows="6"></textarea>
-                                        </div>
-                                    </div>
-                                    <div class="col-12">
-                                        <button type="submit" name="comment_submit" class="th-btn">Post Comment</button>
+                                        <button type="submit" class="th-btn">Post Comment</button>
                                     </div>
                                 </div>
-                                <div id="reply-info" class="mt-3" style="display: none;">
-                                    Replying to: <span id="reply-to-name"></span>
-                                    <a href="#" id="cancel-reply" class="ms-2">(Cancel)</a>
-                                </div>
-                                
-                                <!-- Hidden reCAPTCHA token field -->
-                                <input type="hidden" name="recaptcha_token" id="recaptchaToken">
                             </form>
                         </div>
                     </div>
@@ -321,54 +339,13 @@ include 'kheader.php';
                 <?php include __DIR__ . '/includes/blog_sidebar.php'; ?>
             </div>
         </div>
-        
-        <div class="shape-mockup shape1 d-none d-xxl-block" data-bottom="5%" data-right="-8%">
-            <img src="assets/img/shape/shape_1.png" alt="shape">
-        </div>
-        <div class="shape-mockup shape2 d-none d-xl-block" data-bottom="1%" data-right="-7%">
-            <img src="assets/img/shape/shape_2.png" alt="shape">
-        </div>
-        <div class="shape-mockup shape3 d-none d-xxl-block" data-bottom="2%" data-right="0%">
-            <img src="assets/img/shape/shape_3.png" alt="shape">
-        </div>
     </div>
 </section>
 
+<!-- Replace the JavaScript for comment reply with empty script -->
 <script>
-    // Handle reply to comment functionality
-    document.addEventListener('DOMContentLoaded', function() {
-        const replyBtns = document.querySelectorAll('.reply-button');
-        const parentIdField = document.getElementById('parent_id');
-        const commentForm = document.getElementById('comment-form');
-        
-        replyBtns.forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.preventDefault();
-                const parentId = this.getAttribute('data-comment-id');
-                parentIdField.value = parentId;
-                
-                // Scroll to comment form
-                commentForm.scrollIntoView({behavior: 'smooth'});
-                
-                // Focus on the first input field
-                setTimeout(() => {
-                    const firstInput = commentForm.querySelector('input[name="name"]');
-                    if (firstInput) firstInput.focus();
-                }, 500);
-            });
-        });
-    });
-
-document.getElementById('commentForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    grecaptcha.ready(function() {
-        grecaptcha.execute('<?php echo RECAPTCHA_V3_SITE_KEY; ?>', {action: 'comment'})
-            .then(function(token) {
-                document.getElementById('recaptchaToken').value = token;
-                document.getElementById('commentForm').submit();
-            });
-    });
-});
+// All JavaScript for comment replies has been temporarily removed
+// to debug the form submission issue
 </script>
 
 <?php include 'kfooter.php'; ?> 

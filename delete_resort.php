@@ -45,7 +45,7 @@ function log_resort_activity($pdo, $action, $details, $user_id = 1) {
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )');
         
-        // Then add the entry
+        // Then add the entry - don't use transaction for logging
         $log_stmt = $pdo->prepare("INSERT INTO activity_log (user_id, action, details, ip_address) VALUES (?, ?, ?, ?)");
         $log_result = $log_stmt->execute([
             $user_id,
@@ -69,58 +69,96 @@ if (isset($_GET['id'])) {
     $resortId = $_GET['id'];
     
     try {
-        // Start transaction
-        $pdo->beginTransaction();
-        
-        // Fetch the landing page file path and resort slug from the database
-        $stmt = $pdo->prepare("SELECT file_path, resort_slug, resort_name FROM resorts WHERE id = ?");
+        // Fetch the resort details first, before starting transaction
+        $stmt = $pdo->prepare("SELECT file_path, resort_slug, resort_name, banner_image, gallery, room_details, amenities FROM resorts WHERE id = ?");
         $stmt->execute([$resortId]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         
-        if ($result) {
-            $filePath = $result['file_path'];      // e.g., "abc.php"
-            $resortSlug = $result['resort_slug'];    // used to locate assets folder
-            $resortName = $result['resort_name'];    // for activity log
+        if (!$result) {
+            $_SESSION['error_message'] = "Resort not found.";
+            error_log("Attempted to delete non-existent resort with ID: $resortId");
+            header("Location: resort_list.php");
+            exit();
+        }
             
-            // Check if there are any enquiries first
-            $checkStmt = $pdo->prepare("SELECT COUNT(*) FROM resort_enquiries WHERE resort_id = ?");
-            $checkStmt->execute([$resortId]);
-            $hasEnquiries = $checkStmt->fetchColumn() > 0;
-            
-            // Only delete enquiries if they exist
-            if ($hasEnquiries) {
-                $stmt = $pdo->prepare("DELETE FROM resort_enquiries WHERE resort_id = ?");
-                $stmt->execute([$resortId]);
-            }
-            
-            // Then delete the resort
-            $stmt = $pdo->prepare("DELETE FROM resorts WHERE id = ?");
+        $filePath = $result['file_path'];      // e.g., "abc.php"
+        $resortSlug = $result['resort_slug'];    // used to locate assets folder
+        $resortName = $result['resort_name'];    // for activity log
+        $bannerImage = $result['banner_image'];
+        $gallery = json_decode($result['gallery'], true);
+        $roomDetails = json_decode($result['room_details'], true);
+        $amenities = json_decode($result['amenities'], true);
+        
+        // Start transaction only after confirming resort exists
+        $pdo->beginTransaction();
+        
+        // Check if there are any enquiries first
+        $checkStmt = $pdo->prepare("SELECT COUNT(*) FROM resort_enquiries WHERE resort_id = ?");
+        $checkStmt->execute([$resortId]);
+        $hasEnquiries = $checkStmt->fetchColumn() > 0;
+        
+        // Only delete enquiries if they exist
+        if ($hasEnquiries) {
+            $stmt = $pdo->prepare("DELETE FROM resort_enquiries WHERE resort_id = ?");
             $stmt->execute([$resortId]);
-            
-            // Log deletion action
-            $activityDetails = "Deleted resort: $resortName (ID: $resortId)";
-            log_resort_activity($pdo, 'delete_resort', $activityDetails, $_SESSION['user_id']);
-            
-            // If everything is successful, commit the transaction
-            $pdo->commit();
-            
-            // Delete the landing page file if it exists
-            if ($filePath && file_exists($filePath)) {
-                unlink($filePath);
+        }
+        
+        // Then delete the resort
+        $stmt = $pdo->prepare("DELETE FROM resorts WHERE id = ?");
+        $stmt->execute([$resortId]);
+        
+        // If everything is successful, commit the transaction
+        $pdo->commit();
+        
+        // Log deletion action AFTER transaction is committed
+        $activityDetails = "Deleted resort: $resortName (ID: $resortId)";
+        log_resort_activity($pdo, 'delete_resort', $activityDetails, $_SESSION['user_id']);
+        
+        // Process file deletion AFTER database operations are completed
+        $deletionSuccess = true;
+        
+        // Delete the landing page file if it exists
+        if ($filePath && file_exists($filePath)) {
+            if (unlink($filePath)) {
+                error_log("Deleted landing page file: $filePath");
+            } else {
+                error_log("Failed to delete landing page file: $filePath");
+                $deletionSuccess = false;
             }
-            
-            // Build the assets directory path (e.g., "assets/resorts/abc")
-            $assetsDir = "assets/resorts/" . $resortSlug;
-            if (is_dir($assetsDir)) {
-                deleteDirectory($assetsDir);
+        } else {
+            error_log("Landing page file not found: $filePath");
+        }
+        
+        // Build the assets directory path (e.g., "assets/resorts/abc")
+        $assetsDir = "assets/resorts/" . $resortSlug;
+        
+        // Log what we're about to delete for debugging
+        error_log("Attempting to delete resort directory: $assetsDir");
+        
+        // Check if resort directory exists before attempting deletion
+        if (is_dir($assetsDir)) {
+            if (deleteDirectory($assetsDir)) {
+                error_log("Successfully deleted resort directory: $assetsDir");
+            } else {
+                error_log("Failed to delete some files in resort directory: $assetsDir - this can happen if files are in use or permissions are insufficient");
+                $deletionSuccess = false;
             }
-            
-            $_SESSION['success_message'] = "Resort deleted successfully.";
+        } else {
+            error_log("Resort directory not found: $assetsDir");
+        }
+        
+        if ($deletionSuccess) {
+            $_SESSION['success_message'] = "Resort and all related files deleted successfully.";
+        } else {
+            $_SESSION['success_message'] = "Resort deleted from database, but some files could not be removed.";
         }
     } catch (PDOException $e) {
-        // If there's an error, rollback the transaction
-        $pdo->rollBack();
+        // If there's an error, rollback the transaction if it's active
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
         $_SESSION['error_message'] = "Error deleting resort: " . $e->getMessage();
+        error_log("Error deleting resort: " . $e->getMessage());
     }
 }
 

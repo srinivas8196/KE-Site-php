@@ -18,20 +18,22 @@
                         </div>
                     </div>
                 </div>
-                <div class="row justify-content-between">
+                <div class="row justify-content-between">   
                     <div class="col-md-6 col-xl-3">
                         <div class="widget footer-widget">
                             <div class="th-widget-about">
-                                <div class="about-logo"><a href="home-travel.html"><img src="assets/images/logo/KE-White.png"
-                                            alt="Tourm"></a></div>
-                                <!-- <p class="about-text">Rapidiously myocardinate cross-platform intellectual capital
-                                    model. Appropriately create interactive infrastructures</p>
-                                <div class="th-social"><a href="https://www.facebook.com/"><i
-                                            class="fab fa-facebook-f"></i></a> <a href="https://www.twitter.com/"><i
-                                            class="fab fa-twitter"></i></a> <a href="https://www.linkedin.com/"><i
-                                            class="fab fa-linkedin-in"></i></a> <a href="https://www.whatsapp.com/"><i
-                                            class="fab fa-whatsapp"></i></a> <a href="https://instagram.com/"><i
-                                            class="fab fa-instagram"></i></a></div> -->
+                                <div class="about-logo">
+                                    <a href="index.php">
+                                        <img src="<?php echo $base_url ?? ''; ?>/assets/images/logo/KE-White.png" alt="Karma Experience" style="height: auto;">
+                                    </a>
+                                </div>
+                                <p class="about-text">Discover the world with Karma Experience - where luxury meets adventure.</p>
+                                <div class="th-social">
+                                    <a href="https://www.facebook.com/"><i class="fab fa-facebook-f"></i></a> 
+                                    <a href="https://www.instagram.com/"><i class="fab fa-instagram"></i></a>
+                                    <a href="https://www.twitter.com/"><i class="fab fa-twitter"></i></a>
+                                    <a href="https://www.linkedin.com/"><i class="fab fa-linkedin-in"></i></a>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -122,11 +124,11 @@
                         <p class="copyright-text">© 2025 - PRESTIGE HOLIDAY RESORTS LLP - ALL RIGHTS RESERVED</p>
                     </div>
                     <div class="col-md-6 text-end d-none d-md-block">
-                        <div class="footer-card"><span class="title">We Accept:</span>
-                         <!-- <img src="assets/img/shape/cards.png" alt=""> -->
-                          <img src="assets/img/icon/visa.webp" alt="visa">
-                          <img src="assets/img/icon/master-card.webp" alt="visa">
-                          <img src="assets/img/icon/razorpay.png" alt="visa">
+                        <div class="footer-card">
+                            <span class="title">We Accept:</span>
+                            <img src="<?php echo $base_url ?? ''; ?>/assets/img/icon/visa.webp" alt="Visa" style="height: 25px; margin-right: 8px;">
+                            <img src="<?php echo $base_url ?? ''; ?>/assets/img/icon/master-card.webp" alt="Mastercard" style="height: 25px; margin-right: 8px;">
+                            <img src="<?php echo $base_url ?? ''; ?>/assets/img/icon/razorpay.png" alt="Razorpay" style="height: 25px; margin-right: 8px;">
                         </div>
                     </div>
                 </div>

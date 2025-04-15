@@ -23,12 +23,12 @@ if (!isset($base_url)) {
     $base_url = '/KE-Site-php';
 }
 
-// Get all categories for the sidebar
-$categories_query = "SELECT c.*, COUNT(p.id) as post_count 
-                     FROM blog_categories c 
-                     LEFT JOIN blog_posts p ON c.id = p.category_id AND p.status = 'published' 
-                     GROUP BY c.id 
-                     ORDER BY c.name";
+// Get categories with post counts
+$categories_query = "SELECT c.id, c.name, c.slug, COUNT(p.id) as post_count 
+                    FROM blog_categories c 
+                    LEFT JOIN blog_posts p ON c.id = p.category_id AND p.status = 'published' 
+                    GROUP BY c.id, c.name, c.slug 
+                    ORDER BY c.name ASC";
 $categories_result = $conn->query($categories_query);
 
 // Get recent posts for the sidebar
@@ -58,22 +58,20 @@ $tags_result = $conn->query($tags_query);
         </form>
     </div>
     
-    <div class="widget widget_categories">
-        <h3 class="widget_title">Categories</h3>
-        <ul>
-            <?php if ($categories_result && $categories_result->num_rows > 0): ?>
+    <div class="widget sidebar-widget">
+        <h3 class="widget-title">Categories</h3>
+        <div class="th-widget-category">
+            <ul>
                 <?php while ($category = $categories_result->fetch_assoc()): ?>
                     <li>
-                        <a href="<?php echo $base_url; ?>/blogs/category/<?php echo htmlspecialchars($category['slug']); ?>">
-                            <img src="<?php echo $base_url; ?>/assets/img/theme-img/map.svg" alt=""><?php echo htmlspecialchars($category['name']); ?>
+                        <a href="<?php echo $base_url; ?>/blog-category.php?category=<?php echo htmlspecialchars($category['slug']); ?>">
+                            <?php echo htmlspecialchars($category['name']); ?>
+                            <span class="count">(<?php echo $category['post_count']; ?>)</span>
                         </a>
-                        <span>(<?php echo $category['post_count']; ?>)</span>
                     </li>
                 <?php endwhile; ?>
-            <?php else: ?>
-                <li><a href="#">No categories found</a></li>
-            <?php endif; ?>
-        </ul>
+            </ul>
+        </div>
     </div>
     
     <div class="widget">
@@ -117,7 +115,7 @@ $tags_result = $conn->query($tags_query);
         <div class="tagcloud">
             <?php if ($tags_result && $tags_result->num_rows > 0): ?>
                 <?php while ($tag = $tags_result->fetch_assoc()): ?>
-                    <a href="<?php echo $base_url; ?>/blogs/tag/<?php echo htmlspecialchars($tag['slug']); ?>">
+                    <a href="<?php echo $base_url; ?>/blog-category.php?tag=<?php echo htmlspecialchars($tag['slug']); ?>">
                         <?php echo htmlspecialchars($tag['name']); ?>
                     </a>
                 <?php endwhile; ?>

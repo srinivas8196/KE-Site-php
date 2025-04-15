@@ -591,11 +591,11 @@ include 'bheader.php';
                         <td>
                             <div class="d-flex">
                                 <?php if ($post['status'] === 'published'): ?>
-                                <a href="blogs/<?php echo htmlspecialchars($post['slug']); ?>" class="action-button action-button-view" title="View" target="_blank">
+                                <a href="<?php echo $base_url; ?>/blogs/<?php echo htmlspecialchars($post['slug']); ?>" class="action-button action-button-view" title="View" target="_blank">
                                     <i class="fas fa-eye"></i>
                                 </a>
                                 <?php else: ?>
-                                <a href="blogs/<?php echo htmlspecialchars($post['slug']); ?>?preview=true" class="action-button action-button-view" title="Preview" target="_blank">
+                                <a href="<?php echo $base_url; ?>/blogs/<?php echo htmlspecialchars($post['slug']); ?>?preview=true" class="action-button action-button-view" title="Preview" target="_blank">
                                     <i class="fas fa-desktop"></i>
                                 </a>
                                 <?php endif; ?>

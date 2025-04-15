@@ -19,9 +19,10 @@ checkDatabaseConnection();
 
 // Get the request URI
 $request_uri = $_SERVER['REQUEST_URI'];
+$script_name = $_SERVER['SCRIPT_NAME'];
 
-// Extract the path after /blogs/ or /Blogs/
-if (preg_match('/\/[Bb]logs\/([^?]*)/', $request_uri, $matches)) {
+// Extract the path after /blogs/
+if (preg_match('/\/blogs\/([^?]*)/', $request_uri, $matches)) {
     $path = trim($matches[1], '/');
     
     // If there's a path after /blogs/
@@ -30,13 +31,13 @@ if (preg_match('/\/[Bb]logs\/([^?]*)/', $request_uri, $matches)) {
         if (strpos($path, 'category/') === 0) {
             // Category: blogs/category/xyz
             $category = substr($path, 9); // Remove "category/"
-            $_GET['category'] = $category;
+            $_GET['category'] = urldecode($category); // Decode URL-encoded characters
             include 'Blogs.php';
             exit;
         } elseif (strpos($path, 'tag/') === 0) {
             // Tag: blogs/tag/xyz
             $tag = substr($path, 4); // Remove "tag/"
-            $_GET['tag'] = $tag;
+            $_GET['tag'] = urldecode($tag);
             include 'Blogs.php';
             exit;
         } elseif (strpos($path, 'page/') === 0) {
@@ -51,13 +52,9 @@ if (preg_match('/\/[Bb]logs\/([^?]*)/', $request_uri, $matches)) {
             include 'blog-details.php';
             exit;
         }
-    } else {
-        // Just /blogs/ or /Blogs/
-        include 'Blogs.php';
-        exit;
     }
 }
 
-// Default: load Blogs.php
+// Default: show all blogs
 include 'Blogs.php';
-exit; 
+?> 

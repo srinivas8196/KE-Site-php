@@ -1,4 +1,6 @@
 <?php
+// Include 404 handler to catch invalid pages
+include_once('page_not_found_handler.php');
 include_once('kheader.php');
 ?>
 
@@ -181,11 +183,11 @@ include_once('kheader.php');
             </div>
             <div class="col-xl-6">
                 <div class="ps-xl-4 ms-xl-2">
-                    <div class="title-area mb-20 pe-xl-5 me-xl-5"><span class="sub-title style1">Let’s Go
+                    <div class="title-area mb-20 pe-xl-5 me-xl-5"><span class="sub-title style1">Let's Go
                             Together</span>
                         <h2 class="sec-title mb-20 pe-xl-5 me-xl-5 heading">Enjoy a Luxury Experience</h2>
-                        <p class="sec-text mb-30">There’s a world of extraordinary adventures waiting for you with Karma Experience! From the pristine beaches of Bali, Thailand,
-                             and Goa to the cultural treasures of Europe and the enchanting Nile river cruise — unlock access to the world’s most sought-after destinations.</p>
+                        <p class="sec-text mb-30">There's a world of extraordinary adventures waiting for you with Karma Experience! From the pristine beaches of Bali, Thailand,
+                             and Goa to the cultural treasures of Europe and the enchanting Nile river cruise — unlock access to the world's most sought-after destinations.</p>
                     </div>
                     <div class="about-item-wrap">
                     <div class="about-item">

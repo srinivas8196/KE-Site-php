@@ -120,6 +120,21 @@ $current_page = basename($_SERVER['PHP_SELF']);
     border-radius: 8px;
     background-color: #f3f4f6;
 }
+
+.notification-bubble {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    border-radius: 10px;
+    background-color: #f59e0b;
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+    margin-left: 0.5rem;
+    padding: 0 5px;
+}
 </style>
 
 <!-- Sidebar -->
@@ -165,6 +180,25 @@ $current_page = basename($_SERVER['PHP_SELF']);
             <a href="admin_blog_categories.php" <?php echo ($current_page == 'admin_blog_categories.php') ? 'class="active"' : ''; ?>>
                 <i class="fas fa-folder"></i>
                 Blog Categories
+            </a>
+        </li>
+        <li>
+            <a href="admin_blog_comments.php" <?php echo ($current_page == 'admin_blog_comments.php') ? 'class="active"' : ''; ?>>
+                <i class="fas fa-comments"></i>
+                Blog Comments
+                <?php
+                // Get count of pending comments for the notification bubble
+                if (isset($conn) && $conn instanceof mysqli) {
+                    $pending_count_query = "SELECT COUNT(*) as count FROM blog_comments WHERE status = 'pending'";
+                    $pending_result = $conn->query($pending_count_query);
+                    $pending_count = ($pending_result && $pending_result->num_rows > 0) ? $pending_result->fetch_assoc()['count'] : 0;
+                    
+                    if ($pending_count > 0):
+                    ?>
+                    <span class="notification-bubble"><?php echo $pending_count; ?></span>
+                    <?php endif;
+                }
+                ?>
             </a>
         </li>
         <div class="sidebar-divider"></div>

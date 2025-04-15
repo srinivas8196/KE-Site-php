@@ -91,14 +91,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Check file size (limit to 5MB)
                 if ($_FILES['featured_image']['size'] <= 5000000) {
                     // Allow certain file formats
-                    if (in_array($file_ext, ['jpg', 'jpeg', 'png', 'gif'])) {
+                    if (in_array($file_ext, ['jpg', 'jpeg', 'png', 'gif' ,'webp'])) {
                         if (move_uploaded_file($_FILES['featured_image']['tmp_name'], $target_file)) {
                             $featured_image = $target_file;
                         } else {
                             $error_message = 'Error uploading file.';
                         }
                     } else {
-                        $error_message = 'Only JPG, JPEG, PNG & GIF files are allowed.';
+                        $error_message = 'Only JPG, JPEG, PNG , GIF & WEBP files are allowed.';
                     }
                 } else {
                     $error_message = 'File is too large. Maximum size is 5MB.';
@@ -757,7 +757,7 @@ include 'bheader.php';
             }
             
             // Update the preview URL
-            previewButton.href = 'blogs/' + slugField.value + '?preview=draft';
+            previewButton.href = 'Blogs/' + slugField.value + '?preview=draft';
         } else {
             previewButton.style.display = 'none';
         }

@@ -68,7 +68,7 @@ if (!function_exists('getParameter')) {
 
 // Get pagination parameters and filters
 $current_page = max(1, (int)getParameter('page'));
-$posts_per_page = 5;
+$posts_per_page = 3;
 $offset = ($current_page - 1) * $posts_per_page;
 
 // Handle search and filters
@@ -76,49 +76,89 @@ $search_term = isset($_GET['search']) ? trim($_GET['search']) : '';
 $category_filter = getParameter('category');
 $tag_filter = getParameter('tag');
 
-// Build SQL query with prepared statements for pagination and filtering
-$query = "SELECT SQL_CALC_FOUND_ROWS p.id, p.title, p.slug, p.excerpt, p.featured_image, p.published_at, 
-         c.name as category_name, c.slug as category_slug 
+// Debug information
+error_log("Category Filter: " . $category_filter);
+error_log("Tag Filter: " . $tag_filter);
+
+// First, verify if the category exists and get its name
+$category_name = '';
+if (!empty($category_filter)) {
+    $category_check = $conn->prepare("SELECT id, name FROM blog_categories WHERE slug = ?");
+    $category_check->bind_param("s", $category_filter);
+    $category_check->execute();
+    $category_result = $category_check->get_result();
+    
+    if ($category_result->num_rows === 0) {
+        // Category doesn't exist, show error
+        include 'kheader.php';
+        ?>
+        <div class="breadcumb-wrapper" data-bg-src="<?php echo $base_url; ?>/assets/img/bg/breadcumb-bg.jpg">
+            <div class="container">
+                <div class="breadcumb-content">
+                    <h1 class="breadcumb-title">Category Not Found</h1>
+                    <ul class="breadcumb-menu">
+                        <li><a href="<?php echo $base_url; ?>/index.php">Home</a></li>
+                        <li><a href="<?php echo $base_url; ?>/blogs">Blog</a></li>
+                        <li>Category Not Found</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <section class="space-top space-extra-bottom">
+            <div class="container">
+                <div class="row">
+                    <div class="col-12 text-center">
+                        <h2>Category Not Found</h2>
+                        <p>The category you are looking for does not exist.</p>
+                        <a href="<?php echo $base_url; ?>/blogs" class="th-btn">Back to Blog</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <?php
+        include 'kfooter.php';
+        exit;
+    } else {
+        $category_row = $category_result->fetch_assoc();
+        $category_name = $category_row['name'];
+    }
+    $category_check->close();
+}
+
+// Build optimized query
+$query = "SELECT p.id, p.title, p.slug, p.excerpt, 
+         p.featured_image, 
+         p.published_at, c.name as category_name, c.slug as category_slug 
          FROM blog_posts p 
          LEFT JOIN blog_categories c ON p.category_id = c.id 
          WHERE p.status = 'published'";
 
-// Optimize count query to use index
-$count_query = "SELECT COUNT(*) FROM blog_posts p WHERE p.status = 'published'";
 $params = [];
-$count_params = [];
 $types = "";
-$count_types = "";
 
-// Apply filters to both queries
-if (!empty($search_term)) {
-    $search_pattern = '%' . $search_term . '%';
-    $query .= " AND (p.title LIKE ? OR p.excerpt LIKE ?)"; // Only search in title and excerpt
-    $count_query .= " AND (p.title LIKE ? OR p.excerpt LIKE ?)";
-    $params[] = $search_pattern;
-    $params[] = $search_pattern;
-    $count_params[] = $search_pattern;
-    $count_params[] = $search_pattern;
-    $types .= "ss";
-    $count_types .= "ss";
-}
-
+// Apply filters
 if (!empty($category_filter)) {
     $query .= " AND c.slug = ?";
-    $count_query .= " AND EXISTS (SELECT 1 FROM blog_categories c WHERE c.id = p.category_id AND c.slug = ?)";
     $params[] = $category_filter;
-    $count_params[] = $category_filter;
     $types .= "s";
-    $count_types .= "s";
+    
+    // Debug information
+    error_log("Category Filter Applied: " . $category_filter);
+    error_log("Query with Category: " . $query);
 }
 
 if (!empty($tag_filter)) {
     $query .= " AND EXISTS (SELECT 1 FROM blog_post_tags pt JOIN blog_tags t ON pt.tag_id = t.id WHERE pt.post_id = p.id AND t.slug = ?)";
-    $count_query .= " AND EXISTS (SELECT 1 FROM blog_post_tags pt JOIN blog_tags t ON pt.tag_id = t.id WHERE pt.post_id = p.id AND t.slug = ?)";
     $params[] = $tag_filter;
-    $count_params[] = $tag_filter;
     $types .= "s";
-    $count_types .= "s";
+}
+
+if (!empty($search_term)) {
+    $search_pattern = '%' . $search_term . '%';
+    $query .= " AND (p.title LIKE ? OR p.excerpt LIKE ?)";
+    $params[] = $search_pattern;
+    $params[] = $search_pattern;
+    $types .= "ss";
 }
 
 // Add pagination
@@ -127,29 +167,54 @@ $params[] = $posts_per_page;
 $params[] = $offset;
 $types .= "ii";
 
-// Prepare and execute the count query first
-$count_stmt = $conn->prepare($count_query);
-if (!empty($count_params)) {
-    $count_stmt->bind_param($count_types, ...$count_params);
+// Debug the final query
+error_log("Final Query: " . $query);
+error_log("Query Parameters: " . print_r($params, true));
+
+// Free up memory before executing query
+gc_collect_cycles();
+
+try {
+    // Execute main query
+    $stmt = $conn->prepare($query);
+    if (!empty($params)) {
+        $stmt->bind_param($types, ...$params);
+    }
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    // Debug result count
+    error_log("Number of posts found: " . $result->num_rows);
+
+    // Get total count for pagination
+    $count_query = str_replace("SELECT p.id, p.title, p.slug, p.excerpt, p.featured_image, p.published_at, c.name as category_name, c.slug as category_slug", "SELECT COUNT(*)", $query);
+    $count_query = preg_replace('/LIMIT \? OFFSET \?$/', '', $count_query);
+    
+    $count_stmt = $conn->prepare($count_query);
+    if (!empty($params)) {
+        // Remove the last two parameters (LIMIT and OFFSET) for count query
+        $count_params = array_slice($params, 0, -2);
+        $count_types = substr($types, 0, -2);
+        if (!empty($count_params)) {
+            $count_stmt->bind_param($count_types, ...$count_params);
+        }
+    }
+    $count_stmt->execute();
+    $total_posts = $count_stmt->get_result()->fetch_row()[0];
+    $count_stmt->close();
+
+    // Calculate total pages
+    $total_pages = ceil($total_posts / $posts_per_page);
+
+    // Free up memory
+    unset($count_stmt, $stmt, $params, $types);
+    gc_collect_cycles();
+
+} catch (Exception $e) {
+    error_log("Database Error: " . $e->getMessage());
+    echo "An error occurred while fetching blog posts. Please try again later.";
+    exit;
 }
-$count_stmt->execute();
-$total_posts = $count_stmt->get_result()->fetch_row()[0];
-$count_stmt->close();
-
-// Calculate total pages
-$total_pages = ceil($total_posts / $posts_per_page);
-
-// Prepare and execute the main query
-$stmt = $conn->prepare($query);
-if (!empty($params)) {
-    $stmt->bind_param($types, ...$params);
-}
-$stmt->execute();
-$result = $stmt->get_result();
-$stmt->close();
-
-// Free up memory
-unset($count_stmt, $stmt, $params, $count_params, $types, $count_types);
 
 // Include header
 include 'kheader.php';
@@ -158,10 +223,13 @@ include 'kheader.php';
 <div class="breadcumb-wrapper" data-bg-src="<?php echo $base_url; ?>/assets/img/bg/breadcumb-bg.jpg">
     <div class="container">
         <div class="breadcumb-content">
-            <h1 class="breadcumb-title">Blog</h1>
+            <h1 class="breadcumb-title"><?php echo !empty($category_name) ? $category_name : 'Blog'; ?></h1>
             <ul class="breadcumb-menu">
                 <li><a href="<?php echo $base_url; ?>/index.php">Home</a></li>
-                <li>Blog</li>
+                <li><a href="<?php echo $base_url; ?>/blogs">Blog</a></li>
+                <?php if (!empty($category_name)): ?>
+                    <li><?php echo htmlspecialchars($category_name); ?></li>
+                <?php endif; ?>
             </ul>
         </div>
     </div>
@@ -172,13 +240,39 @@ include 'kheader.php';
         <div class="row gx-5">
             <div class="col-xxl-8 col-lg-7">
                 <div class="row gx-4">
-                    <?php if ($result->num_rows > 0): ?>
-                        <?php while ($post = $result->fetch_assoc()): ?>
+                    <?php 
+                    if ($result->num_rows > 0): 
+                        // Process one post at a time
+                        while ($post = $result->fetch_assoc()): 
+                            // Debug image path
+                            error_log("Original featured_image path: " . $post['featured_image']);
+                            
+                            // Properly handle image path
+                            $image_path = '';
+                            if (!empty($post['featured_image'])) {
+                                if (file_exists($post['featured_image'])) {
+                                    // Full file path exists - use it
+                                    $image_path = $base_url . '/' . ltrim($post['featured_image'], '/');
+                                } elseif (file_exists('uploads/blog/' . basename($post['featured_image']))) {
+                                    // Try with just the filename
+                                    $image_path = $base_url . '/uploads/blog/' . basename($post['featured_image']);
+                                } else {
+                                    // Use a default image if file doesn't exist
+                                    $image_path = $base_url . '/assets/img/blog/blog_1_1.jpg';
+                                }
+                                error_log("Final image path: " . $image_path);
+                            }
+                    ?>
                             <div class="col-md-6">
                                 <div class="th-blog blog-single">
-                                    <?php if (!empty($post['featured_image'])): ?>
+                                    <?php if (!empty($image_path)): ?>
                                         <div class="blog-img">
-                                            <img src="<?php echo $base_url . '/' . ltrim($post['featured_image'], '/'); ?>" alt="<?php echo htmlspecialchars($post['title']); ?>">
+                                            <img src="<?php echo $image_path; ?>" alt="<?php echo htmlspecialchars($post['title']); ?>">
+                                        </div>
+                                    <?php else: ?>
+                                        <!-- Placeholder image if no featured image is available -->
+                                        <div class="blog-img">
+                                            <img src="<?php echo $base_url; ?>/assets/img/blog/blog_1_1.jpg" alt="<?php echo htmlspecialchars($post['title']); ?>">
                                         </div>
                                     <?php endif; ?>
                                     <div class="blog-content">
@@ -191,8 +285,8 @@ include 'kheader.php';
                                                 <?php echo date('d M, Y', strtotime($post['published_at'])); ?>
                                             </a>
                                             <?php if (!empty($post['category_name'])): ?>
-                                                <a href="<?php echo $base_url; ?>/blogs/category/<?php echo htmlspecialchars($post['category_slug']); ?>">
-                                                    <img src="<?php echo $base_url; ?>/assets/img/icon/map.svg" alt=""><?php echo htmlspecialchars($post['category_name']); ?>
+                                                <a href="<?php echo $base_url; ?>/blog-category.php?category=<?php echo htmlspecialchars($post['category_slug']); ?>">
+                                                    <i class="fa-regular fa-folder"></i><?php echo htmlspecialchars($post['category_name']); ?>
                                                 </a>
                                             <?php endif; ?>
                                         </div>
@@ -206,10 +300,17 @@ include 'kheader.php';
                                     </div>
                                 </div>
                             </div>
-                        <?php endwhile; ?>
-                    <?php else: ?>
+                            <?php 
+                            // Free up memory after each post
+                            unset($image_path);
+                            gc_collect_cycles();
+                        endwhile; 
+                        // Free the result set
+                        $result->free();
+                    else: 
+                    ?>
                         <div class="col-12">
-                            <p class="no-posts">No blog posts found.</p>
+                            <p>No blog posts found in this category.</p>
                         </div>
                     <?php endif; ?>
                 </div>
